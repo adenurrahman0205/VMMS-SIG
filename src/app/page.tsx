@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
+import { dueServiceKm, fmt, fmtN, kmToService, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
@@ -57,6 +57,16 @@ export default function Page() {
   const topCost = [...rows].sort((a, b) => b.cost - a.cost).slice(0, 5);
   const maxKm = Math.max(...topKm.map((r) => r.km), 1);
   const maxCost = Math.max(...topCost.map((r) => r.cost), 1);
+
+  const dueSoon = useMemo(
+    () =>
+      rows
+        .map((v) => ({ ...v, left: kmToService(v) }))
+        .filter((v) => v.left <= 1500)
+        .sort((a, b) => a.left - b.left)
+        .slice(0, 8),
+    [rows]
+  );
 
   const todayUse = todayBookings.map((b) => {
     const v = fleet.find((x) => x.id === b.vehicleId);
