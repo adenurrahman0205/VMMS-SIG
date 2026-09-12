@@ -54,6 +54,13 @@ export const vehicleService = {
             health: 80,
             buyDate: v.purchase_date ?? "",
             buyPrice: Number(v.purchase_price ?? 0),
+            owner: "—",
+            address: "—",
+            fuel: "—",
+            cc: "—",
+            hp: "—",
+            madeYear: v.year ?? 0,
+            bbmNo: "0000-0000-0000-0000",
           })),
         };
       }
