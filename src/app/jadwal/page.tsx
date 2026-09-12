@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
 import { type Vehicle, vehiclePhoto } from "@/lib/data";
-import { loadFleet } from "@/lib/fleet-store";
+import { loadFleet, saveFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -64,12 +64,19 @@ export default function Jadwal() {
     persist(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
   }
 
-  function toggleToday(v: Vehicle) {
-    const existing = bookings.find((b) => b.date === today && b.vehicleId === v.id && b.status === "disetujui");
-    if (existing) persist(bookings.filter((b) => b.id !== existing.id));
-    else
+  type UsageKind = "tersedia" | "dipakai" | "maintenance";
+
+  function setUsage(v: Vehicle, kind: UsageKind) {
+    const nextFleet = fleet.map((x) =>
+      x.id === v.id ? { ...x, status: kind === "maintenance" ? "maintenance" : "ready" } : x
+    );
+    setFleet(nextFleet);
+    saveFleet(nextFleet);
+
+    const others = bookings.filter((b) => !(b.date === today && b.vehicleId === v.id && b.status === "disetujui"));
+    if (kind === "dipakai") {
       persist([
-        ...bookings,
+        ...others,
         {
           id: `b${Date.now()}`,
           vehicleId: v.id,
@@ -79,6 +86,9 @@ export default function Jadwal() {
           status: "disetujui",
         },
       ]);
+    } else {
+      persist(others);
+    }
   }
 
   const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
@@ -203,24 +213,24 @@ export default function Jadwal() {
           const service = v.status === "maintenance";
           const used = !service && inUseIds.has(v.id);
           const who = approvedToday.find((b) => b.vehicleId === v.id);
-          const label = service ? "Sedang Service" : used ? "Sedang dipakai" : "Tersedia";
-          const pill = service
-            ? "bg-red-50 text-red-800"
-            : used
-              ? "bg-amber-100 text-amber-900"
-              : "bg-emerald-50 text-emerald-800";
+          const kind: UsageKind = service ? "maintenance" : used ? "dipakai" : "tersedia";
+          const pill =
+            kind === "maintenance"
+              ? "bg-red-50 text-red-800"
+              : kind === "dipakai"
+                ? "bg-amber-100 text-amber-900"
+                : "bg-emerald-50 text-emerald-800";
           return (
-            <button
+            <div
               key={v.id}
-              type="button"
               onClick={() => {
-                if (!service && !used) {
+                if (kind === "tersedia") {
                   setAjuanVehicle(v.id);
                   setShowAjuan(true);
                 }
               }}
               className={`flex items-center gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200 ${
-                !service && !used ? "cursor-pointer hover:ring-sky-400" : "cursor-default"
+                kind === "tersedia" ? "cursor-pointer hover:ring-sky-400" : ""
               }`}
             >
               <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 rounded-xl object-cover" />
@@ -228,11 +238,23 @@ export default function Jadwal() {
                 <div className="truncate font-semibold">{v.brand} {v.model}</div>
                 <div className="text-xs text-slate-500">{v.plate}</div>
                 <div className="text-[11px] text-slate-400">
-                  {used ? `Dipakai: ${who?.userName}` : service ? "Bengkel / perbaikan" : "Klik untuk pengajuan"}
+                  {used ? `Dipakai: ${who?.userName}` : service ? "Bengkel / perbaikan" : "Klik kartu untuk pengajuan"}
                 </div>
               </div>
-              <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${pill}`}>{label}</span>
-            </button>
+              <select
+                value={kind}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  setUsage(v, e.target.value as UsageKind);
+                }}
+                className={`max-w-[150px] rounded-full border-0 px-2 py-1.5 text-xs font-semibold ${pill}`}
+              >
+                <option value="tersedia">Tersedia</option>
+                <option value="dipakai">Sedang dipakai</option>
+                <option value="maintenance">Sedang Maintenance</option>
+              </select>
+            </div>
           );
         })}
       </div>
