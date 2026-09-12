@@ -55,9 +55,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       <aside className="sticky top-0 flex h-screen w-64 flex-col bg-[#071526] text-slate-200">
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-700 text-xs font-black text-white shadow-lg">
-              VS
-            </div>
+            <img src="/images/logo-sig.png" alt="SIG" className="h-10 w-auto object-contain" />
             <div>
               <div className="text-sm font-semibold tracking-wide text-white">VMMS-SIG</div>
               <div className="text-[11px] text-slate-400">Fleet Control Center</div>
