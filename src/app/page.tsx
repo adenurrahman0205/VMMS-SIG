@@ -36,7 +36,6 @@ export default function Page() {
   const rows = useMemo(() => fleet.map((v) => ({ ...v, ...statsFor(v, jobs) })), [fleet, jobs]);
   const totalCost = jobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
   const totalKm = rows.reduce((s, r) => s + r.km, 0);
-  const nMaint = rows.filter((r) => r.status === "maintenance").length;
   const nUsed = rows.filter((r) => r.status !== "maintenance" && inUseIds.has(r.id)).length;
   const nReady = rows.filter((r) => r.status !== "maintenance" && r.status !== "inactive" && !inUseIds.has(r.id)).length;
 
@@ -80,51 +79,68 @@ export default function Page() {
     return "ready";
   }
 
+  const kpis = [
+    { l: "Armada", v: String(rows.length), s: "Unit terdaftar", click: () => setUseF("all"), d: "M4 16V8l8-4 8 4v8l-8 4-8-4Z" },
+    { l: "Tersedia", v: String(nReady), s: "Siap operasi", click: () => setUseF("ready"), d: "M20 6 9 17l-5-5" },
+    { l: "Dipakai", v: String(nUsed), s: "Hari ini", click: () => setUseF("used"), d: "M5 12h14M13 6l6 6-6 6" },
+    { l: "Total KM", v: fmtN(totalKm), s: "Akumulasi odometer", click: () => setUseF("all"), d: "M4 12h16M12 6v12" },
+    { l: "Biaya WO", v: fmt(totalCost), s: "WO selesai", click: () => undefined, d: "M12 3v18M8 8h5a3 3 0 0 1 0 6H8h6a3 3 0 0 1 0 6H8" },
+    { l: "Cost / KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi", click: () => undefined, d: "M4 20V10M10 20V4M16 20v-7M22 20V8" },
+  ];
+
   return (
     <Shell title="Command Dashboard">
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {[
-          { l: "Armada", v: String(rows.length), s: "unit terdaftar", tone: "navy", icon: "▣", click: () => setUseF("all") },
-          { l: "Tersedia", v: String(nReady), s: "siap operasi", tone: "mint", icon: "○", click: () => setUseF("ready") },
-          { l: "Dipakai", v: String(nUsed), s: "hari ini", tone: "amber", icon: "▶", click: () => setUseF("used") },
-          { l: "Total kilometer", v: `${fmtN(totalKm)}`, s: "akumulasi odometer", tone: "sky", icon: "↗", click: () => setUseF("all") },
-          { l: "Biaya WO", v: fmt(totalCost), s: "work order selesai", tone: "rose", icon: "Rp", click: () => undefined },
-          { l: "Cost per KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "efisiensi armada", tone: "violet", icon: "÷", click: () => undefined },
-        ].map((k, i) => {
-          const skin: Record<string, string> = {
-            navy: "bg-[#071526] text-white ring-white/10",
-            mint: "bg-gradient-to-br from-emerald-50 to-white text-emerald-950 ring-emerald-100",
-            amber: "bg-gradient-to-br from-amber-50 to-white text-amber-950 ring-amber-100",
-            sky: "bg-gradient-to-br from-sky-50 to-white text-sky-950 ring-sky-100",
-            rose: "bg-gradient-to-br from-orange-50 to-white text-orange-950 ring-orange-100",
-            violet: "bg-gradient-to-br from-violet-50 to-white text-violet-950 ring-violet-100",
-          };
-          const muted: Record<string, string> = {
-            navy: "text-sky-300",
-            mint: "text-emerald-600",
-            amber: "text-amber-700",
-            sky: "text-sky-600",
-            rose: "text-orange-600",
-            violet: "text-violet-600",
-          };
-          return (
+      <div className="mb-5 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
+          {kpis.map((k, i) => (
             <button
               key={k.l}
               type="button"
               onClick={k.click}
-              style={{ animationDelay: `${i * 70}ms` }}
-              className={`kpi-shine anim card-hover relative overflow-hidden rounded-2xl p-4 text-left ring-1 ${skin[k.tone]}`}
+              style={{ animationDelay: `${i * 60}ms` }}
+              className="anim group relative border-b border-r border-slate-100 px-4 py-5 text-left last:border-r-0 hover:bg-slate-50 xl:border-b-0"
             >
-              <div className="flex items-center justify-between">
-                <span className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${muted[k.tone]}`}>{k.l}</span>
-                <span className={`grid h-7 w-7 place-items-center rounded-lg text-xs font-bold ${k.tone === "navy" ? "bg-white/10 text-sky-200" : "bg-white/80"}`}>{k.icon}</span>
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">{k.l}</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#071526] text-white transition group-hover:scale-110 group-hover:bg-sky-500">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={k.d} />
+                  </svg>
+                </span>
               </div>
-              <div className="mt-3 break-words text-xl font-semibold leading-tight tracking-tight sm:text-2xl">{k.v}</div>
-              <div className={`mt-1 text-[11px] ${k.tone === "navy" ? "text-slate-400" : "text-slate-500"}`}>{k.s}</div>
+              <div className="break-words text-[1.35rem] font-semibold tracking-tight text-slate-900">{k.v}</div>
+              <div className="mt-1 text-[11px] text-slate-400">{k.s}</div>
+              <span className="absolute inset-x-4 bottom-0 h-0.5 origin-left scale-x-0 bg-sky-500 transition group-hover:scale-x-100" />
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
+
+      {dueSoon.length > 0 && (
+        <Card className="mb-5 overflow-hidden p-0">
+          <div className="flex items-center justify-between bg-amber-50 px-4 py-3">
+            <div>
+              <h2 className="text-sm font-semibold text-amber-950">Mendekati jatuh tempo servis</h2>
+              <p className="text-xs text-amber-800/80">Sisa ≤ 1.500 km ke KM servis berikutnya</p>
+            </div>
+            <span className="rounded-full bg-amber-200/80 px-2.5 py-1 text-xs font-semibold text-amber-950">{dueSoon.length} unit</span>
+          </div>
+          <div className="divide-y divide-amber-100">
+            {dueSoon.map((v) => (
+              <button key={v.id} type="button" onClick={() => setOpen(v)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-amber-50/70">
+                <img src={vehiclePhoto(v)} alt="" className="h-11 w-16 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{v.plate} · {v.brand} {v.model}</div>
+                  <div className="text-xs text-slate-500">KM {fmtN(v.km)} → servis {fmtN(dueServiceKm(v))}</div>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${v.left <= 0 ? "bg-red-100 text-red-800" : "bg-white text-amber-900 ring-1 ring-amber-200"}`}>
+                  {v.left <= 0 ? "Overdue" : `sisa ${fmtN(v.left)} km`}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card className="mb-5 p-0">
         <div className="flex items-center justify-between border-b px-4 py-3">
