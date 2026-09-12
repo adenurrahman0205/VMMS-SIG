@@ -118,6 +118,16 @@ export function VehicleForm({
             <Field label="Bahan bakar">
               <input className={inputCls} value={form.fuel} onChange={(e) => set("fuel", e.target.value)} />
             </Field>
+            <Field label="Transmisi">
+              <select
+                className={inputCls}
+                value={form.transmission ?? "matic"}
+                onChange={(e) => setForm({ ...form, transmission: e.target.value as Vehicle["transmission"] })}
+              >
+                <option value="matic">Matic</option>
+                <option value="manual">Manual</option>
+              </select>
+            </Field>
             <Field label="Isi silinder">
               <input className={inputCls} value={form.cc} onChange={(e) => set("cc", e.target.value)} />
             </Field>
