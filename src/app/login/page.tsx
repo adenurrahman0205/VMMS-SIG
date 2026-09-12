@@ -47,7 +47,7 @@ export default function Login() {
       <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[#071526]/75" />
       <form className="anim relative w-[420px] rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur" onSubmit={submit}>
-        <div className="mb-1 text-xs uppercase tracking-[0.2em] text-sky-600">SIG</div>
+        <img src="/images/logo-sig.png" alt="SIG" className="mb-3 h-12 w-auto object-contain" />
         <h1 className="text-2xl font-semibold tracking-tight">VMMS-SIG</h1>
         <p className="mb-5 mt-1 text-sm text-slate-500">Masuk ke pusat kendali armada.</p>
         <label className="text-xs text-slate-500">Email</label>
