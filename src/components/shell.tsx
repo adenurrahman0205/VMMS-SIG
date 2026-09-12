@@ -25,6 +25,7 @@ const groups = [
       ["/admin/workshops", "Bengkel"],
       ["/admin/departments", "Departemen"],
       ["/admin/spareparts", "Sparepart"],
+      ["/admin/users", "User"],
     ],
   },
   {
