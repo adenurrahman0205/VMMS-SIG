@@ -15,10 +15,6 @@ export default function Login() {
     e.preventDefault();
     setMsg("");
     const sb = createBrowserSupabase();
-    if (!sb) {
-      setMsg("Supabase env belum terpasang.");
-      return;
-    }
     setBusy(true);
     const { error } = await sb.auth.signInWithPassword({ email, password });
     setBusy(false);
@@ -33,7 +29,6 @@ export default function Login() {
   async function signUp() {
     setMsg("");
     const sb = createBrowserSupabase();
-    if (!sb) return;
     setBusy(true);
     const { error } = await sb.auth.signUp({ email, password });
     setBusy(false);
