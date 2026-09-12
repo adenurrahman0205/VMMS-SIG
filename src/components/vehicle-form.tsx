@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BbmPreview } from "@/components/bbm-preview";
 import type { Vehicle } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 
