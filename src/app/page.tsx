@@ -54,19 +54,48 @@ export default function Page() {
         </div>
       </section>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Armada", String(rows.length), "unit aktif + nonaktif"],
-          ["Total KM", fmtN(totalKm), "akumulasi odometer"],
-          ["Biaya servis", fmt(totalCost), "tahun berjalan (sample)"],
-          ["Cost / KM", fmt(Math.round(totalCost / Math.max(totalKm, 1))), "efisiensi armada"],
-        ].map(([l, v, s], i) => (
-          <Card key={l} className={`anim delay-${i + 1} border-0 bg-[#071526] text-white`}>
-            <div className="text-[11px] uppercase tracking-wide text-sky-300">{l}</div>
-            <div className="mt-1 text-2xl font-semibold">{v}</div>
-            <div className="text-xs text-slate-400">{s}</div>
-          </Card>
-        ))}
+          { l: "Armada", v: String(rows.length), s: "Unit terdaftar", tone: "navy", hint: "siap operasi" },
+          { l: "Total kilometer", v: `${fmtN(totalKm)} km`, s: "Akumulasi odometer", tone: "sky", hint: "semua unit" },
+          { l: "Biaya maintenance", v: fmt(totalCost), s: "Tahun berjalan", tone: "amber", hint: "jasa + sparepart" },
+          { l: "Cost per KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi armada", tone: "mint", hint: "semakin rendah semakin baik" },
+        ].map((k) => {
+          const skin: Record<string, string> = {
+            navy: "bg-[#071526] text-white ring-white/10",
+            sky: "bg-white text-slate-900 ring-sky-100",
+            amber: "bg-white text-slate-900 ring-amber-100",
+            mint: "bg-white text-slate-900 ring-emerald-100",
+          };
+          const pip: Record<string, string> = {
+            navy: "bg-sky-400",
+            sky: "bg-sky-500",
+            amber: "bg-amber-500",
+            mint: "bg-emerald-500",
+          };
+          const sub: Record<string, string> = {
+            navy: "text-slate-400",
+            sky: "text-slate-500",
+            amber: "text-slate-500",
+            mint: "text-slate-500",
+          };
+          return (
+            <div key={k.l} className={`anim card-hover min-h-[132px] rounded-2xl p-5 ring-1 ${skin[k.tone]}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${k.tone === "navy" ? "text-sky-300" : "text-slate-500"}`}>
+                  {k.l}
+                </span>
+                <span className={`h-2 w-2 rounded-full ${pip[k.tone]}`} />
+              </div>
+              <div className="mt-3 break-words text-[1.65rem] font-semibold leading-tight tracking-tight">{k.v}</div>
+              <div className={`mt-2 text-xs ${sub[k.tone]}`}>
+                {k.s}
+                <span className="mx-1 opacity-40">·</span>
+                {k.hint}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
