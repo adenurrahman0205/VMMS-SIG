@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
-import { type Vehicle, vehiclePhoto } from "@/lib/data";
+import { type Status, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet, saveFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
