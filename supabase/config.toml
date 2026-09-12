@@ -1,0 +1,2 @@
+# Local/CLI project name. Link ke remote: supabase link --project-ref YOUR_REF
+project_id = "vmms-sig"
