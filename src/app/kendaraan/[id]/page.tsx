@@ -27,12 +27,16 @@ function Barcode({ value }: { value: string }) {
 
 export default function Detail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const v = vehicles.find((x) => x.id === id);
   const [tab, setTab] = useState("overview");
+  const [v, setV] = useState<Vehicle | undefined>(undefined);
+  useEffect(() => {
+    const all = loadFleet();
+    setV(all.find((x) => x.id === id) ?? vehicles.find((x) => x.id === id));
+  }, [id]);
   if (!v) {
     return (
       <Shell title="Tidak ditemukan">
-        <p className="text-slate-500">Unit tidak ada. Kembali ke <Link href="/" className="text-sky-600">dashboard</Link>.</p>
+        <p className="text-slate-500">Unit tidak ada. Kembali ke <Link href="/kendaraan" className="text-sky-600">Armada</Link>.</p>
       </Shell>
     );
   }
