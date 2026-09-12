@@ -16,7 +16,7 @@ export default function Biaya() {
   const rows = useMemo(
     () =>
       vehicles
-        .map((v) => ({ ...v, c: jobs.filter((m) => m.vehicleId === v.id).reduce((s, m) => s + m.cost, 0) }))
+        .map((v) => ({ ...v, c: jobs.filter((m) => m.vehicleId === v.id && m.status === "selesai").reduce((s, m) => s + m.cost, 0) }))
         .sort((a, b) => b.c - a.c),
     [vehicles, jobs]
   );

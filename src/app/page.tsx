@@ -88,7 +88,7 @@ export default function Page() {
         {[
           { l: "Armada", v: String(rows.length), s: "Unit terdaftar", tone: "navy", hint: "siap operasi" },
           { l: "Total kilometer", v: `${fmtN(totalKm)} km`, s: "Akumulasi odometer", tone: "sky", hint: "semua unit" },
-          { l: "Biaya maintenance", v: fmt(totalCost), s: "Tahun berjalan", tone: "amber", hint: "jasa + sparepart" },
+          { l: "Biaya maintenance", v: fmt(totalCost), s: "WO selesai", tone: "amber", hint: "sama dengan halaman Maintenance" },
           { l: "Cost per KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi armada", tone: "mint", hint: "semakin rendah semakin baik" },
         ].map((k) => {
           const skin: Record<string, string> = {

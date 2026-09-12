@@ -8,7 +8,8 @@ function jobs(): Maintenance[] {
 
 export function statsFor(v: Vehicle, list?: Maintenance[]) {
   const rows = (list ?? jobs()).filter((m) => m.vehicleId === v.id);
-  const cost = rows.reduce((s, m) => s + m.cost, 0);
+  const done = rows.filter((m) => m.status === "selesai");
+  const cost = done.reduce((s, m) => s + m.cost, 0);
   const hit = (k: string) =>
     rows.filter((m) => `${m.type} ${m.items.map((i) => i.name).join(" ")}`.toLowerCase().includes(k)).length;
   return {
