@@ -203,7 +203,7 @@ export default function UsersPage() {
                   </label>
                   <label className="block text-xs font-semibold uppercase text-slate-500">
                     Konfirmasi password
-                    <input className={inputCls} type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+                    <input className={inputCls} type="password" required minLength={6} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} />
                   </label>
                 </div>
               )}
