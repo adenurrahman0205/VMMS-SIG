@@ -15,6 +15,7 @@ export default function Jadwal() {
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [showAjuan, setShowAjuan] = useState(false);
+  const [ajuanVehicle, setAjuanVehicle] = useState("");
 
   useEffect(() => {
     setFleet(loadFleet());
@@ -196,32 +197,50 @@ export default function Jadwal() {
         </Card>
       </div>
 
-      <h3 className="mb-3 text-sm font-semibold">Status pemakaian hari ini (disetujui)</h3>
+      <h3 className="mb-3 text-sm font-semibold">Status pemakaian hari ini</h3>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {fleet.map((v) => {
-          const used = inUseIds.has(v.id);
+          const service = v.status === "maintenance";
+          const used = !service && inUseIds.has(v.id);
           const who = approvedToday.find((b) => b.vehicleId === v.id);
+          const label = service ? "Sedang Service" : used ? "Sedang dipakai" : "Tersedia";
+          const pill = service
+            ? "bg-red-50 text-red-800"
+            : used
+              ? "bg-amber-100 text-amber-900"
+              : "bg-emerald-50 text-emerald-800";
           return (
-            <div key={v.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => {
+                if (!service && !used) {
+                  setAjuanVehicle(v.id);
+                  setShowAjuan(true);
+                }
+              }}
+              className={`flex items-center gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200 ${
+                !service && !used ? "cursor-pointer hover:ring-sky-400" : "cursor-default"
+              }`}
+            >
               <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-semibold">{v.brand} {v.model}</div>
                 <div className="text-xs text-slate-500">{v.plate}</div>
-                <div className="text-[11px] text-slate-400">{used ? `Dipakai: ${who?.userName}` : "Tersedia"}</div>
+                <div className="text-[11px] text-slate-400">
+                  {used ? `Dipakai: ${who?.userName}` : service ? "Bengkel / perbaikan" : "Klik untuk pengajuan"}
+                </div>
               </div>
-              <button
-                onClick={() => toggleToday(v)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${used ? "bg-amber-100 text-amber-900" : "bg-emerald-50 text-emerald-800"}`}
-              >
-                {used ? "Sedang dipakai" : "Tersedia"}
-              </button>
-            </div>
+              <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${pill}`}>{label}</span>
+            </button>
           );
         })}
       </div>
 
       {showAjuan && (
         <PengajuanModal
+          vehicleId={ajuanVehicle}
+          date={today}
           onClose={() => setShowAjuan(false)}
           onSaved={() => setBookings(loadBookings())}
         />

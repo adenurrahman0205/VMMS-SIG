@@ -5,12 +5,22 @@ import { type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, type Booking } from "@/lib/schedule-store";
 
-export function PengajuanModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+export function PengajuanModal({
+  onClose,
+  onSaved,
+  vehicleId = "",
+  date = "",
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+  vehicleId?: string;
+  date?: string;
+}) {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [ok, setOk] = useState("");
   const [form, setForm] = useState({
-    vehicleId: "",
-    date: "",
+    vehicleId,
+    date,
     userName: "",
     dept: "",
     phone: "",
