@@ -15,7 +15,7 @@ export default function UsersPage() {
   const [editor, setEditor] = useState<AppUser | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
   const [formMsg, setFormMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -46,7 +46,7 @@ export default function UsersPage() {
         setFormMsg("Password minimal 6 karakter.");
         return;
       }
-      if (password !== confirm) {
+      if (password !== confirmPw) {
         setFormMsg("Konfirmasi password tidak sama.");
         return;
       }
@@ -68,12 +68,12 @@ export default function UsersPage() {
     setBusy(false);
     setEditor(null);
     setPassword("");
-    setConfirm("");
+    setConfirmPw("");
     setIsNew(false);
   }
 
   function archive(u: AppUser) {
-    if (!confirm(`Nonaktifkan / hapus akses ${u.email}? Histori tidak dihapus permanen.`)) return;
+    if (!window.confirm(`Nonaktifkan / hapus akses ${u.email}? Histori tidak dihapus permanen.`)) return;
     persist(rows.map((x) => (x.id === u.id ? { ...x, active: false } : x)));
   }
 
@@ -98,7 +98,7 @@ export default function UsersPage() {
             onClick={() => {
               setIsNew(true);
               setPassword("");
-              setConfirm("");
+              setConfirmPw("");
               setFormMsg("");
               setEditor(blankUser());
             }}
