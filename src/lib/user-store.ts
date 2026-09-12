@@ -9,6 +9,7 @@ export type AppUser = {
   role: AppRole;
   active: boolean;
   createdAt: string;
+  avatar?: string;
 };
 
 const KEY = "vmms-users-v1";
