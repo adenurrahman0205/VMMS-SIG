@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/shell";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { loadUsers, saveUsers, type AppUser } from "@/lib/user-store";
+import { cacheUser, compressAvatar, mergeLocalUser, saveProfileCloud } from "@/lib/services/profile.service";
+import type { AppUser } from "@/lib/user-store";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white";
@@ -26,45 +27,41 @@ export default function ProfilPage() {
       const { data } = await sb.auth.getUser();
       const em = data.user?.email ?? "";
       setEmail(em);
-      const users = loadUsers();
-      const found = users.find((u) => u.email.toLowerCase() === em.toLowerCase());
-      setMe(
-        found ?? {
-          id: data.user?.id ?? "me",
-          name: data.user?.user_metadata?.name || em.split("@")[0] || "Pengguna",
-          email: em,
-          phone: "",
-          dept: "",
-          jabatan: "",
-          role: "USER",
-          active: true,
-          createdAt: new Date().toISOString().slice(0, 10),
-        }
-      );
+      setMe(mergeLocalUser(em, data.user?.id ?? "me", data.user?.user_metadata as Record<string, unknown> | undefined));
     })();
   }, []);
 
-  function onPhoto(file?: File) {
+  async function onPhoto(file?: File) {
     if (!file || !me) return;
-    const reader = new FileReader();
-    reader.onload = () => setMe({ ...me, avatar: String(reader.result || "") });
-    reader.readAsDataURL(file);
+    try {
+      const avatar = await compressAvatar(file);
+      setMe({ ...me, avatar });
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => setMe({ ...me, avatar: String(reader.result || "") });
+      reader.readAsDataURL(file);
+    }
   }
 
-  function save(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!me) return;
+    setOk("");
     setBusy(true);
-    const users = loadUsers();
-    const i = users.findIndex((u) => u.email.toLowerCase() === me.email.toLowerCase());
-    if (i >= 0) {
-      users[i] = me;
-      saveUsers(users);
-    } else {
-      saveUsers([me, ...users]);
+    cacheUser(me);
+    try {
+      await saveProfileCloud({
+        name: me.name,
+        phone: me.phone,
+        dept: me.dept,
+        jabatan: me.jabatan ?? "",
+        avatar: me.avatar ?? "",
+      });
+      setOk("Profil disimpan di akun (bisa dipakai di HP dan komputer).");
+    } catch (ex) {
+      setOk(ex instanceof Error ? `Tersimpan di perangkat ini. Cloud: ${ex.message}` : "Tersimpan di perangkat ini saja.");
     }
     setBusy(false);
-    setOk("Profil disimpan.");
   }
 
   async function savePassword(e: React.FormEvent) {

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { loadUsers } from "@/lib/user-store";
+import { mergeLocalUser } from "@/lib/services/profile.service";
 
 const items: [string, string][] = [
   ["/", "Dashboard"],
