@@ -50,9 +50,6 @@ export default function Login() {
         <button disabled={busy} className="mt-5 w-full rounded-xl bg-[#071526] py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700" type="submit">
           {busy ? "..." : "Masuk"}
         </button>
-        <button type="button" disabled={busy} onClick={signUp} className="mt-2 w-full rounded-xl border py-2 text-sm">
-          Daftar akun baru
-        </button>
       </form>
     </div>
   );
