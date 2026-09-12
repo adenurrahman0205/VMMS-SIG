@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
@@ -8,13 +8,17 @@ import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
 
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
+const inputCls =
+  "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
 
 export default function Mnt() {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
   const [q, setQ] = useState("");
   const [st, setSt] = useState<"all" | "proses" | "selesai">("all");
-  const [open, setOpen] = useState<string | null>(null);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [histUnit, setHistUnit] = useState<string | null>(null);
   const [editor, setEditor] = useState<Maintenance | null>(null);
 
   useEffect(() => {
@@ -32,22 +36,31 @@ export default function Mnt() {
     persist(jobs.map((j) => (j.id === id ? { ...j, status } : j)));
   }
 
-  const stats = useMemo(() => {
-    const proses = jobs.filter((j) => j.status === "proses");
-    const selesai = jobs.filter((j) => j.status === "selesai");
-    const cost = jobs.reduce((s, j) => s + j.cost, 0);
-    return { n: jobs.length, proses: proses.length, selesai: selesai.length, cost };
-  }, [jobs]);
-
-  const list = useMemo(() => {
+  const filtered = useMemo(() => {
     return jobs
       .filter((j) => {
         const v = fleet.find((x) => x.id === j.vehicleId);
         const blob = `${j.id} ${j.type} ${j.shop} ${j.complaint} ${v?.plate} ${v?.model}`.toLowerCase();
-        return blob.includes(q.toLowerCase()) && (st === "all" || j.status === st);
+        const okQ = blob.includes(q.toLowerCase());
+        const okS = st === "all" || j.status === st;
+        const okFrom = !from || j.date >= from;
+        const okTo = !to || j.date <= to;
+        return okQ && okS && okFrom && okTo;
       })
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
-  }, [jobs, fleet, q, st]);
+  }, [jobs, fleet, q, st, from, to]);
+
+  const stats = useMemo(() => {
+    const proses = filtered.filter((j) => j.status === "proses");
+    const selesai = filtered.filter((j) => j.status === "selesai");
+    const cost = selesai.reduce((s, j) => s + j.cost, 0);
+    return { n: filtered.length, proses: proses.length, selesai: selesai.length, cost };
+  }, [filtered]);
+
+  const histJobs = jobs
+    .filter((j) => j.vehicleId === histUnit)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const histV = fleet.find((x) => x.id === histUnit);
 
   function saveEditor(e: React.FormEvent) {
     e.preventDefault();
@@ -59,6 +72,9 @@ export default function Mnt() {
     setEditor(null);
   }
 
+  const ev = editor ? fleet.find((x) => x.id === editor.vehicleId) : undefined;
+  const previewCost = editor ? editor.items.reduce((s, it) => s + it.qty * it.price, 0) || editor.cost : 0;
+
   return (
     <Shell title="Data Maintenance">
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
@@ -68,7 +84,7 @@ export default function Mnt() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Workshop control</p>
             <h2 className="text-2xl font-semibold">Histori servis & work order</h2>
-            <p className="text-sm text-slate-300">Status proses otomatis menandai unit Sedang Maintenance di Armada & Jadwal.</p>
+            <p className="text-sm text-slate-300">Klik baris tabel untuk histori unit. Total biaya hanya WO selesai.</p>
           </div>
           <button
             type="button"
@@ -82,20 +98,40 @@ export default function Mnt() {
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          ["Semua WO", stats.n, "catatan servis"],
-          ["Sedang proses", stats.proses, "unit di bengkel"],
-          ["Selesai", stats.selesai, "histori tertutup"],
-          ["Total biaya", fmt(stats.cost), "semua WO"],
+          ["Semua WO", String(stats.n), "sesuai filter"],
+          ["Sedang proses", String(stats.proses), "belum dihitung biaya"],
+          ["Selesai", String(stats.selesai), "histori tertutup"],
+          ["Total biaya", fmt(stats.cost), "akumulasi WO selesai"],
         ].map(([l, n, s]) => (
-          <div key={String(l)} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+          <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
-            <div className="mt-1 text-2xl font-semibold tracking-tight">{n}</div>
+            <div className="mt-1 break-words text-2xl font-semibold tracking-tight">{n}</div>
             <div className="text-xs text-slate-400">{s}</div>
           </div>
         ))}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+        <label className="text-xs font-semibold uppercase text-slate-500">
+          Dari tanggal
+          <input className={inputCls} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+        </label>
+        <label className="text-xs font-semibold uppercase text-slate-500">
+          Sampai tanggal
+          <input className={inputCls} type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+        </label>
+        {(from || to) && (
+          <button type="button" className="rounded-xl border px-3 py-2 text-sm" onClick={() => { setFrom(""); setTo(""); }}>
+            Reset tanggal
+          </button>
+        )}
+        <div className="ml-auto flex min-w-[200px] flex-1 items-center rounded-xl border bg-slate-50 px-3 py-2">
+          <span className="mr-2 text-slate-400">⌕</span>
+          <input className="w-full bg-transparent text-sm outline-none" placeholder="Cari plat, jenis, bengkel…" value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
         {(["all", "proses", "selesai"] as const).map((k) => (
           <button
             key={k}
@@ -108,10 +144,6 @@ export default function Mnt() {
             {k === "all" ? "Semua status" : k === "proses" ? "Proses" : "Selesai"}
           </button>
         ))}
-        <div className="ml-auto flex min-w-[220px] flex-1 items-center rounded-2xl border bg-white px-3 py-2">
-          <span className="mr-2 text-slate-400">⌕</span>
-          <input className="w-full text-sm outline-none" placeholder="Cari plat, jenis, bengkel…" value={q} onChange={(e) => setQ(e.target.value)} />
-        </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -119,95 +151,58 @@ export default function Mnt() {
           <table className="w-full min-w-[980px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status", ""].map((h) => (
-                  <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
+                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {list.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-slate-400">Tidak ada work order.</td>
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">Tidak ada work order pada rentang tanggal ini.</td>
                 </tr>
               )}
-              {list.map((m) => {
+              {filtered.map((m) => {
                 const v = fleet.find((x) => x.id === m.vehicleId);
-                const shown = open === m.id;
                 return (
-                  <Fragment key={m.id}>
-                    <tr className="border-t border-slate-100 hover:bg-slate-50/80">
-                      <td className="px-4 py-3">
-                        <div className="font-mono text-[11px] text-slate-500">{m.id}</div>
-                        <div className="font-medium">{m.date}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link href={v ? `/kendaraan/${v.id}` : "/kendaraan"} className="flex items-center gap-2">
-                          <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
-                          <span>
-                            <span className="block font-semibold">{v?.plate ?? m.vehicleId}</span>
-                            <span className="text-xs text-slate-500">{v ? `${v.brand} ${v.model}` : ""}</span>
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">{m.type}</td>
-                      <td className="px-4 py-3">{fmtN(m.km)}</td>
-                      <td className="px-4 py-3">{m.shop || "—"}</td>
-                      <td className="max-w-[180px] truncate px-4 py-3 text-slate-600">{m.complaint || "—"}</td>
-                      <td className="px-4 py-3 font-semibold">{fmt(m.cost)}</td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={m.status}
-                          onChange={(e) => setJobStatus(m.id, e.target.value as Maintenance["status"])}
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                            m.status === "proses" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"
-                          }`}
-                        >
-                          <option value="proses">Proses</option>
-                          <option value="selesai">Selesai</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button className="text-xs font-semibold text-sky-700" onClick={() => setOpen(shown ? null : m.id)}>
-                          {shown ? "Tutup" : "Detail"}
-                        </button>
-                      </td>
-                    </tr>
-                    {shown && (
-                      <tr className="border-t border-slate-100 bg-slate-50">
-                        <td colSpan={9} className="px-6 py-4">
-                          <div className="grid gap-4 md:grid-cols-3">
-                            <div>
-                              <div className="text-[11px] uppercase text-slate-400">Keluhan</div>
-                              <p className="text-sm">{m.complaint || "—"}</p>
-                            </div>
-                            <div>
-                              <div className="text-[11px] uppercase text-slate-400">Tindakan</div>
-                              <p className="text-sm">{m.action || "—"}</p>
-                            </div>
-                            <div>
-                              <div className="text-[11px] uppercase text-slate-400">Sparepart</div>
-                              {m.items.length === 0 && <p className="text-sm text-slate-400">Tidak ada item.</p>}
-                              <ul className="text-sm">
-                                {m.items.map((it) => (
-                                  <li key={it.name} className="flex justify-between gap-4">
-                                    <span>{it.name} × {it.qty}</span>
-                                    <span>{fmt(it.qty * it.price)}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                          <div className="mt-3 flex items-center gap-3">
-                            <Badge status={v?.status ?? "ready"} />
-                            <span className="text-xs text-slate-500">Status unit mengikuti WO proses.</span>
-                            <button className="ml-auto text-xs font-semibold text-sky-700" onClick={() => setEditor(m)}>
-                              Ubah WO
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
+                  <tr
+                    key={m.id}
+                    className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/70"
+                    onClick={() => setHistUnit(m.vehicleId)}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-[11px] text-slate-500">{m.id}</div>
+                      <div className="font-medium">{m.date}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                        <span>
+                          <span className="block font-semibold">{v?.plate ?? m.vehicleId}</span>
+                          <span className="text-xs text-slate-500">{v ? `${v.brand} ${v.model}` : ""}</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{m.type}</td>
+                    <td className="px-4 py-3">{fmtN(m.km)}</td>
+                    <td className="px-4 py-3">{m.shop || "—"}</td>
+                    <td className="max-w-[180px] truncate px-4 py-3 text-slate-600">{m.complaint || "—"}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      {m.status === "selesai" ? fmt(m.cost) : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={m.status}
+                        onChange={(e) => setJobStatus(m.id, e.target.value as Maintenance["status"])}
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          m.status === "proses" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"
+                        }`}
+                      >
+                        <option value="proses">Proses</option>
+                        <option value="selesai">Selesai</option>
+                      </select>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -215,90 +210,179 @@ export default function Mnt() {
         </div>
       </div>
 
-      {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
+      {histUnit && histV && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHistUnit(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
+          <div className="anim relative max-h-[92vh] w-full max-w-3xl overflow-auto rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="relative h-40">
+              <img src={vehiclePhoto(histV)} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071526] to-transparent" />
+              <button type="button" className="absolute right-4 top-4 rounded-full bg-black/40 px-3 py-1 text-sm !text-white" onClick={() => setHistUnit(null)}>
+                Tutup
+              </button>
+              <div className="absolute bottom-4 left-6 text-white">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Histori maintenance</p>
+                <h3 className="text-2xl font-semibold">{histV.brand} {histV.model}</h3>
+                <p className="text-sm text-slate-300">{histV.plate} · {histJobs.length} work order</p>
+              </div>
+            </div>
+            <div className="p-5">
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="text-[11px] uppercase text-slate-400">Total selesai</div>
+                  <div className="text-lg font-semibold">{fmt(histJobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0))}</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="text-[11px] uppercase text-slate-400">Status unit</div>
+                  <div className="mt-1"><Badge status={histV.status} /></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {histJobs.length === 0 && <p className="text-sm text-slate-400">Belum ada histori.</p>}
+                {histJobs.map((m) => (
+                  <div key={m.id} className="rounded-2xl ring-1 ring-slate-200 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold">{m.type}</div>
+                        <div className="text-xs text-slate-500">{m.id} · {m.date} · KM {fmtN(m.km)} · {m.shop}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">{m.status === "selesai" ? fmt(m.cost) : "Belum ditagih"}</div>
+                        <Badge status={m.status} />
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">{m.complaint || "—"} → {m.action || "—"}</p>
+                    {m.items.length > 0 && (
+                      <ul className="mt-2 text-xs text-slate-500">
+                        {m.items.map((it) => (
+                          <li key={it.name}>{it.name} × {it.qty} · {fmt(it.qty * it.price)}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <button type="button" className="mt-2 text-xs font-semibold text-sky-700" onClick={() => { setEditor(m); setHistUnit(null); }}>
+                      Ubah WO
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Link href={`/kendaraan/${histV.id}`} className="mt-4 inline-block text-sm text-sky-700">Buka dossier unit →</Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6" onClick={() => setEditor(null)}>
+          <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-md" />
           <form
-            className="anim relative max-h-[94vh] w-full max-w-xl overflow-auto rounded-3xl bg-white p-6 shadow-2xl"
+            className="anim relative flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             onSubmit={saveEditor}
           >
-            <h3 className="mb-4 text-lg font-semibold">Work order</h3>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Kendaraan
-              <select className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={editor.vehicleId} onChange={(e) => setEditor({ ...editor, vehicleId: e.target.value })}>
-                {fleet.map((v) => (
-                  <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>
-                ))}
-              </select>
-            </label>
-            <div className="mb-3 grid grid-cols-2 gap-3">
-              <label className="block text-xs font-semibold uppercase text-slate-500">
-                Tanggal
-                <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" type="date" value={editor.date} onChange={(e) => setEditor({ ...editor, date: e.target.value })} />
-              </label>
-              <label className="block text-xs font-semibold uppercase text-slate-500">
-                KM
-                <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" type="number" value={editor.km} onChange={(e) => setEditor({ ...editor, km: Number(e.target.value) || 0 })} />
-              </label>
-            </div>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Jenis
-              <select className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={editor.type} onChange={(e) => setEditor({ ...editor, type: e.target.value })}>
-                {TYPES.map((t) => <option key={t}>{t}</option>)}
-              </select>
-            </label>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Bengkel
-              <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={editor.shop} onChange={(e) => setEditor({ ...editor, shop: e.target.value })} />
-            </label>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Keluhan
-              <textarea className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" rows={2} value={editor.complaint} onChange={(e) => setEditor({ ...editor, complaint: e.target.value })} />
-            </label>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Tindakan
-              <textarea className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" rows={2} value={editor.action} onChange={(e) => setEditor({ ...editor, action: e.target.value })} />
-            </label>
-            <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Status
-              <select className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={editor.status} onChange={(e) => setEditor({ ...editor, status: e.target.value as Maintenance["status"] })}>
-                <option value="proses">Proses</option>
-                <option value="selesai">Selesai</option>
-              </select>
-            </label>
-            <div className="mb-3">
-              <div className="mb-1 text-xs font-semibold uppercase text-slate-500">Sparepart</div>
-              {editor.items.map((it, i) => (
-                <div key={i} className="mb-2 grid grid-cols-7 gap-2">
-                  <input className="col-span-3 rounded-xl border px-2 py-2 text-sm" placeholder="Nama" value={it.name} onChange={(e) => {
-                    const items = [...editor.items];
-                    items[i] = { ...it, name: e.target.value };
-                    setEditor({ ...editor, items });
-                  }} />
-                  <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" placeholder="Qty" value={it.qty} onChange={(e) => {
-                    const items = [...editor.items];
-                    items[i] = { ...it, qty: Number(e.target.value) || 0 };
-                    setEditor({ ...editor, items });
-                  }} />
-                  <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" placeholder="Harga" value={it.price} onChange={(e) => {
-                    const items = [...editor.items];
-                    items[i] = { ...it, price: Number(e.target.value) || 0 };
-                    setEditor({ ...editor, items });
-                  }} />
-                </div>
-              ))}
-              <button
-                type="button"
-                className="text-xs font-semibold text-sky-700"
-                onClick={() => setEditor({ ...editor, items: [...editor.items, { name: "", qty: 1, price: 0 }] })}
-              >
-                + Item
+            <div className="flex items-center justify-between bg-[#071526] px-6 py-4 text-white">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300">VMMS-SIG</p>
+                <h2 className="text-lg font-semibold">Formulir work order</h2>
+              </div>
+              <button type="button" onClick={() => setEditor(null)} className="rounded-full bg-white/10 px-3 py-1 text-sm !text-white">
+                Tutup
               </button>
             </div>
-            <div className="flex justify-end gap-2">
-              <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
-              <button className="rounded-xl bg-[#071526] px-5 py-2 text-sm font-semibold !text-white">Simpan</button>
+            <div className="grid min-h-0 flex-1 overflow-auto lg:grid-cols-5">
+              <div className="space-y-3 p-6 lg:col-span-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Kendaraan
+                  <select className={inputCls} value={editor.vehicleId} onChange={(e) => setEditor({ ...editor, vehicleId: e.target.value })}>
+                    {fleet.map((v) => (
+                      <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    Tanggal
+                    <input className={inputCls} type="date" value={editor.date} onChange={(e) => setEditor({ ...editor, date: e.target.value })} />
+                  </label>
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    KM
+                    <input className={inputCls} type="number" value={editor.km} onChange={(e) => setEditor({ ...editor, km: Number(e.target.value) || 0 })} />
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    Jenis
+                    <select className={inputCls} value={editor.type} onChange={(e) => setEditor({ ...editor, type: e.target.value })}>
+                      {TYPES.map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    Status
+                    <select className={inputCls} value={editor.status} onChange={(e) => setEditor({ ...editor, status: e.target.value as Maintenance["status"] })}>
+                      <option value="proses">Proses</option>
+                      <option value="selesai">Selesai</option>
+                    </select>
+                  </label>
+                </div>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Bengkel
+                  <input className={inputCls} value={editor.shop} onChange={(e) => setEditor({ ...editor, shop: e.target.value })} />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Keluhan
+                  <textarea className={inputCls} rows={2} value={editor.complaint} onChange={(e) => setEditor({ ...editor, complaint: e.target.value })} />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Tindakan
+                  <textarea className={inputCls} rows={2} value={editor.action} onChange={(e) => setEditor({ ...editor, action: e.target.value })} />
+                </label>
+                <div>
+                  <div className="mb-2 text-xs font-semibold uppercase text-slate-500">Sparepart</div>
+                  {editor.items.map((it, i) => (
+                    <div key={i} className="mb-2 grid grid-cols-7 gap-2">
+                      <input className="col-span-3 rounded-xl border px-2 py-2 text-sm" placeholder="Nama" value={it.name} onChange={(e) => {
+                        const items = [...editor.items];
+                        items[i] = { ...it, name: e.target.value };
+                        setEditor({ ...editor, items });
+                      }} />
+                      <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" placeholder="Qty" value={it.qty} onChange={(e) => {
+                        const items = [...editor.items];
+                        items[i] = { ...it, qty: Number(e.target.value) || 0 };
+                        setEditor({ ...editor, items });
+                      }} />
+                      <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" placeholder="Harga" value={it.price} onChange={(e) => {
+                        const items = [...editor.items];
+                        items[i] = { ...it, price: Number(e.target.value) || 0 };
+                        setEditor({ ...editor, items });
+                      }} />
+                    </div>
+                  ))}
+                  <button type="button" className="text-xs font-semibold text-sky-700" onClick={() => setEditor({ ...editor, items: [...editor.items, { name: "", qty: 1, price: 0 }] })}>
+                    + Item sparepart
+                  </button>
+                </div>
+              </div>
+              <div className="border-t bg-slate-50 p-6 lg:border-l lg:border-t-0 lg:col-span-2">
+                <h3 className="mb-3 text-sm font-semibold">Preview unit</h3>
+                {ev ? (
+                  <>
+                    <img src={vehiclePhoto(ev)} alt="" className="mb-3 h-36 w-full rounded-2xl object-cover" />
+                    <p className="font-semibold">{ev.brand} {ev.model}</p>
+                    <p className="text-sm text-slate-500">{ev.plate} · {ev.color}</p>
+                    <p className="mt-1 text-xs text-slate-400">{ev.driver} · {ev.dept}</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-slate-400">Pilih kendaraan.</p>
+                )}
+                <div className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+                  <div className="text-[11px] uppercase text-slate-400">Perkiraan biaya</div>
+                  <div className="text-xl font-semibold">{fmt(previewCost)}</div>
+                  <p className="mt-1 text-xs text-slate-500">Masuk ke Total biaya setelah status Selesai.</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
+              <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
+              <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan work order</button>
             </div>
           </form>
         </div>
