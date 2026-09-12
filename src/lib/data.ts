@@ -50,6 +50,17 @@ export function docStatusFromExpire(expire: string): VehicleDoc["status"] {
   return "aktif";
 }
 
+export function docsForVehicle(v: { id: string; documents?: VehicleDoc[] }): VehicleDoc[] {
+  if (v.documents && v.documents.length) return v.documents;
+  return documents
+    .filter((d) => d.vehicleId === v.id)
+    .map((d) => ({
+      type: d.type,
+      expire: d.expire,
+      status: (d.status as VehicleDoc["status"]) || docStatusFromExpire(d.expire),
+    }));
+}
+
 export type Maintenance = {
   id: string;
   vehicleId: string;

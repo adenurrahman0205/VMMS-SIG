@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { documents, fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
+import { docsForVehicle, fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";
@@ -31,10 +31,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     );
   }
   const hist = jobs.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
-  const docs =
-    v.documents && v.documents.length
-      ? v.documents
-      : documents.filter((d) => d.vehicleId === v.id);
+  const docs = docsForVehicle(v);
   const s = statsFor(v, jobs);
   const tabs: { k: string; l: string; n?: string; d: string }[] = [
     { k: "overview", l: "Identitas", d: "M4 6h16M4 12h10M4 18h14" },

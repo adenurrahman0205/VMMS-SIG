@@ -1,4 +1,4 @@
-import { dueServiceKm, inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
+import { docsForVehicle, dueServiceKm, inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 import { pushCloud } from "./services/sync.service";
 
@@ -16,7 +16,7 @@ export function loadFleet(): Vehicle[] {
           ownerKind: inferOwnerKind(v),
           nextServiceKm: dueServiceKm(v),
           transmission: v.transmission === "manual" ? "manual" : "matic",
-          documents: Array.isArray(v.documents) ? v.documents : [],
+          documents: v.documents?.length ? v.documents : docsForVehicle(v),
         }));
       }
     }

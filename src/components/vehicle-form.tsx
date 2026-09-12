@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
-import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire } from "@/lib/data";
+import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 
 function Field({
@@ -35,7 +35,11 @@ export function VehicleForm({
   onSave: (v: Vehicle) => void;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState<Vehicle>(initial);
+  const [form, setForm] = useState<Vehicle>(() => ({
+    ...initial,
+    transmission: initial.transmission ?? "matic",
+    documents: docsForVehicle(initial),
+  }));
 
   function set<K extends keyof Vehicle>(k: K, val: string) {
     const num = ["year", "madeYear", "km", "health", "buyPrice", "nextServiceKm"].includes(String(k));
