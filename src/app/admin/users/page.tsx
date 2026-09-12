@@ -208,16 +208,20 @@ export default function UsersPage() {
                   </label>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Telepon
                   <input className={inputCls} value={editor.phone} onChange={(e) => setEditor({ ...editor, phone: e.target.value })} />
                 </label>
                 <label className="block text-xs font-semibold uppercase text-slate-500">
-                  Departemen
+                  Divisi
                   <input className={inputCls} value={editor.dept} onChange={(e) => setEditor({ ...editor, dept: e.target.value })} />
                 </label>
               </div>
+              <label className="block text-xs font-semibold uppercase text-slate-500">
+                Jabatan
+                <input className={inputCls} value={editor.jabatan ?? ""} onChange={(e) => setEditor({ ...editor, jabatan: e.target.value })} />
+              </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Role
                 <select className={inputCls} value={editor.role} onChange={(e) => setEditor({ ...editor, role: e.target.value as AppRole })}>
