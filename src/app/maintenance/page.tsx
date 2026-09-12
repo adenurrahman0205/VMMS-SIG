@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
-import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
+import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
 
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
 const inputCls =
@@ -39,7 +39,7 @@ export default function Mnt() {
   const filtered = useMemo(() => {
     return jobs
       .filter((j) => {
-        const v = fleet.find((x) => x.id === j.vehicleId);
+        const v = findFleetUnit(fleet, j.vehicleId);
         const blob = `${j.id} ${j.type} ${j.shop} ${j.complaint} ${v?.plate} ${v?.model}`.toLowerCase();
         const okQ = blob.includes(q.toLowerCase());
         const okS = st === "all" || j.status === st;
@@ -60,7 +60,7 @@ export default function Mnt() {
   const histJobs = jobs
     .filter((j) => j.vehicleId === histUnit)
     .sort((a, b) => b.date.localeCompare(a.date));
-  const histV = fleet.find((x) => x.id === histUnit);
+  const histV = findFleetUnit(fleet, histUnit ?? "");
 
   function saveEditor(e: React.FormEvent) {
     e.preventDefault();
@@ -72,7 +72,7 @@ export default function Mnt() {
     setEditor(null);
   }
 
-  const ev = editor ? fleet.find((x) => x.id === editor.vehicleId) : undefined;
+  const ev = editor ? findFleetUnit(fleet, editor.vehicleId) : undefined;
   const previewCost = editor ? editor.items.reduce((s, it) => s + it.qty * it.price, 0) || editor.cost : 0;
 
   return (
