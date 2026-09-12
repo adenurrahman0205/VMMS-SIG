@@ -80,13 +80,13 @@ export default function Page() {
   }
 
   const kpis = [
-    { l: "Armada", v: String(rows.length), s: "Unit terdaftar", click: () => setUseF("all"), accent: "bg-sky-500", iconBg: "bg-sky-50 text-sky-700" },
-    { l: "Tersedia", v: String(nReady), s: "Siap operasi", click: () => setUseF("ready"), accent: "bg-emerald-500", iconBg: "bg-emerald-50 text-emerald-700" },
-    { l: "Dipakai", v: String(nUsed), s: "Hari ini", click: () => setUseF("used"), accent: "bg-amber-500", iconBg: "bg-amber-50 text-amber-800" },
-    { l: "Jatuh tempo servis", v: String(dueSoon.length), s: "≤ 1.500 km", click: () => undefined, accent: "bg-red-500", iconBg: "bg-red-50 text-red-700" },
-    { l: "Total KM", v: fmtN(totalKm), s: "Akumulasi odometer", click: () => setUseF("all"), accent: "bg-indigo-500", iconBg: "bg-indigo-50 text-indigo-700" },
-    { l: "Biaya WO", v: fmt(totalCost), s: "WO selesai", click: () => undefined, accent: "bg-orange-500", iconBg: "bg-orange-50 text-orange-800" },
-    { l: "Cost / KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi", click: () => undefined, accent: "bg-violet-500", iconBg: "bg-violet-50 text-violet-700" },
+    { l: "Armada", v: String(rows.length), s: "Unit terdaftar", click: () => setUseF("all"), glow: "rgba(56,189,248,0.35)", ring: "ring-sky-400/30", path: "M4 16V8l8-4 8 4v8l-8 4-8-4Z" },
+    { l: "Tersedia", v: String(nReady), s: "Siap operasi", click: () => setUseF("ready"), glow: "rgba(52,211,153,0.35)", ring: "ring-emerald-400/30", path: "M20 6 9 17l-5-5" },
+    { l: "Dipakai", v: String(nUsed), s: "Hari ini", click: () => setUseF("used"), glow: "rgba(251,191,36,0.4)", ring: "ring-amber-400/30", path: "M5 12h14M13 6l6 6-6 6" },
+    { l: "Jatuh tempo", v: String(dueSoon.length), s: "Mobil dekat servis", click: () => undefined, glow: "rgba(248,113,113,0.4)", ring: "ring-red-400/30", path: "M12 8v5M12 17h.01M10.3 4.2 2.8 18a2 2 0 0 0 1.7 3h14.9a2 2 0 0 0 1.8-3L13.7 4.2a2 2 0 0 0-3.4 0Z" },
+    { l: "Total KM", v: fmtN(totalKm), s: "Akumulasi odometer", click: () => setUseF("all"), glow: "rgba(129,140,248,0.4)", ring: "ring-indigo-400/30", path: "M4 12h16M12 6v12" },
+    { l: "Biaya WO", v: fmt(totalCost), s: "WO selesai", click: () => undefined, glow: "rgba(251,146,60,0.4)", ring: "ring-orange-400/30", path: "M12 3v18M8 8h5a3 3 0 0 1 0 6H8h6a3 3 0 0 1 0 6H8" },
+    { l: "Cost / KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi armada", click: () => undefined, glow: "rgba(167,139,250,0.4)", ring: "ring-violet-400/30", path: "M4 20V10M10 20V4M16 20v-7M22 20V8" },
   ];
 
   return (
@@ -97,14 +97,23 @@ export default function Page() {
             key={k.l}
             type="button"
             onClick={k.click}
-            style={{ animationDelay: `${i * 55}ms` }}
-            className="anim group flex overflow-hidden rounded-2xl bg-white text-left shadow-sm ring-1 ring-slate-200/90 transition hover:-translate-y-0.5 hover:shadow-md"
+            style={{ animationDelay: `${i * 70}ms` }}
+            className={`anim group relative isolate overflow-hidden rounded-3xl bg-[#071526] p-4 text-left text-white ring-1 ${k.ring} transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.45)]`}
           >
-            <span className={`w-1.5 shrink-0 ${k.accent}`} />
-            <div className="min-w-0 flex-1 px-4 py-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{k.l}</div>
-              <div className="mt-2 truncate text-2xl font-semibold tracking-tight text-slate-900">{k.v}</div>
-              <div className="mt-1 text-[11px] text-slate-500">{k.s}</div>
+            <span className="pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full blur-2xl transition group-hover:scale-125" style={{ background: k.glow }} />
+            <span className="pointer-events-none absolute -bottom-10 left-6 h-16 w-16 rounded-full bg-white/5 blur-xl" />
+            <div className="relative flex items-start justify-between">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">{k.l}</span>
+              <span className="grid h-9 w-9 place-items-center rounded-2xl bg-white/10 backdrop-blur">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d={k.path} />
+                </svg>
+              </span>
+            </div>
+            <div className="relative mt-5 truncate text-[1.65rem] font-semibold leading-none tracking-tight">{k.v}</div>
+            <div className="relative mt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-400" />
+              {k.s}
             </div>
           </button>
         ))}
