@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Shell } from "@/components/shell";
 import { blankUser, loadUsers, saveUsers, type AppRole, type AppUser } from "@/lib/user-store";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
@@ -12,6 +13,11 @@ export default function UsersPage() {
   const [q, setQ] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [editor, setEditor] = useState<AppUser | null>(null);
+  const [isNew, setIsNew] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [formMsg, setFormMsg] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setRows(loadUsers());
@@ -31,12 +37,39 @@ export default function UsersPage() {
 
   const nActive = rows.filter((u) => u.active).length;
 
-  function save(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!editor) return;
+    setFormMsg("");
+    if (isNew) {
+      if (password.length < 6) {
+        setFormMsg("Password minimal 6 karakter.");
+        return;
+      }
+      if (password !== confirm) {
+        setFormMsg("Konfirmasi password tidak sama.");
+        return;
+      }
+    }
+    setBusy(true);
+    if (isNew && password) {
+      try {
+        const sb = createBrowserSupabase();
+        const { data: prev } = await sb.auth.getSession();
+        const { error } = await sb.auth.signUp({ email: editor.email, password });
+        if (error) setFormMsg(error.message);
+        if (prev.session) await sb.auth.setSession(prev.session);
+      } catch (err) {
+        setFormMsg(err instanceof Error ? err.message : "Gagal membuat akun login.");
+      }
+    }
     const exists = rows.some((u) => u.id === editor.id);
     persist(exists ? rows.map((u) => (u.id === editor.id ? editor : u)) : [editor, ...rows]);
+    setBusy(false);
     setEditor(null);
+    setPassword("");
+    setConfirm("");
+    setIsNew(false);
   }
 
   function archive(u: AppUser) {
@@ -62,7 +95,13 @@ export default function UsersPage() {
           <button
             type="button"
             className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
-            onClick={() => setEditor(blankUser())}
+            onClick={() => {
+              setIsNew(true);
+              setPassword("");
+              setConfirm("");
+              setFormMsg("");
+              setEditor(blankUser());
+            }}
           >
             + User baru
           </button>
@@ -116,7 +155,7 @@ export default function UsersPage() {
                     <Badge status={u.active ? "aktif" : "inactive"} />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => setEditor(u)}>Ubah</button>
+                    <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setFormMsg(""); setEditor(u); }}>Ubah</button>
                     {u.active ? (
                       <button className="text-xs font-semibold text-red-600" onClick={() => archive(u)}>Hapus</button>
                     ) : (
@@ -156,6 +195,18 @@ export default function UsersPage() {
                 Email
                 <input className={inputCls} type="email" required value={editor.email} onChange={(e) => setEditor({ ...editor, email: e.target.value })} />
               </label>
+              {isNew && (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    Password
+                    <input className={inputCls} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </label>
+                  <label className="block text-xs font-semibold uppercase text-slate-500">
+                    Konfirmasi password
+                    <input className={inputCls} type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+                  </label>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Telepon
@@ -174,8 +225,9 @@ export default function UsersPage() {
                   <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                 </select>
               </label>
+              {formMsg && <p className="text-sm text-amber-700">{formMsg}</p>}
               <p className="text-xs text-slate-400">
-                User ini tercatat di master aplikasi. Untuk login, buat akun yang sama di halaman Login (Daftar akun baru) dengan email tersebut.
+                Password dipakai untuk akun login (Supabase). Tidak disimpan di master user.
               </p>
             </div>
             <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
