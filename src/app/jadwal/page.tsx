@@ -67,9 +67,8 @@ export default function Jadwal() {
   type UsageKind = "tersedia" | "dipakai" | "maintenance";
 
   function setUsage(v: Vehicle, kind: UsageKind) {
-    const nextFleet = fleet.map((x) =>
-      x.id === v.id ? { ...x, status: kind === "maintenance" ? "maintenance" : "ready" } : x
-    );
+    const nextStatus: Status = kind === "maintenance" ? "maintenance" : "ready";
+    const nextFleet = fleet.map((x) => (x.id === v.id ? { ...x, status: nextStatus } : x));
     setFleet(nextFleet);
     saveFleet(nextFleet);
 
