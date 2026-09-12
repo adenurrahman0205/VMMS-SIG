@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles } from "@/lib/data";
+import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
+import { loadFleet } from "@/lib/fleet-store";
 
 function Barcode({ value }: { value: string }) {
   const bits = (value.replace(/\D/g, "") + "60882210").slice(0, 24);
