@@ -125,9 +125,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       const { data } = await sb.auth.getUser();
       const em = data.user?.email ?? "";
       setEmail(em);
-      const u = loadUsers().find((x) => x.email.toLowerCase() === em.toLowerCase());
-      setDisplayName(u?.name || data.user?.user_metadata?.name || em.split("@")[0] || "Pengguna");
-      setAvatar(u?.avatar || "");
+      const u = mergeLocalUser(em, data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
+      setDisplayName(u.name);
+      setAvatar(u.avatar || "");
     })();
   }, [path]);
 
