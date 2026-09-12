@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Shell } from "@/components/shell";
 import { VehicleForm } from "@/components/vehicle-form";
-import { fmtN, inferOwnerKind, ownerKindLabel, type OwnerKind, type Vehicle, vehiclePhoto } from "@/lib/data";
+import { dueServiceKm, fmtN, inferOwnerKind, ownerKindLabel, type OwnerKind, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { blankVehicle, loadFleet, saveFleet, syncArchive, syncCreate, syncUpdate } from "@/lib/fleet-store";
 
 export default function KendaraanPage() {

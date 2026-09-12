@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, inferOwnerKind, kmToService, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { dueServiceKm, fmt, fmtN, inferOwnerKind, kmToService, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
@@ -249,6 +249,10 @@ export default function Page() {
                     <div className="truncate px-1 text-sm font-semibold text-slate-800">{v.dept.split(" ")[0]}</div>
                     <div className="text-[10px] uppercase text-slate-400">Dept</div>
                   </div>
+                </div>
+                <div className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-center">
+                  <div className="text-sm font-semibold text-sky-900">{fmtN(dueServiceKm(v))}</div>
+                  <div className="text-[10px] uppercase text-sky-600">KM servis selanjutnya</div>
                 </div>
                 <div className="mt-4">
                   <Link
