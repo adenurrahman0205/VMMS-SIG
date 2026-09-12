@@ -12,6 +12,11 @@ export default function ProfilPage() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [email, setEmail] = useState("");
   const [ok, setOk] = useState("");
+  const [err, setErr] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,9 +49,22 @@ export default function ProfilPage() {
     reader.readAsDataURL(file);
   }
 
-  function save(e: React.FormEvent) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!me) return;
+    setOk("");
+    setErr("");
+    if (password || confirmPw) {
+      if (password.length < 6) {
+        setErr("Password baru minimal 6 karakter.");
+        return;
+      }
+      if (password !== confirmPw) {
+        setErr("Konfirmasi password tidak sama.");
+        return;
+      }
+    }
+    setBusy(true);
     const users = loadUsers();
     const i = users.findIndex((u) => u.email.toLowerCase() === me.email.toLowerCase());
     if (i >= 0) {
@@ -55,7 +73,25 @@ export default function ProfilPage() {
     } else {
       saveUsers([me, ...users]);
     }
-    setOk("Profil disimpan.");
+    if (password) {
+      try {
+        const sb = createBrowserSupabase();
+        const { error } = await sb.auth.updateUser({ password });
+        if (error) {
+          setBusy(false);
+          setErr(error.message);
+          return;
+        }
+      } catch (ex) {
+        setBusy(false);
+        setErr(ex instanceof Error ? ex.message : "Gagal ganti password.");
+        return;
+      }
+    }
+    setPassword("");
+    setConfirmPw("");
+    setBusy(false);
+    setOk(password ? "Profil dan password disimpan." : "Profil disimpan.");
   }
 
   if (!me) {

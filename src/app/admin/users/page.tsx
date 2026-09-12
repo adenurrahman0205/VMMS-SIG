@@ -41,7 +41,7 @@ export default function UsersPage() {
     e.preventDefault();
     if (!editor) return;
     setFormMsg("");
-    if (isNew) {
+    if (isNew || password || confirmPw) {
       if (password.length < 6) {
         setFormMsg("Password minimal 6 karakter.");
         return;
@@ -52,16 +52,32 @@ export default function UsersPage() {
       }
     }
     setBusy(true);
-    if (isNew && password) {
-      try {
-        const sb = createBrowserSupabase();
-        const { data: prev } = await sb.auth.getSession();
+    try {
+      const sb = createBrowserSupabase();
+      const { data: prev } = await sb.auth.getSession();
+      const self = prev.session?.user?.email?.toLowerCase() === editor.email.toLowerCase();
+      if (isNew && password) {
         const { error } = await sb.auth.signUp({ email: editor.email, password });
         if (error) setFormMsg(error.message);
         if (prev.session) await sb.auth.setSession(prev.session);
-      } catch (err) {
-        setFormMsg(err instanceof Error ? err.message : "Gagal membuat akun login.");
+      } else if (!isNew && password) {
+        if (self) {
+          const { error } = await sb.auth.updateUser({ password });
+          if (error) {
+            setBusy(false);
+            setFormMsg(error.message);
+            return;
+          }
+        } else {
+          setBusy(false);
+          setFormMsg("Password akun lain hanya bisa diganti oleh pemilik di halaman Profil (Auth tidak mengizinkan ganti password user lain dari browser).");
+          return;
+        }
       }
+    } catch (err) {
+      setBusy(false);
+      setFormMsg(err instanceof Error ? err.message : "Gagal mengubah password login.");
+      return;
     }
     const exists = rows.some((u) => u.id === editor.id);
     persist(exists ? rows.map((u) => (u.id === editor.id ? editor : u)) : [editor, ...rows]);
@@ -174,7 +190,7 @@ export default function UsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <form
-            className="anim relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="anim relative max-h-[94vh] w-full max-w-lg overflow-auto rounded-3xl bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             onSubmit={save}
           >
@@ -196,18 +212,34 @@ export default function UsersPage() {
                 Email
                 <input className={inputCls} type="email" required value={editor.email} onChange={(e) => setEditor({ ...editor, email: e.target.value })} />
               </label>
-              {isNew && (
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block text-xs font-semibold uppercase text-slate-500">
-                    Password
-                    <input className={inputCls} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-                  </label>
-                  <label className="block text-xs font-semibold uppercase text-slate-500">
-                    Konfirmasi password
-                    <input className={inputCls} type="password" required minLength={6} value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} />
-                  </label>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  {isNew ? "Password" : "Password baru"}
+                  <input
+                    className={inputCls}
+                    type="password"
+                    required={isNew}
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={isNew ? "" : "Kosongkan jika tidak diganti"}
+                    autoComplete="new-password"
+                  />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Konfirmasi password
+                  <input
+                    className={inputCls}
+                    type="password"
+                    required={isNew}
+                    minLength={6}
+                    value={confirmPw}
+                    onChange={(e) => setConfirmPw(e.target.value)}
+                    placeholder={isNew ? "" : "Ulangi password baru"}
+                    autoComplete="new-password"
+                  />
+                </label>
+              </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Telepon
@@ -232,7 +264,8 @@ export default function UsersPage() {
               </label>
               {formMsg && <p className="text-sm text-amber-700">{formMsg}</p>}
               <p className="text-xs text-slate-400">
-                Password dipakai untuk akun login (Supabase). Tidak disimpan di master user.
+                Password dipakai untuk akun login (Supabase), tidak disimpan di master user.
+                {!isNew && " Ganti password akun yang sedang login bisa dari sini; akun lain ganti di halaman Profil."}
               </p>
             </div>
             <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
