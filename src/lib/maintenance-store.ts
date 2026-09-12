@@ -10,12 +10,11 @@ export function loadJobs(): Maintenance[] {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Maintenance[];
-      if (Array.isArray(p) && p.length) return p;
+      if (Array.isArray(p)) return p;
     }
   } catch {
     /* ignore */
   }
-  localStorage.setItem(KEY, JSON.stringify(seed));
   return seed;
 }
 

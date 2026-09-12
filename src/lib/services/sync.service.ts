@@ -1,6 +1,13 @@
 import { createBrowserSupabase } from "@/lib/supabase/client";
 
-type KvRow = { key: string; value: unknown };
+type KvKey = "fleet" | "bookings" | "users" | "jobs";
+
+const STORAGE: Record<KvKey, string> = {
+  fleet: "vmms-armada-v3",
+  bookings: "vmms-bookings-v2",
+  users: "vmms-users-v1",
+  jobs: "vmms-maintenance-v1",
+};
 
 let hydrated = false;
 let hydrating: Promise<boolean> | null = null;
@@ -9,23 +16,52 @@ export function isHydrated() {
   return hydrated;
 }
 
+async function loadState(): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch("/api/app-state", { cache: "no-store" });
+    const json = (await res.json()) as { ok?: boolean; state?: Record<string, unknown> };
+    if (res.ok && json.ok && json.state) return json.state;
+  } catch {
+    /* fall through */
+  }
+  try {
+    const sb = createBrowserSupabase();
+    const { data, error } = await sb.from("app_kv").select("key,value");
+    if (error || !data) return null;
+    const state: Record<string, unknown> = {};
+    for (const row of data) state[row.key] = row.value;
+    return state;
+  } catch {
+    return null;
+  }
+}
+
 export async function hydrateCloud(): Promise<boolean> {
   if (hydrated) return true;
   if (hydrating) return hydrating;
   hydrating = (async () => {
     try {
       if (typeof window === "undefined") return false;
-      const sb = createBrowserSupabase();
-      const { data, error } = await sb.from("app_kv").select("key,value");
-      if (error || !data) {
+      const state = await loadState();
+      if (!state) {
         hydrated = true;
         return false;
       }
-      const map = new Map((data as KvRow[]).map((r) => [r.key, r.value]));
-      await applyKey("fleet", "vmms-armada-v3", map);
-      await applyKey("bookings", "vmms-bookings-v2", map);
-      await applyKey("users", "vmms-users-v1", map);
-      await applyKey("jobs", "vmms-maintenance-v1", map);
+      for (const key of Object.keys(STORAGE) as KvKey[]) {
+        const cloud = state[key];
+        if (Array.isArray(cloud)) {
+          localStorage.setItem(STORAGE[key], JSON.stringify(cloud));
+          continue;
+        }
+        const raw = localStorage.getItem(STORAGE[key]);
+        if (!raw) continue;
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) await pushCloud(key, parsed);
+        } catch {
+          /* ignore */
+        }
+      }
       hydrated = true;
       return true;
     } catch {
@@ -38,23 +74,17 @@ export async function hydrateCloud(): Promise<boolean> {
   return hydrating;
 }
 
-async function applyKey(key: "fleet" | "bookings" | "users" | "jobs", storageKey: string, map: Map<string, unknown>) {
-  const cloud = map.get(key);
-  if (Array.isArray(cloud)) {
-    localStorage.setItem(storageKey, JSON.stringify(cloud));
-    return;
-  }
-  const raw = localStorage.getItem(storageKey);
-  if (!raw) return;
+export async function pushCloud(key: KvKey, value: unknown) {
   try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length) await pushCloud(key, parsed);
+    const res = await fetch("/api/app-state", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, value }),
+    });
+    if (res.ok) return true;
   } catch {
-    /* ignore */
+    /* fall through */
   }
-}
-
-export async function pushCloud(key: "fleet" | "bookings" | "users" | "jobs", value: unknown) {
   try {
     const sb = createBrowserSupabase();
     const { error } = await sb.from("app_kv").upsert({ key, value }, { onConflict: "key" });

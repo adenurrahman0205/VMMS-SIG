@@ -250,7 +250,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
             )}
           </div>
         </header>
-        <main className="p-7">{children}</main>
+        <main className="p-4 sm:p-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
       </div>
     </div>
   );
