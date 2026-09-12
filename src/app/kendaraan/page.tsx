@@ -93,29 +93,21 @@ export default function KendaraanPage() {
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <button
           type="button"
-          onClick={() => setOwn("sig")}
-          className={`rounded-3xl p-5 text-left ring-1 transition ${
-            own === "sig" ? "bg-[#071526] text-white ring-[#071526] shadow-lg" : "bg-white ring-slate-200"
-          }`}
+          onClick={() => setOwn(own === "sig" ? "all" : "sig")}
+          className="rounded-3xl bg-[#071526] p-6 text-left text-white shadow-lg ring-1 ring-white/10"
         >
-          <div className={`text-[11px] font-semibold uppercase tracking-wide ${own === "sig" ? "text-sky-300" : "text-slate-500"}`}>
-            Milik pribadi · PT SIG
-          </div>
-          <div className="mt-1 text-4xl font-semibold tracking-tight">{counts.sig}</div>
-          <p className={`mt-1 text-sm ${own === "sig" ? "text-slate-300" : "text-slate-500"}`}>unit aset sendiri</p>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Milik pribadi · PT SIG</div>
+          <div className="mt-2 text-5xl font-semibold tracking-tight">{counts.sig}</div>
+          <p className="mt-2 text-sm text-slate-300">unit aset sendiri</p>
         </button>
         <button
           type="button"
-          onClick={() => setOwn("vendor")}
-          className={`rounded-3xl p-5 text-left ring-1 transition ${
-            own === "vendor" ? "bg-violet-700 text-white ring-violet-700 shadow-lg" : "bg-white ring-slate-200"
-          }`}
+          onClick={() => setOwn(own === "vendor" ? "all" : "vendor")}
+          className="rounded-3xl bg-violet-700 p-6 text-left text-white shadow-lg ring-1 ring-white/10"
         >
-          <div className={`text-[11px] font-semibold uppercase tracking-wide ${own === "vendor" ? "text-violet-200" : "text-slate-500"}`}>
-            Milik vendor / rental
-          </div>
-          <div className="mt-1 text-4xl font-semibold tracking-tight">{counts.vendor}</div>
-          <p className={`mt-1 text-sm ${own === "vendor" ? "text-violet-100" : "text-slate-500"}`}>unit sewa / mitra</p>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-200">Milik vendor / rental</div>
+          <div className="mt-2 text-5xl font-semibold tracking-tight">{counts.vendor}</div>
+          <p className="mt-2 text-sm text-violet-100">unit sewa / mitra</p>
         </button>
       </div>
 
