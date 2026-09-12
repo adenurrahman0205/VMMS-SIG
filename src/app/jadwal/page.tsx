@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, Shell } from "@/components/shell";
+import { Card, Shell } from "@/components/shell";
 import { type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
@@ -13,7 +14,6 @@ export default function Jadwal() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
-  const [form, setForm] = useState({ vehicleId: "", userName: "", purpose: "" });
 
   useEffect(() => {
     setFleet(loadFleet());
@@ -52,35 +52,30 @@ export default function Jadwal() {
 
   const today = ymd(new Date());
   const dayBookings = byDate.get(selected) ?? [];
-  const inUseIds = new Set((byDate.get(today) ?? []).map((b) => b.vehicleId));
+  const approvedToday = (byDate.get(today) ?? []).filter((b) => b.status === "disetujui");
+  const inUseIds = new Set(approvedToday.map((b) => b.vehicleId));
+  const notes = bookings
+    .filter((b) => b.status === "pengajuan" && b.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-  function addBooking(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.vehicleId || !form.userName) return;
-    persist([
-      ...bookings,
-      {
-        id: `b${Date.now()}`,
-        vehicleId: form.vehicleId,
-        date: selected,
-        userName: form.userName,
-        purpose: form.purpose,
-      },
-    ]);
-    setForm({ vehicleId: "", userName: "", purpose: "" });
-  }
-
-  function removeBooking(id: string) {
-    persist(bookings.filter((b) => b.id !== id));
+  function setStatus(id: string, status: Booking["status"]) {
+    persist(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
   }
 
   function toggleToday(v: Vehicle) {
-    const existing = bookings.find((b) => b.date === today && b.vehicleId === v.id);
+    const existing = bookings.find((b) => b.date === today && b.vehicleId === v.id && b.status === "disetujui");
     if (existing) persist(bookings.filter((b) => b.id !== existing.id));
     else
       persist([
         ...bookings,
-        { id: `b${Date.now()}`, vehicleId: v.id, date: today, userName: v.driver || "Pengguna", purpose: "Pemakaian harian" },
+        {
+          id: `b${Date.now()}`,
+          vehicleId: v.id,
+          date: today,
+          userName: v.driver || "Pengguna",
+          purpose: "Pemakaian harian",
+          status: "disetujui",
+        },
       ]);
   }
 
@@ -97,40 +92,50 @@ export default function Jadwal() {
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
         <img src="/images/hero-fleet.png" alt="" className="h-36 w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/80 to-transparent" />
-        <div className="absolute inset-0 flex items-end p-6 text-white">
+        <div className="absolute inset-0 flex items-end justify-between p-6 text-white">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Dispatch calendar</p>
-            <h2 className="text-2xl font-semibold">Siapa pakai mobil, kapan, berapa unit</h2>
+            <h2 className="text-2xl font-semibold">Kalender & pengingat pengajuan</h2>
           </div>
+          <Link href="/jadwal/pengajuan" className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white">
+            + Pengajuan pemakaian
+          </Link>
         </div>
       </section>
 
+      {notes.length > 0 && (
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800">Note / pengingat</div>
+          <div className="space-y-2">
+            {notes.slice(0, 6).map((b) => {
+              const v = fleet.find((x) => x.id === b.vehicleId);
+              return (
+                <div key={b.id} className="text-sm text-amber-950">
+                  <b>{b.date}</b> — {b.userName} mengajukan {v ? `${v.brand} ${v.model} (${v.plate})` : "unit"}
+                  {b.note ? ` · ${b.note}` : ""} · {b.purpose}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3 p-5">
+        <Card className="p-5 lg:col-span-3">
           <div className="mb-4 flex items-center justify-between">
-            <button
-              className="rounded-full border px-3 py-1 text-sm"
-              onClick={() => setCursor(new Date(year, month - 1, 1))}
-            >
-              ‹
-            </button>
+            <button className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month - 1, 1))}>‹</button>
             <h3 className="text-lg font-semibold capitalize">{monthLabel}</h3>
-            <button
-              className="rounded-full border px-3 py-1 text-sm"
-              onClick={() => setCursor(new Date(year, month + 1, 1))}
-            >
-              ›
-            </button>
+            <button className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month + 1, 1))}>›</button>
           </div>
           <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            {DAYS.map((d) => (
-              <div key={d} className="py-1">{d}</div>
-            ))}
+            {DAYS.map((d) => <div key={d} className="py-1">{d}</div>)}
           </div>
           <div className="mt-1 grid grid-cols-7 gap-1">
             {cells.map((iso, i) => {
               if (!iso) return <div key={`e${i}`} className="min-h-[72px] rounded-xl bg-slate-50/50" />;
-              const n = byDate.get(iso)?.length ?? 0;
+              const list = byDate.get(iso) ?? [];
+              const n = list.filter((b) => b.status !== "ditolak").length;
+              const pending = list.some((b) => b.status === "pengajuan");
               const isSel = iso === selected;
               const isToday = iso === today;
               return (
@@ -144,80 +149,57 @@ export default function Jadwal() {
                   <div className="flex items-center justify-between text-xs">
                     <span className={isToday && !isSel ? "font-bold text-sky-600" : ""}>{Number(iso.slice(8))}</span>
                     {n > 0 && (
-                      <span className={`rounded-full px-1.5 text-[10px] font-bold ${isSel ? "bg-sky-400 text-white" : "bg-sky-100 text-sky-800"}`}>
+                      <span className={`rounded-full px-1.5 text-[10px] font-bold ${isSel ? "bg-sky-400 text-white" : pending ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800"}`}>
                         {n}
                       </span>
                     )}
                   </div>
-                  {n > 0 && (
-                    <div className={`mt-1 truncate text-[10px] ${isSel ? "text-sky-100" : "text-slate-500"}`}>
-                      {n} unit terpakai
-                    </div>
-                  )}
+                  {pending && <div className={`mt-1 text-[10px] ${isSel ? "text-amber-200" : "text-amber-700"}`}>Ada pengajuan</div>}
                 </button>
               );
             })}
           </div>
         </Card>
 
-        <Card className="lg:col-span-2 flex flex-col p-5">
+        <Card className="flex flex-col p-5 lg:col-span-2">
           <h3 className="font-semibold">{selectedLabel}</h3>
-          <p className="mb-3 text-sm text-slate-500">{dayBookings.length} kendaraan terpakai</p>
-          <div className="mb-4 max-h-56 space-y-2 overflow-auto">
-            {dayBookings.length === 0 && <p className="text-sm text-slate-400">Belum ada pemakaian.</p>}
+          <p className="mb-3 text-sm text-slate-500">{dayBookings.length} catatan di tanggal ini</p>
+          <div className="max-h-[420px] space-y-2 overflow-auto">
+            {dayBookings.length === 0 && <p className="text-sm text-slate-400">Belum ada pemakaian / pengajuan.</p>}
             {dayBookings.map((b) => {
               const v = fleet.find((x) => x.id === b.vehicleId);
               return (
-                <div key={b.id} className="flex gap-3 rounded-xl bg-slate-50 p-2">
-                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-lg object-cover" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId}</div>
-                    <div className="text-xs text-slate-500">{v?.plate} · {b.userName}</div>
-                    <div className="text-[11px] text-slate-400">{b.purpose}</div>
+                <div key={b.id} className="rounded-xl bg-slate-50 p-3">
+                  <div className="flex gap-3">
+                    <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId}</div>
+                      <div className="text-xs text-slate-500">{v?.plate} · {b.userName} {b.dept ? `· ${b.dept}` : ""}</div>
+                      <div className="text-[11px] text-slate-400">{b.purpose}</div>
+                      {b.note && <div className="mt-1 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">Note: {b.note}</div>}
+                    </div>
                   </div>
-                  <button className="text-xs text-red-600" onClick={() => removeBooking(b.id)}>Hapus</button>
+                  <div className="mt-2 flex gap-2">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">{b.status}</span>
+                    {b.status === "pengajuan" && (
+                      <>
+                        <button className="text-xs font-semibold text-emerald-700" onClick={() => setStatus(b.id, "disetujui")}>Setujui</button>
+                        <button className="text-xs font-semibold text-red-600" onClick={() => setStatus(b.id, "ditolak")}>Tolak</button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
-          <form onSubmit={addBooking} className="mt-auto space-y-2 border-t pt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Catat pemakaian</p>
-            <select
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-              value={form.vehicleId}
-              onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
-              required
-            >
-              <option value="">Pilih kendaraan</option>
-              {fleet.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.plate} — {v.brand} {v.model}
-                </option>
-              ))}
-            </select>
-            <input
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Nama pengguna"
-              value={form.userName}
-              onChange={(e) => setForm({ ...form, userName: e.target.value })}
-              required
-            />
-            <input
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-              placeholder="Keperluan"
-              value={form.purpose}
-              onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-            />
-            <button className="w-full rounded-xl bg-[#071526] py-2.5 text-sm font-semibold !text-white">Simpan ke tanggal ini</button>
-          </form>
         </Card>
       </div>
 
-      <h3 className="mb-3 text-sm font-semibold">Status pemakaian hari ini</h3>
+      <h3 className="mb-3 text-sm font-semibold">Status pemakaian hari ini (disetujui)</h3>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {fleet.map((v) => {
           const used = inUseIds.has(v.id);
-          const who = (byDate.get(today) ?? []).find((b) => b.vehicleId === v.id);
+          const who = approvedToday.find((b) => b.vehicleId === v.id);
           return (
             <div key={v.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
               <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 rounded-xl object-cover" />
@@ -228,9 +210,7 @@ export default function Jadwal() {
               </div>
               <button
                 onClick={() => toggleToday(v)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                  used ? "bg-amber-100 text-amber-900" : "bg-emerald-50 text-emerald-800"
-                }`}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold ${used ? "bg-amber-100 text-amber-900" : "bg-emerald-50 text-emerald-800"}`}
               >
                 {used ? "Sedang dipakai" : "Tersedia"}
               </button>

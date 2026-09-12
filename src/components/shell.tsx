@@ -12,6 +12,7 @@ const groups = [
       ["/", "Dashboard"],
       ["/kendaraan", "Armada"],
       ["/jadwal", "Jadwal"],
+      ["/jadwal/pengajuan", "Pengajuan pakai"],
       ["/biaya", "Biaya & Analitik"],
       ["/dokumen", "Dokumen"],
       ["/maintenance", "Maintenance"],
