@@ -1,5 +1,6 @@
 import { maintenance as seed, type Maintenance } from "./data";
 import { loadFleet, saveFleet } from "./fleet-store";
+import { pushCloud } from "./services/sync.service";
 
 const KEY = "vmms-maintenance-v1";
 
@@ -20,6 +21,7 @@ export function loadJobs(): Maintenance[] {
 
 export function saveJobs(rows: Maintenance[]) {
   localStorage.setItem(KEY, JSON.stringify(rows));
+  void pushCloud("jobs", rows);
   syncVehicleFromJobs(rows);
 }
 

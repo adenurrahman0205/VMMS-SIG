@@ -25,6 +25,7 @@ export async function hydrateCloud(): Promise<boolean> {
       await applyKey("fleet", "vmms-armada-v3", map);
       await applyKey("bookings", "vmms-bookings-v2", map);
       await applyKey("users", "vmms-users-v1", map);
+      await applyKey("jobs", "vmms-maintenance-v1", map);
       hydrated = true;
       return true;
     } catch {
@@ -37,7 +38,7 @@ export async function hydrateCloud(): Promise<boolean> {
   return hydrating;
 }
 
-async function applyKey(key: "fleet" | "bookings" | "users", storageKey: string, map: Map<string, unknown>) {
+async function applyKey(key: "fleet" | "bookings" | "users" | "jobs", storageKey: string, map: Map<string, unknown>) {
   const cloud = map.get(key);
   if (Array.isArray(cloud)) {
     localStorage.setItem(storageKey, JSON.stringify(cloud));
@@ -53,7 +54,7 @@ async function applyKey(key: "fleet" | "bookings" | "users", storageKey: string,
   }
 }
 
-export async function pushCloud(key: "fleet" | "bookings" | "users", value: unknown) {
+export async function pushCloud(key: "fleet" | "bookings" | "users" | "jobs", value: unknown) {
   try {
     const sb = createBrowserSupabase();
     const { error } = await sb.from("app_kv").upsert({ key, value }, { onConflict: "key" });
