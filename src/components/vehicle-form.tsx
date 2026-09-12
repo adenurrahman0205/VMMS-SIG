@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
-import type { Vehicle } from "@/lib/data";
+import type { OwnerKind, Vehicle } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 
 function Field({
@@ -132,7 +132,24 @@ export function VehicleForm({
 
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Pemilik & penugasan</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Nama pemilik">
+            <Field label="Kategori pemilik">
+              <select
+                className={inputCls}
+                value={form.ownerKind ?? "sig"}
+                onChange={(e) => {
+                  const ownerKind = e.target.value as OwnerKind;
+                  setForm({
+                    ...form,
+                    ownerKind,
+                    owner: ownerKind === "sig" && !form.owner.toLowerCase().includes("sig") ? "PT SIG Operasional" : form.owner,
+                  });
+                }}
+              >
+                <option value="sig">PT SIG (milik sendiri)</option>
+                <option value="vendor">Vendor / Rental</option>
+              </select>
+            </Field>
+            <Field label={form.ownerKind === "vendor" ? "Nama vendor / rental" : "Nama pemilik"}>
               <input className={inputCls} value={form.owner} onChange={(e) => set("owner", e.target.value)} />
             </Field>
             <Field label="Driver">

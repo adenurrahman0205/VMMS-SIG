@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Shell } from "@/components/shell";
 import { VehicleForm } from "@/components/vehicle-form";
-import { fmtN, type Vehicle, vehiclePhoto } from "@/lib/data";
+import { fmtN, inferOwnerKind, ownerKindLabel, type OwnerKind, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { blankVehicle, loadFleet, saveFleet, syncArchive, syncCreate, syncUpdate } from "@/lib/fleet-store";
 
 export default function KendaraanPage() {
   const [q, setQ] = useState("");
   const [f, setF] = useState("all");
+  const [own, setOwn] = useState<"all" | OwnerKind>("all");
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [editor, setEditor] = useState<Vehicle | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
@@ -37,10 +38,11 @@ export default function KendaraanPage() {
   const list = useMemo(
     () =>
       vehicles.filter((v) => {
-        const hit = `${v.plate} ${v.brand} ${v.model} ${v.driver} ${v.dept}`.toLowerCase().includes(q.toLowerCase());
-        return hit && (f === "all" || v.status === f);
+        const hit = `${v.plate} ${v.brand} ${v.model} ${v.driver} ${v.dept} ${v.owner}`.toLowerCase().includes(q.toLowerCase());
+        const okOwn = own === "all" || inferOwnerKind(v) === own;
+        return hit && (f === "all" || v.status === f) && okOwn;
       }),
-    [q, f, vehicles]
+    [q, f, own, vehicles]
   );
 
   async function save(v: Vehicle) {
@@ -69,7 +71,9 @@ export default function KendaraanPage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Fleet gallery</p>
             <h2 className="text-2xl font-semibold tracking-tight">Semua unit operasional SIG</h2>
-            <p className="mt-1 text-sm text-slate-300">{counts.all} kendaraan · klik foto untuk dossier</p>
+            <p className="mt-1 text-sm text-slate-300">
+              {counts.all} kendaraan · milik PT SIG atau vendor/rental
+            </p>
           </div>
           <button
             className="mt-4 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400 sm:mt-0"
@@ -101,6 +105,27 @@ export default function KendaraanPage() {
           >
             <div className="text-[11px] uppercase tracking-wide text-slate-500">{l}</div>
             <div className="text-2xl font-semibold tracking-tight">{n}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-5 flex flex-wrap gap-2">
+        {(
+          [
+            ["all", "Semua pemilik"],
+            ["sig", "PT SIG"],
+            ["vendor", "Vendor / Rental"],
+          ] as const
+        ).map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setOwn(k)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+              own === k ? "bg-[#071526] !text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"
+            }`}
+          >
+            {l}
           </button>
         ))}
       </div>

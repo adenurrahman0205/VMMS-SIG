@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles, type Vehicle } from "@/lib/data";
+import { documents, fmt, fmtN, inferOwnerKind, maintenance, ownerKindLabel, vehiclePhoto, vehicles, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";
@@ -46,6 +46,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     ["Warna", v.color],
     ["No. rangka", v.chassis],
     ["No. mesin", v.engine],
+    ["Kategori pemilik", ownerKindLabel(inferOwnerKind(v))],
     ["Nama pemilik", v.owner],
     ["Alamat", v.address],
     ["Bahan bakar", v.fuel],

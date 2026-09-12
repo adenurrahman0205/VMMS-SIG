@@ -1,4 +1,4 @@
-import { vehicles as seed, type Status, type Vehicle } from "./data";
+import { inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 
 const KEY = "vmms-armada-v2";
@@ -9,7 +9,9 @@ export function loadFleet(): Vehicle[] {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Vehicle[];
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map((v) => ({ ...v, ownerKind: inferOwnerKind(v) }));
+      }
     }
   } catch {
     /* ignore */
@@ -39,7 +41,8 @@ export function blankVehicle(): Vehicle {
     health: 80,
     buyDate: "",
     buyPrice: 0,
-    owner: "",
+    owner: "PT SIG Operasional",
+    ownerKind: "sig",
     address: "",
     fuel: "Bensin",
     cc: "",

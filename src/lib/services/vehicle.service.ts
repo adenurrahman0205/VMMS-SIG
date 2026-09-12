@@ -55,6 +55,7 @@ export const vehicleService = {
             buyDate: v.purchase_date ?? "",
             buyPrice: Number(v.purchase_price ?? 0),
             owner: "—",
+            ownerKind: "sig",
             address: "—",
             fuel: "—",
             cc: "—",

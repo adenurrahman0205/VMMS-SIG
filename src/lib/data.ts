@@ -1,4 +1,5 @@
 export type Status = "ready" | "warning" | "maintenance" | "inactive";
+export type OwnerKind = "sig" | "vendor";
 
 export type Vehicle = {
   id: string;
@@ -18,6 +19,7 @@ export type Vehicle = {
   buyDate: string;
   buyPrice: number;
   owner: string;
+  ownerKind: OwnerKind;
   address: string;
   fuel: string;
   cc: string;
@@ -42,14 +44,14 @@ export type Maintenance = {
 };
 
 export const vehicles: Vehicle[] = [
-  { id: "v1", plate: "B 1234 ABC", brand: "Toyota", model: "Innova", year: 2022, km: 85240, dept: "General Affairs", driver: "Andi Wijaya", status: "ready", color: "Silver", engine: "2TR-FE-8821", chassis: "MHFM1BA3N0123456", loc: "Kantor Pusat Bogor", health: 88, buyDate: "2022-03-15", buyPrice: 385000000, owner: "PT SIG Operasional", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1998 cc", hp: "137 HP", madeYear: 2022, bbmNo: "6088-2210-4581-0192" },
-  { id: "v2", plate: "B 5678 DEF", brand: "Toyota", model: "Avanza", year: 2021, km: 102450, dept: "Operasional", driver: "Budi Santoso", status: "warning", color: "Putih", engine: "3SZ-VE-4412", chassis: "MHFM2BA2K0987654", loc: "Kantor Pusat Bogor", health: 64, buyDate: "2021-07-20", buyPrice: 235000000, owner: "PT SIG Operasional", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1329 cc", hp: "97 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0193" },
-  { id: "v3", plate: "B 9012 XYZ", brand: "Isuzu", model: "Elf NLR", year: 2020, km: 145230, dept: "Logistik", driver: "Cahyo Pratama", status: "maintenance", color: "Putih", engine: "4JJ1-7781", chassis: "MPATFR77L1230987", loc: "Gudang Cibinong", health: 52, buyDate: "2020-01-10", buyPrice: 420000000, owner: "PT SIG Logistik", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Solar", cc: "2999 cc", hp: "150 HP", madeYear: 2020, bbmNo: "6088-2210-4581-0194" },
-  { id: "v4", plate: "F 3344 GHI", brand: "Honda", model: "HR-V", year: 2023, km: 28410, dept: "Direksi", driver: "Dedi Kurniawan", status: "ready", color: "Hitam", engine: "L15ZF-2201", chassis: "MHRZE1850PJ12345", loc: "Kantor Pusat Bogor", health: 94, buyDate: "2023-02-01", buyPrice: 410000000, owner: "PT SIG Holding", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1498 cc", hp: "119 HP", madeYear: 2023, bbmNo: "6088-2210-4581-0195" },
-  { id: "v5", plate: "F 7788 JKL", brand: "Mitsubishi", model: "Xpander", year: 2022, km: 67120, dept: "Marketing", driver: "Eko Nugroho", status: "ready", color: "Abu-abu", engine: "4A91-5510", chassis: "MMBMAU13SNJ66778", loc: "Kantor Cabang Depok", health: 81, buyDate: "2022-09-12", buyPrice: 278000000, owner: "PT SIG Operasional", address: "Jl. Margonda Raya 88, Depok", fuel: "Bensin", cc: "1499 cc", hp: "104 HP", madeYear: 2022, bbmNo: "6088-2210-4581-0196" },
-  { id: "v6", plate: "B 2211 MNO", brand: "Daihatsu", model: "Gran Max", year: 2019, km: 168900, dept: "Logistik", driver: "Fajar Hidayat", status: "warning", color: "Putih", engine: "K3-VE-9901", chassis: "MHKAA1BA5K001122", loc: "Gudang Cibinong", health: 58, buyDate: "2019-05-08", buyPrice: 165000000, owner: "PT SIG Logistik", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1495 cc", hp: "97 HP", madeYear: 2019, bbmNo: "6088-2210-4581-0197" },
-  { id: "v7", plate: "F 4455 PQR", brand: "Toyota", model: "Hiace", year: 2021, km: 98400, dept: "Operasional", driver: "Gilang Ramadhan", status: "ready", color: "Silver", engine: "2KD-FTV-3344", chassis: "JTFSH22P0K012987", loc: "Kantor Pusat Bogor", health: 76, buyDate: "2021-11-03", buyPrice: 545000000, owner: "PT SIG Operasional", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Solar", cc: "2494 cc", hp: "102 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0198" },
-  { id: "v8", plate: "B 8899 STU", brand: "Suzuki", model: "Carry", year: 2018, km: 201340, dept: "Logistik", driver: "Hendra Gunawan", status: "inactive", color: "Putih", engine: "K14B-1122", chassis: "MHYNC12S0J008811", loc: "Gudang Cibinong", health: 41, buyDate: "2018-04-22", buyPrice: 142000000, owner: "PT SIG Logistik", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1462 cc", hp: "95 HP", madeYear: 2018, bbmNo: "6088-2210-4581-0199" },
+  { id: "v1", plate: "B 1234 ABC", brand: "Toyota", model: "Innova", year: 2022, km: 85240, dept: "General Affairs", driver: "Andi Wijaya", status: "ready", color: "Silver", engine: "2TR-FE-8821", chassis: "MHFM1BA3N0123456", loc: "Kantor Pusat Bogor", health: 88, buyDate: "2022-03-15", buyPrice: 385000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1998 cc", hp: "137 HP", madeYear: 2022, bbmNo: "6088-2210-4581-0192" },
+  { id: "v2", plate: "B 5678 DEF", brand: "Toyota", model: "Avanza", year: 2021, km: 102450, dept: "Operasional", driver: "Budi Santoso", status: "warning", color: "Putih", engine: "3SZ-VE-4412", chassis: "MHFM2BA2K0987654", loc: "Kantor Pusat Bogor", health: 64, buyDate: "2021-07-20", buyPrice: 235000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1329 cc", hp: "97 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0193" },
+  { id: "v3", plate: "B 9012 XYZ", brand: "Isuzu", model: "Elf NLR", year: 2020, km: 145230, dept: "Logistik", driver: "Cahyo Pratama", status: "maintenance", color: "Putih", engine: "4JJ1-7781", chassis: "MPATFR77L1230987", loc: "Gudang Cibinong", health: 52, buyDate: "2020-01-10", buyPrice: 420000000, owner: "CV Armada Mitra", ownerKind: "vendor", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Solar", cc: "2999 cc", hp: "150 HP", madeYear: 2020, bbmNo: "6088-2210-4581-0194" },
+  { id: "v4", plate: "F 3344 GHI", brand: "Honda", model: "HR-V", year: 2023, km: 28410, dept: "Direksi", driver: "Dedi Kurniawan", status: "ready", color: "Hitam", engine: "L15ZF-2201", chassis: "MHRZE1850PJ12345", loc: "Kantor Pusat Bogor", health: 94, buyDate: "2023-02-01", buyPrice: 410000000, owner: "PT SIG Holding", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1498 cc", hp: "119 HP", madeYear: 2023, bbmNo: "6088-2210-4581-0195" },
+  { id: "v5", plate: "F 7788 JKL", brand: "Mitsubishi", model: "Xpander", year: 2022, km: 67120, dept: "Marketing", driver: "Eko Nugroho", status: "ready", color: "Abu-abu", engine: "4A91-5510", chassis: "MMBMAU13SNJ66778", loc: "Kantor Cabang Depok", health: 81, buyDate: "2022-09-12", buyPrice: 278000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Margonda Raya 88, Depok", fuel: "Bensin", cc: "1499 cc", hp: "104 HP", madeYear: 2022, bbmNo: "6088-2210-4581-0196" },
+  { id: "v6", plate: "B 2211 MNO", brand: "Daihatsu", model: "Gran Max", year: 2019, km: 168900, dept: "Logistik", driver: "Fajar Hidayat", status: "warning", color: "Putih", engine: "K3-VE-9901", chassis: "MHKAA1BA5K001122", loc: "Gudang Cibinong", health: 58, buyDate: "2019-05-08", buyPrice: 165000000, owner: "Rental Jaya Bogor", ownerKind: "vendor", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1495 cc", hp: "97 HP", madeYear: 2019, bbmNo: "6088-2210-4581-0197" },
+  { id: "v7", plate: "F 4455 PQR", brand: "Toyota", model: "Hiace", year: 2021, km: 98400, dept: "Operasional", driver: "Gilang Ramadhan", status: "ready", color: "Silver", engine: "2KD-FTV-3344", chassis: "JTFSH22P0K012987", loc: "Kantor Pusat Bogor", health: 76, buyDate: "2021-11-03", buyPrice: 545000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Solar", cc: "2494 cc", hp: "102 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0198" },
+  { id: "v8", plate: "B 8899 STU", brand: "Suzuki", model: "Carry", year: 2018, km: 201340, dept: "Logistik", driver: "Hendra Gunawan", status: "inactive", color: "Putih", engine: "K14B-1122", chassis: "MHYNC12S0J008811", loc: "Gudang Cibinong", health: 41, buyDate: "2018-04-22", buyPrice: 142000000, owner: "Rental Jaya Bogor", ownerKind: "vendor", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1462 cc", hp: "95 HP", madeYear: 2018, bbmNo: "6088-2210-4581-0199" },
   ...buildExtraFleet(),
 ];
 
@@ -183,6 +185,17 @@ export function vehiclePhoto(v: { model: string; brand?: string; color?: string 
   if (m.includes("hiace")) return "/images/hiace.jpg";
   if (m.includes("carry") || m.includes("gran")) return "/images/carry.jpg";
   return "/images/innova.jpg";
+}
+
+export function inferOwnerKind(v: { ownerKind?: OwnerKind; owner?: string }): OwnerKind {
+  if (v.ownerKind === "vendor" || v.ownerKind === "sig") return v.ownerKind;
+  const o = (v.owner || "").toLowerCase();
+  if (o.includes("rental") || o.includes("vendor") || o.includes("mitra")) return "vendor";
+  return "sig";
+}
+
+export function ownerKindLabel(k: OwnerKind) {
+  return k === "vendor" ? "Vendor / Rental" : "PT SIG";
 }
 
 export const statusMap: Record<Status, { label: string; cls: string }> = {

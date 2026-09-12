@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/shell";
 import { BbmPreview } from "@/components/bbm-preview";
-import { fmt, fmtN, maintenance, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, inferOwnerKind, maintenance, ownerKindLabel, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 
 function BbmCard({ v }: { v: Vehicle }) {
@@ -21,6 +21,7 @@ export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }
     ["Warna", v.color],
     ["No. rangka", v.chassis],
     ["No. mesin", v.engine],
+    ["Kategori pemilik", ownerKindLabel(inferOwnerKind(v))],
     ["Nama pemilik", v.owner],
     ["Alamat", v.address],
     ["Bahan bakar", v.fuel],
