@@ -135,16 +135,30 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1 rounded-full bg-white p-1 shadow-sm">
-        {tabs.map(([k, l]) => (
-          <button
-            key={k}
-            onClick={() => setTab(k)}
-            className={`rounded-full px-4 py-1.5 text-sm ${tab === k ? "bg-[#071526] text-white" : "text-slate-500"}`}
-          >
-            {l}
-          </button>
-        ))}
+      <div className="mb-5 overflow-x-auto">
+        <div className="inline-flex min-w-full gap-1 rounded-2xl bg-[#071526] p-1.5 shadow-lg ring-1 ring-white/10">
+          {tabs.map((t) => {
+            const on = tab === t.k;
+            return (
+              <button
+                key={t.k}
+                type="button"
+                onClick={() => setTab(t.k)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                  on ? "bg-sky-500 text-white shadow-md shadow-sky-500/30" : "text-slate-300 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d={t.d} />
+                </svg>
+                <span>{t.l}</span>
+                {t.n ? (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${on ? "bg-white/20" : "bg-white/10 text-slate-400"}`}>{t.n}</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {tab === "overview" && (
