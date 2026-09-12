@@ -30,7 +30,7 @@ export default function UsersPage() {
 
   const list = useMemo(() => {
     return rows.filter((u) => {
-      const hit = `${u.name} ${u.email} ${u.dept} ${u.role}`.toLowerCase().includes(q.toLowerCase());
+      const hit = `${u.name} ${u.email} ${u.dept} ${u.jabatan ?? ""} ${u.role}`.toLowerCase().includes(q.toLowerCase());
       return hit && (showArchived || u.active);
     });
   }, [rows, q, showArchived]);
@@ -129,7 +129,7 @@ export default function UsersPage() {
           <table className="w-full min-w-[800px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Nama", "Email", "Departemen", "Role", "Status", ""].map((h) => (
+                {["Nama", "Email", "Divisi", "Jabatan", "Role", "Status", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -137,7 +137,7 @@ export default function UsersPage() {
             <tbody>
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-400">Belum ada user.</td>
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">Belum ada user.</td>
                 </tr>
               )}
               {list.map((u) => (
@@ -148,6 +148,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">{u.dept || "—"}</td>
+                  <td className="px-4 py-3">{u.jabatan || "—"}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold">{u.role}</span>
                   </td>

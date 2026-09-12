@@ -28,6 +28,7 @@ export default function ProfilPage() {
           email: em,
           phone: "",
           dept: "",
+          jabatan: "",
           role: "USER",
           active: true,
           createdAt: new Date().toISOString().slice(0, 10),
@@ -93,14 +94,18 @@ export default function ProfilPage() {
           Email
           <input className={inputCls} value={me.email} disabled />
         </label>
-        <div className="mb-3 grid grid-cols-2 gap-3">
+        <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
+          Telepon
+          <input className={inputCls} value={me.phone} onChange={(e) => setMe({ ...me, phone: e.target.value })} />
+        </label>
+        <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block text-xs font-semibold uppercase text-slate-500">
-            Telepon
-            <input className={inputCls} value={me.phone} onChange={(e) => setMe({ ...me, phone: e.target.value })} />
+            Divisi
+            <input className={inputCls} value={me.dept} onChange={(e) => setMe({ ...me, dept: e.target.value })} />
           </label>
           <label className="block text-xs font-semibold uppercase text-slate-500">
-            Departemen
-            <input className={inputCls} value={me.dept} onChange={(e) => setMe({ ...me, dept: e.target.value })} />
+            Jabatan
+            <input className={inputCls} value={me.jabatan ?? ""} onChange={(e) => setMe({ ...me, jabatan: e.target.value })} />
           </label>
         </div>
         {ok && <p className="mb-3 text-sm text-emerald-700">{ok}</p>}

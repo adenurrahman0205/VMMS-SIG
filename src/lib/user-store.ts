@@ -6,6 +6,7 @@ export type AppUser = {
   email: string;
   phone: string;
   dept: string;
+  jabatan?: string;
   role: AppRole;
   active: boolean;
   createdAt: string;
@@ -21,6 +22,7 @@ const seed: AppUser[] = [
     email: "vmms.admin@gmail.com",
     phone: "0812-0000-0000",
     dept: "General Affairs",
+    jabatan: "Administrator",
     role: "SUPER_ADMIN",
     active: true,
     createdAt: "2026-09-01",
@@ -55,6 +57,7 @@ export function blankUser(): AppUser {
     email: "",
     phone: "",
     dept: "",
+    jabatan: "",
     role: "USER",
     active: true,
     createdAt: iso,
