@@ -35,7 +35,20 @@ export type Vehicle = {
   bbmNo: string;
   bbmImage?: string;
   nextServiceKm?: number;
+  transmission?: Transmission;
+  documents?: VehicleDoc[];
 };
+
+export const DOC_TYPES = ["STNK", "BPKB", "KIR", "Asuransi", "Pajak"] as const;
+
+export function docStatusFromExpire(expire: string): VehicleDoc["status"] {
+  if (!expire) return "segera";
+  const t = new Date(expire + "T00:00:00").getTime();
+  const days = (t - Date.now()) / 86400000;
+  if (days < 0) return "expired";
+  if (days <= 60) return "segera";
+  return "aktif";
+}
 
 export type Maintenance = {
   id: string;
