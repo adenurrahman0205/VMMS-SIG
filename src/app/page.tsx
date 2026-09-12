@@ -323,7 +323,8 @@ export default function Page() {
             </tr>
           </thead>
           <tbody>
-       key={v.id} className="cursor-pointer border-t hover:bg-sky-50" onClick={() => setOpen(v)}>
+            {rows.map((v) => (
+              <tr key={v.id} className="cursor-pointer border-t hover:bg-sky-50" onClick={() => setOpen(v)}>
                 <td className="px-4 py-2 font-medium">
                   {v.plate}
                   <span className="block text-[11px] text-slate-400">{v.model}</span>
@@ -343,10 +344,6 @@ export default function Page() {
       </Card>
 
       {open && <VehiclePopup v={open} onClose={() => setOpen(null)} />}
-    </Shell>
-  );
-}
-=> setOpen(null)} />}
     </Shell>
   );
 }
