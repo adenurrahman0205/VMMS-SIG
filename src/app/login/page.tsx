@@ -32,24 +32,16 @@ export default function Login() {
     r.refresh();
   }
 
-  async function signUp() {
-    setMsg("");
-    const sb = createBrowserSupabase();
-    setBusy(true);
-    const { error } = await sb.auth.signUp({ email, password });
-    setBusy(false);
-    if (error) setMsg(error.message);
-    else setMsg("Akun dibuat. Jika email confirmation aktif, buka inbox lalu login.");
-  }
-
   return (
     <div className="relative grid min-h-screen place-items-center overflow-hidden">
       <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[#071526]/75" />
       <form className="anim relative w-[420px] rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur" onSubmit={submit}>
-        <img src="/images/logo-sig.png" alt="SIG" className="mb-3 h-12 w-auto object-contain" />
-        <h1 className="text-2xl font-semibold tracking-tight">VMMS-SIG</h1>
-        <p className="mb-5 mt-1 text-sm text-slate-500">Masuk ke pusat kendali armada.</p>
+        <div className="mb-5 flex flex-col items-center text-center">
+          <img src="/images/logo-sig.png" alt="SIG" className="mb-3 h-14 w-auto object-contain" />
+          <h1 className="text-2xl font-semibold tracking-tight">VMMS-SIG</h1>
+          <p className="mt-1 text-sm text-slate-500">Vehicle Maintenance Management System</p>
+        </div>
         <label className="text-xs text-slate-500">Email</label>
         <input className="mb-3 mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
         <label className="text-xs text-slate-500">Password</label>
