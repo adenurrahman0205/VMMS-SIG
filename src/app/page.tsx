@@ -71,11 +71,11 @@ export default function Page() {
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
         <img src="/images/hero-fleet.png" alt="" className="h-48 w-full object-cover sm:h-60" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#050b16] via-[#050b16]/70 to-transparent" />
-        <div className="absolute inset-0 flex items-end justify-between p-7 text-white">
+        <div className="absolute inset-0 flex items-end justify-between p-4 text-white sm:p-7">
           <div>
             <p className="text-[11px] uppercase tracking-[0.25em] text-sky-300">Live fleet intelligence</p>
-            <h2 className="text-3xl font-semibold tracking-tight">Semua unit. Semua biaya. Satu klik.</h2>
-            <p className="mt-1 max-w-lg text-sm text-slate-300">Klik kartu mobil untuk dossier lengkap, barcode BBM, dan histori servis.</p>
+            <h2 className="text-xl font-semibold tracking-tight sm:text-3xl">Semua unit. Semua biaya. Satu klik.</h2>
+            <p className="mt-1 max-w-lg text-xs text-slate-300 sm:text-sm">Klik kartu mobil untuk dossier lengkap, barcode BBM, dan histori servis.</p>
           </div>
           <div className="hidden rounded-2xl bg-white/10 px-5 py-3 text-right backdrop-blur md:block">
             <div className="text-xs text-sky-200">Health rata-rata</div>
@@ -314,7 +314,7 @@ export default function Page() {
       </div>
 
       <Card className="mt-4 overflow-x-auto p-0">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
             <tr>
               {["Unit", "Skor", "KM", "Biaya", "Servis", "Ban", "Oli", "Rem", "AC"].map((h) => (

@@ -103,12 +103,12 @@ export default function Jadwal() {
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
         <img src="/images/hero-fleet.png" alt="" className="h-36 w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/80 to-transparent" />
-        <div className="absolute inset-0 flex items-end justify-between p-6 text-white">
+        <div className="absolute inset-0 flex flex-col justify-end gap-3 p-4 text-white sm:flex-row sm:items-end sm:justify-between sm:p-6">
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Dispatch calendar</p>
-            <h2 className="text-2xl font-semibold">Kalender & pengingat pengajuan</h2>
+            <h2 className="text-lg font-semibold sm:text-2xl">Kalender & pengingat pengajuan</h2>
           </div>
-          <button type="button" onClick={() => setShowAjuan(true)} className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white">
+          <button type="button" onClick={() => setShowAjuan(true)} className="w-fit rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white">
             + Pengajuan pemakaian
           </button>
         </div>
@@ -143,7 +143,7 @@ export default function Jadwal() {
           </div>
           <div className="mt-1 grid grid-cols-7 gap-1">
             {cells.map((iso, i) => {
-              if (!iso) return <div key={`e${i}`} className="min-h-[72px] rounded-xl bg-slate-50/50" />;
+              if (!iso) return <div key={`e${i}`} className="min-h-[48px] rounded-xl bg-slate-50/50 sm:min-h-[72px]" />;
               const list = byDate.get(iso) ?? [];
               const n = list.filter((b) => b.status !== "ditolak").length;
               const pending = list.some((b) => b.status === "pengajuan");
@@ -153,7 +153,7 @@ export default function Jadwal() {
                 <button
                   key={iso}
                   onClick={() => setSelected(iso)}
-                  className={`min-h-[72px] rounded-xl p-2 text-left transition ${
+                  className={`min-h-[48px] rounded-xl p-1 text-left transition sm:min-h-[72px] sm:p-2 ${
                     isSel ? "bg-[#071526] text-white shadow-lg" : "bg-white ring-1 ring-slate-200 hover:ring-sky-300"
                   }`}
                 >

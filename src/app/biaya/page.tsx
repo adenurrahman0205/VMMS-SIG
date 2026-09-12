@@ -24,7 +24,8 @@ export default function Biaya() {
     <Shell title="Biaya & Analitik">
       <Card className="p-0">
         <div className="border-b px-4 py-3 text-sm font-semibold">Top biaya maintenance</div>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs text-slate-500">
             <tr>{["Kendaraan", "KM", "Health", "Total", "Catatan"].map((h) => <th key={h} className="px-4 py-2">{h}</th>)}</tr>
           </thead>
@@ -40,6 +41,7 @@ export default function Biaya() {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
     </Shell>
   );

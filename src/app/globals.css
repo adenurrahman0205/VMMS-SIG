@@ -5,10 +5,26 @@
   --accent: #3b82f6;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: #eef2f7;
   color: #0f172a;
   font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+@media (hover: none) {
+  .card-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .card-hover:active {
+    transform: scale(0.99);
+  }
+  .nav-link:hover { transform: none; }
 }
 
 a { color: inherit; text-decoration: none; }

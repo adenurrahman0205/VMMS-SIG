@@ -34,10 +34,10 @@ export default function Login() {
   }
 
   return (
-    <div className="relative grid min-h-screen place-items-center overflow-hidden">
+    <div className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-8">
       <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[#071526]/75" />
-      <form className="anim relative w-[420px] rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur" onSubmit={submit}>
+      <form className="anim relative w-full max-w-[420px] rounded-3xl bg-white/95 p-6 shadow-2xl backdrop-blur sm:p-8" onSubmit={submit}>
         <div className="mb-5 flex flex-col items-center text-center">
           <img src="/images/logo-sig.png" alt="SIG" className="mb-3 h-14 w-auto object-contain" />
           <h1 className="text-2xl font-semibold tracking-tight">VMMS-SIG</h1>

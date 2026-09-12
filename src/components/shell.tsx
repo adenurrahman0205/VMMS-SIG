@@ -109,9 +109,15 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const path = usePathname();
   const router = useRouter();
   const [menu, setMenu] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [displayName, setDisplayName] = useState("Pengguna");
   const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    setNavOpen(false);
+    setMenu(false);
+  }, [path]);
 
   useEffect(() => {
     (async () => {
@@ -135,8 +141,21 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const initials = displayName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "U";
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="sticky top-0 flex h-screen w-64 flex-col bg-[#071526] text-slate-200">
+    <div className="flex min-h-dvh">
+      {navOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-dvh w-72 max-w-[85vw] flex-col bg-[#071526] text-slate-200 transition-transform duration-200 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:w-64 lg:max-w-none lg:translate-x-0",
+          navOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-3">
             <img src="/images/logo-sig-white.png" alt="SIG" className="h-10 w-auto object-contain" />
@@ -154,8 +173,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
               <Link
                 key={href}
                 href={href}
+                onClick={() => setNavOpen(false)}
                 className={cn(
-                  "nav-link mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px]",
+                  "nav-link mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] active:scale-[0.99]",
                   on ? "bg-sky-500 text-white shadow-md shadow-sky-500/20" : "text-slate-300 hover:bg-white/5"
                 )}
               >
@@ -169,17 +189,32 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           <button
             type="button"
             onClick={logout}
-            className="w-full rounded-lg bg-white/5 px-3 py-2.5 text-left text-[13px] font-semibold text-red-300 hover:bg-red-500/20 hover:text-red-200"
+            className="flex w-full items-center gap-2.5 rounded-lg bg-white/5 px-3 py-2.5 text-left text-[13px] font-semibold text-red-300 hover:bg-red-500/20 hover:text-red-200"
           >
+            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
             Logout
           </button>
         </div>
       </aside>
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/80 bg-white/80 px-7 py-3.5 backdrop-blur-md">
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-slate-400">Vehicle Maintenance Management</p>
-            <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/80 px-3 py-3 backdrop-blur-md sm:px-7 sm:py-3.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 lg:hidden"
+              onClick={() => setNavOpen(true)}
+              aria-label="Buka menu"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+            <div className="min-w-0">
+              <p className="hidden text-[11px] uppercase tracking-wider text-slate-400 sm:block">Vehicle Maintenance Management</p>
+              <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg">{title}</h1>
+            </div>
           </div>
           <div className="relative">
             <button
