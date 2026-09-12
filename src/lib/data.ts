@@ -27,6 +27,7 @@ export type Vehicle = {
   madeYear: number;
   bbmNo: string;
   bbmImage?: string;
+  nextServiceKm?: number;
 };
 
 export type Maintenance = {
@@ -197,6 +198,17 @@ export function inferOwnerKind(v: { ownerKind?: OwnerKind; owner?: string }): Ow
 
 export function ownerKindLabel(k: OwnerKind) {
   return k === "vendor" ? "Vendor / Rental" : "PT SIG";
+}
+
+export const SERVICE_INTERVAL_KM = 10000;
+
+export function dueServiceKm(v: { km: number; nextServiceKm?: number }) {
+  if (v.nextServiceKm && v.nextServiceKm > 0) return v.nextServiceKm;
+  return v.km + SERVICE_INTERVAL_KM;
+}
+
+export function kmToService(v: { km: number; nextServiceKm?: number }) {
+  return dueServiceKm(v) - v.km;
 }
 
 export const statusMap: Record<Status, { label: string; cls: string }> = {

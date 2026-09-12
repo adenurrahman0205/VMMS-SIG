@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, inferOwnerKind, kmToService, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
+import { loadBookings, ymd } from "@/lib/schedule-store";
 import type { Maintenance } from "@/lib/data";
 
 type SortKey = "health" | "km" | "cost" | "ban" | "jobs";
@@ -17,10 +18,18 @@ export default function Page() {
   const [open, setOpen] = useState<Vehicle | null>(null);
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
+  const [inUseIds, setInUseIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setFleet(loadFleet());
     setJobs(loadJobs());
+    const today = ymd(new Date());
+    const used = new Set(
+      loadBookings()
+        .filter((b) => b.date === today && b.status === "disetujui")
+        .map((b) => b.vehicleId)
+    );
+    setInUseIds(used);
   }, []);
 
   const rows = useMemo(() => {
@@ -112,6 +121,24 @@ export default function Page() {
         })}
       </div>
 
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-3xl bg-emerald-50 p-5 ring-1 ring-emerald-100">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Tersedia</div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight text-emerald-900">{nReady}</div>
+          <p className="mt-1 text-sm text-emerald-800/70">siap dipakai hari ini</p>
+        </div>
+        <div className="rounded-3xl bg-amber-50 p-5 ring-1 ring-amber-100">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">Sedang dipakai</div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight text-amber-950">{nUsed}</div>
+          <p className="mt-1 text-sm text-amber-800/70">pengajuan disetujui hari ini</p>
+        </div>
+        <div className="rounded-3xl bg-red-50 p-5 ring-1 ring-red-100">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-red-700">Sedang Maintenance</div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight text-red-950">{nMaint}</div>
+          <p className="mt-1 text-sm text-red-800/70">work order proses / bengkel</p>
+        </div>
+      </div>
+
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-3xl bg-white p-5 ring-1 ring-slate-200">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-600">Milik pribadi · PT SIG</div>
@@ -124,6 +151,29 @@ export default function Page() {
           <p className="mt-1 text-sm text-slate-500">unit sewa / mitra</p>
         </div>
       </div>
+
+      {dueSoon.length > 0 && (
+        <Card className="mb-6">
+          <h3 className="mb-3 text-sm font-semibold">Mendekati jatuh tempo servis (≤ 1.500 km)</h3>
+          <div className="space-y-2">
+            {dueSoon.map((v) => (
+              <button key={v.id} type="button" onClick={() => setOpen(v)} className="flex w-full items-center gap-3 rounded-xl bg-amber-50 px-3 py-2 text-left">
+                <img src={vehiclePhoto(v)} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold">{v.plate} · {v.brand} {v.model}</div>
+                  <div className="text-xs text-slate-500">
+                    KM {fmtN(v.km)} → servis {fmtN(v.km + v.left)}
+                    {v.left <= 0 ? " · terlambat" : ` · sisa ${fmtN(v.left)} km`}
+                  </div>
+                </div>
+                <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${v.left <= 0 ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-900"}`}>
+                  {v.left <= 0 ? "Overdue" : "Segera"}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Urutkan</span>

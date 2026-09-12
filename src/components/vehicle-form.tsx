@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle } from "@/lib/data";
+import { SERVICE_INTERVAL_KM } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 
 function Field({
@@ -37,8 +38,14 @@ export function VehicleForm({
   const [form, setForm] = useState<Vehicle>(initial);
 
   function set<K extends keyof Vehicle>(k: K, val: string) {
-    const num = ["year", "madeYear", "km", "health", "buyPrice"].includes(String(k));
-    setForm({ ...form, [k]: num ? Number(val) || 0 : val });
+    const num = ["year", "madeYear", "km", "health", "buyPrice", "nextServiceKm"].includes(String(k));
+    const n = num ? Number(val) || 0 : val;
+    if (k === "km") {
+      const km = Number(val) || 0;
+      setForm({ ...form, km, nextServiceKm: km + SERVICE_INTERVAL_KM });
+      return;
+    }
+    setForm({ ...form, [k]: n });
   }
 
   function onBbmFile(file?: File) {
@@ -103,6 +110,10 @@ export function VehicleForm({
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label="Kilometer">
               <input className={inputCls} type="number" value={form.km} onChange={(e) => set("km", e.target.value)} />
+            </Field>
+            <Field label="Jatuh tempo servis (KM)">
+              <input className={inputCls} type="number" value={form.nextServiceKm ?? form.km + SERVICE_INTERVAL_KM} onChange={(e) => set("nextServiceKm", e.target.value)} />
+              <p className="mt-1 text-[11px] font-normal normal-case tracking-normal text-slate-400">Otomatis KM saat ini + {SERVICE_INTERVAL_KM.toLocaleString("id-ID")} saat kilometer diubah.</p>
             </Field>
             <Field label="Bahan bakar">
               <input className={inputCls} value={form.fuel} onChange={(e) => set("fuel", e.target.value)} />

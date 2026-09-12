@@ -1,4 +1,4 @@
-import { inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
+import { dueServiceKm, inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 
 const KEY = "vmms-armada-v3";
@@ -10,7 +10,11 @@ export function loadFleet(): Vehicle[] {
     if (raw) {
       const parsed = JSON.parse(raw) as Vehicle[];
       if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map((v) => ({ ...v, ownerKind: inferOwnerKind(v) }));
+        return parsed.map((v) => ({
+          ...v,
+          ownerKind: inferOwnerKind(v),
+          nextServiceKm: dueServiceKm(v),
+        }));
       }
     }
   } catch {
@@ -50,6 +54,7 @@ export function blankVehicle(): Vehicle {
     madeYear: new Date().getFullYear(),
     bbmNo: "",
     bbmImage: "",
+    nextServiceKm: 10000,
   };
 }
 
