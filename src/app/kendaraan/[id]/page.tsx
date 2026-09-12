@@ -33,12 +33,12 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
   const hist = jobs.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
   const docs = documents.filter((d) => d.vehicleId === v.id);
   const s = statsFor(v, jobs);
-  const tabs = [
-    ["overview", "Identitas"],
-    ["maintenance", "Histori"],
-    ["sparepart", "Sparepart"],
-    ["biaya", "Biaya"],
-    ["dokumen", "Dokumen"],
+  const tabs: { k: string; l: string; n?: string; d: string }[] = [
+    { k: "overview", l: "Identitas", d: "M4 6h16M4 12h10M4 18h14" },
+    { k: "maintenance", l: "Histori", n: String(hist.length), d: "M14.7 6.3a4.5 4.5 0 0 0-6.4 6.4L3 18v3h3l5.3-5.3a4.5 4.5 0 0 0 6.4-6.4L15 12l-3-3 2.7-2.7Z" },
+    { k: "sparepart", l: "Sparepart", n: String(hist.reduce((a, m) => a + m.items.length, 0)), d: "M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3 5.6 18.4" },
+    { k: "biaya", l: "Biaya", d: "M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-8" },
+    { k: "dokumen", l: "Dokumen", n: String(docs.length), d: "M7 3h8l5 5v13H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" },
   ];
   const specs: [string, string][] = [
     ["Nomor plat", v.plate],
