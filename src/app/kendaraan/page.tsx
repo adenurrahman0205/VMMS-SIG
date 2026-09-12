@@ -169,7 +169,7 @@ export default function KendaraanPage() {
               <div className="mt-4 grid grid-cols-3 gap-2">
                 <Link
                   href={`/kendaraan/${v.id}`}
-                  className="block rounded-xl bg-sky-600 py-2.5 text-center text-xs font-semibold !text-white hover:bg-sky-500"
+                  className="block rounded-xl bg-[#071526] py-2.5 text-center text-xs font-semibold !text-white hover:bg-[#0c2340]"
                 >
                   Detail
                 </Link>

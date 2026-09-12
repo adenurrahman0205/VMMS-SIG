@@ -24,6 +24,7 @@ export type Vehicle = {
   hp: string;
   madeYear: number;
   bbmNo: string;
+  bbmImage?: string;
 };
 
 export type Maintenance = {

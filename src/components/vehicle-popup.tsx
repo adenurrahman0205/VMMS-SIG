@@ -5,21 +5,11 @@ import { Badge } from "@/components/shell";
 import { fmt, fmtN, maintenance, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 
-function Barcode({ value }: { value: string }) {
-  const bits = value.replace(/\D/g, "") + "60882210";
+function BbmCard({ v }: { v: Vehicle }) {
   return (
-    <div className="rounded-xl bg-white p-3">
-      <div className="flex h-14 items-end justify-center gap-px">
-        {bits.split("").map((d, i) => (
-          <span
-            key={i}
-            className="bg-slate-900"
-            style={{ width: Number(d) % 2 === 0 ? 2 : 3, height: `${18 + (Number(d) % 7) * 5}px` }}
-          />
-        ))}
-      </div>
-      <div className="mt-1 text-center font-mono text-[11px] tracking-[0.25em] text-slate-700">{value}</div>
-      <div className="text-center text-[10px] uppercase text-slate-400">Kartu BBM operasional</div>
+    <div className="overflow-hidden rounded-xl bg-white">
+      <img src={v.bbmImage || "/images/bbm-card.jpg"} alt="Kartu BBM" className="h-36 w-full object-cover" />
+      <div className="px-3 py-2 text-center text-[10px] uppercase tracking-wider text-slate-500">Kartu BBM operasional</div>
     </div>
   );
 }
@@ -79,7 +69,7 @@ export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }
             ))}
           </div>
           <div className="space-y-3 lg:col-span-2">
-            <Barcode value={v.bbmNo} />
+            <BbmCard v={v} />
             <div className="grid grid-cols-2 gap-2 text-center text-xs">
               {[
                 ["Servis", s.jobs],

@@ -46,6 +46,7 @@ export function blankVehicle(): Vehicle {
     hp: "",
     madeYear: new Date().getFullYear(),
     bbmNo: "",
+    bbmImage: "",
   };
 }
 

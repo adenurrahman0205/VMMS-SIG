@@ -61,6 +61,7 @@ export const vehicleService = {
             hp: "—",
             madeYear: v.year ?? 0,
             bbmNo: "0000-0000-0000-0000",
+            bbmImage: "",
           })),
         };
       }

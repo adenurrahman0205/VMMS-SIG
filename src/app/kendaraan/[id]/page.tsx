@@ -7,21 +7,11 @@ import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles, type Vehicle
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 
-function Barcode({ value }: { value: string }) {
-  const bits = (value.replace(/\D/g, "") + "60882210").slice(0, 24);
+function BbmCard({ v }: { v: Vehicle }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-inner">
-      <div className="flex h-16 items-end justify-center gap-px">
-        {bits.split("").map((d, i) => (
-          <span
-            key={i}
-            className="bg-[#071526]"
-            style={{ width: Number(d) % 2 === 0 ? 2 : 3, height: `${22 + (Number(d) % 7) * 5}px` }}
-          />
-        ))}
-      </div>
-      <div className="mt-2 text-center font-mono text-xs tracking-[0.28em] text-slate-800">{value}</div>
-      <div className="text-center text-[10px] uppercase tracking-wider text-slate-400">Kartu BBM operasional SIG</div>
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <img src={v.bbmImage || "/images/bbm-card.jpg"} alt="Kartu BBM" className="h-44 w-full object-cover" />
+      <div className="px-3 py-2 text-center text-[10px] uppercase tracking-wider text-slate-500">Kartu BBM operasional SIG</div>
     </div>
   );
 }
@@ -125,7 +115,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
           </div>
         </Card>
         <div className="space-y-3">
-          <Barcode value={v.bbmNo} />
+          <BbmCard v={v} />
           <Card>
             <h3 className="mb-2 text-sm font-semibold">Rekap pekerjaan</h3>
             <div className="grid grid-cols-2 gap-2 text-center text-xs">

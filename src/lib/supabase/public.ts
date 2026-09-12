@@ -1,6 +1,6 @@
 /** Browser-safe anon key. Empty Vercel env vars must not override these. */
 function pick(v: string | undefined, fallback: string) {
-  if (!v || v === "your_anon_key" || v.includes("YOUR_PROJECT")) return fallback;
+  if (!v || v === "your_anon_key" || v.includes("YOUR_PROJECT") || v.startsWith("sb_publishable_")) return fallback;
   return v;
 }
 
