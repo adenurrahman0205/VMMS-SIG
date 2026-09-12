@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 const groups = [
   {
@@ -17,6 +18,16 @@ const groups = [
     ],
   },
   {
+    g: "Admin",
+    items: [
+      ["/admin/vehicles/new", "Tambah Kendaraan"],
+      ["/admin/drivers", "Driver"],
+      ["/admin/workshops", "Bengkel"],
+      ["/admin/departments", "Departemen"],
+      ["/admin/spareparts", "Sparepart"],
+    ],
+  },
+  {
     g: "Data & Backup",
     items: [
       ["/data", "Export Data"],
@@ -27,6 +38,13 @@ const groups = [
 
 export function Shell({ title, children }: { title: string; children: React.ReactNode }) {
   const path = usePathname();
+  const router = useRouter();
+  async function logout() {
+    const sb = createBrowserSupabase();
+    await sb?.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 flex h-screen w-60 flex-col bg-gradient-to-b from-[#0b1f3a] to-[#071426] text-slate-200">
@@ -64,8 +82,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-7 py-3.5">
           <h1 className="text-lg font-semibold">{title}</h1>
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-slate-500">Andi · Fleet Admin</span>
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#0b1f3a] text-xs font-bold text-white">GA</div>
+            <Link href="/login" className="text-slate-500 underline">Login</Link>
+            <button type="button" onClick={logout} className="text-slate-500">Keluar</button>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#0b1f3a] text-xs font-bold text-white">VS</div>
           </div>
         </header>
         <main className="p-7">{children}</main>

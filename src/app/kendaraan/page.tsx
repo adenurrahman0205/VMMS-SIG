@@ -1,23 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { fmtN, vehicles } from "@/lib/data";
+import { fmtN, type Vehicle } from "@/lib/data";
+import { vehicleService } from "@/lib/services/vehicle.service";
 
 export default function KendaraanPage() {
   const [q, setQ] = useState("");
   const [f, setF] = useState("all");
+  const [source, setSource] = useState<"demo" | "supabase">("demo");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    vehicleService.listForUi().then((r) => {
+      setSource(r.source);
+      setVehicles(r.rows);
+    });
+  }, []);
+
   const list = useMemo(
     () =>
       vehicles.filter((v) => {
         const hit = `${v.plate} ${v.brand} ${v.model} ${v.driver}`.toLowerCase().includes(q.toLowerCase());
         return hit && (f === "all" || v.status === f);
       }),
-    [q, f]
+    [q, f, vehicles]
   );
+
   return (
     <Shell title="Daftar Kendaraan">
+      <p className="mb-3 text-xs text-slate-500">
+        Sumber data: {source === "supabase" ? "Supabase (live)" : "demo lokal (DB kosong / RLS / belum login)"}
+      </p>
       <div className="mb-4 flex flex-wrap gap-2">
         <input
           className="min-w-72 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
