@@ -152,8 +152,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-dvh w-72 max-w-[85vw] flex-col bg-[#071526] text-slate-200 transition-transform duration-200 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:w-64 lg:max-w-none lg:translate-x-0",
-          navOpen ? "translate-x-0" : "-translate-x-full"
+          "flex h-screen w-64 shrink-0 flex-col bg-[#071526] text-slate-200 lg:sticky lg:top-0",
+          "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:h-dvh max-lg:w-72 max-lg:max-w-[85vw] max-lg:transition-transform max-lg:duration-200",
+          navOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
         )}
       >
         <div className="border-b border-white/10 px-5 py-5">
