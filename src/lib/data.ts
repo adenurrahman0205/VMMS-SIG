@@ -1,5 +1,12 @@
 export type Status = "ready" | "warning" | "maintenance" | "inactive";
 export type OwnerKind = "sig" | "vendor";
+export type Transmission = "matic" | "manual";
+
+export type VehicleDoc = {
+  type: string;
+  expire: string;
+  status: "aktif" | "segera" | "expired";
+};
 
 export type Vehicle = {
   id: string;

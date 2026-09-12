@@ -31,7 +31,10 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     );
   }
   const hist = jobs.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
-  const docs = documents.filter((d) => d.vehicleId === v.id);
+  const docs =
+    v.documents && v.documents.length
+      ? v.documents
+      : documents.filter((d) => d.vehicleId === v.id);
   const s = statsFor(v, jobs);
   const tabs: { k: string; l: string; n?: string; d: string }[] = [
     { k: "overview", l: "Identitas", d: "M4 6h16M4 12h10M4 18h14" },
@@ -53,6 +56,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     ["Nama pemilik", v.owner],
     ["Alamat", v.address],
     ["Bahan bakar", v.fuel],
+    ["Transmisi", v.transmission === "manual" ? "Manual" : "Matic"],
     ["Isi silinder", v.cc],
     ["Tenaga (HP)", v.hp],
     ["Driver", v.driver],
@@ -74,7 +78,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {v.brand} {v.model}
               </h2>
-              <p className="mt-1 text-slate-300">{v.plate} · {v.color} · {v.fuel}</p>
+              <p className="mt-1 text-slate-300">{v.plate} · {v.color} · {v.fuel} · {v.transmission === "manual" ? "Manual" : "Matic"}</p>
               <div className="mt-3"><Badge status={v.status} /></div>
             </div>
             <div className="mt-6">

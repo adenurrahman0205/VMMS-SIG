@@ -15,6 +15,8 @@ export function loadFleet(): Vehicle[] {
           ...v,
           ownerKind: inferOwnerKind(v),
           nextServiceKm: dueServiceKm(v),
+          transmission: v.transmission === "manual" ? "manual" : "matic",
+          documents: Array.isArray(v.documents) ? v.documents : [],
         }));
       }
     }
