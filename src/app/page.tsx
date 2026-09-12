@@ -50,6 +50,13 @@ export default function Page() {
   const avgHealth = rows.length ? Math.round(rows.reduce((s, r) => s + r.health, 0) / rows.length) : 0;
   const milikSig = rows.filter((r) => inferOwnerKind(r) === "sig").length;
   const milikVendor = rows.filter((r) => inferOwnerKind(r) === "vendor").length;
+  const nMaint = rows.filter((r) => r.status === "maintenance").length;
+  const nUsed = rows.filter((r) => r.status !== "maintenance" && inUseIds.has(r.id)).length;
+  const nReady = rows.filter((r) => r.status !== "maintenance" && r.status !== "inactive" && !inUseIds.has(r.id)).length;
+  const dueSoon = rows
+    .map((r) => ({ ...r, left: kmToService(r) }))
+    .filter((r) => r.left <= 1500)
+    .sort((a, b) => a.left - b.left);
 
   const filters: { id: SortKey; label: string }[] = [
     { id: "health", label: "Skor tertinggi" },
