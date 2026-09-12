@@ -16,10 +16,16 @@ export default function Login() {
     setMsg("");
     const sb = createBrowserSupabase();
     setBusy(true);
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) {
-      setMsg(error.message);
+    try {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      setBusy(false);
+      if (error) {
+        setMsg(error.message);
+        return;
+      }
+    } catch (err) {
+      setBusy(false);
+      setMsg(err instanceof Error ? err.message : "Gagal terhubung ke Supabase.");
       return;
     }
     r.push("/");
