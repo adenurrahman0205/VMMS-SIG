@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
+import { hydrateCloud } from "@/lib/services/sync.service";
 
 const items: [string, string][] = [
   ["/", "Dashboard"],
@@ -114,6 +115,8 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
 
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     setNavOpen(false);
     setMenu(false);
@@ -121,6 +124,8 @@ export function Shell({ title, children }: { title: string; children: React.Reac
 
   useEffect(() => {
     (async () => {
+      await hydrateCloud();
+      setReady(true);
       const sb = createBrowserSupabase();
       const { data } = await sb.auth.getUser();
       const em = data.user?.email ?? "";

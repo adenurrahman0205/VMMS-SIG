@@ -1,5 +1,6 @@
 import { dueServiceKm, inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
+import { pushCloud } from "./services/sync.service";
 
 const KEY = "vmms-armada-v3";
 
@@ -25,6 +26,7 @@ export function loadFleet(): Vehicle[] {
 
 export function saveFleet(rows: Vehicle[]) {
   localStorage.setItem(KEY, JSON.stringify(rows));
+  void pushCloud("fleet", rows);
 }
 
 export function blankVehicle(): Vehicle {

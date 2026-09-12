@@ -1,3 +1,5 @@
+import { pushCloud } from "./services/sync.service";
+
 export type BookingStatus = "pengajuan" | "disetujui" | "ditolak";
 
 export type Booking = {
@@ -15,23 +17,22 @@ export type Booking = {
 const KEY = "vmms-bookings-v2";
 
 export function loadBookings(): Booking[] {
-  if (typeof window === "undefined") return seedBookings();
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Booking[];
-      if (Array.isArray(p) && p.length) return p;
+      if (Array.isArray(p)) return p;
     }
   } catch {
     /* ignore */
   }
-  const seed = seedBookings();
-  localStorage.setItem(KEY, JSON.stringify(seed));
-  return seed;
+  return [];
 }
 
 export function saveBookings(rows: Booking[]) {
   localStorage.setItem(KEY, JSON.stringify(rows));
+  void pushCloud("bookings", rows);
 }
 
 function iso(d: Date) {

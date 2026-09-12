@@ -1,3 +1,5 @@
+import { pushCloud } from "./services/sync.service";
+
 export type AppRole = "SUPER_ADMIN" | "FLEET_ADMIN" | "USER";
 
 export type AppUser = {
@@ -46,6 +48,7 @@ export function loadUsers(): AppUser[] {
 
 export function saveUsers(rows: AppUser[]) {
   localStorage.setItem(KEY, JSON.stringify(rows));
+  void pushCloud("users", rows);
 }
 
 export function blankUser(): AppUser {
