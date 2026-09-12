@@ -9,9 +9,9 @@ import { loadFleet } from "@/lib/fleet-store";
 
 function BbmCard({ v }: { v: Vehicle }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-      <img src={v.bbmImage || "/images/bbm-card.jpg"} alt="Kartu BBM" className="h-44 w-full object-cover" />
-      <div className="px-3 py-2 text-center text-[10px] uppercase tracking-wider text-slate-500">Kartu BBM operasional SIG</div>
+    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+      <img src={v.bbmImage || "/images/bbm-qr.png"} alt="QR BBM" className="mx-auto h-52 w-52 object-contain" />
+      <div className="mt-2 text-center text-xs text-slate-500">QR BBM operasional SIG</div>
     </div>
   );
 }

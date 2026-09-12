@@ -7,9 +7,9 @@ import { statsFor } from "@/lib/analytics";
 
 function BbmCard({ v }: { v: Vehicle }) {
   return (
-    <div className="overflow-hidden rounded-xl bg-white">
-      <img src={v.bbmImage || "/images/bbm-card.jpg"} alt="Kartu BBM" className="h-36 w-full object-cover" />
-      <div className="px-3 py-2 text-center text-[10px] uppercase tracking-wider text-slate-500">Kartu BBM operasional</div>
+    <div className="rounded-2xl bg-white p-3">
+      <img src={v.bbmImage || "/images/bbm-qr.png"} alt="QR BBM" className="mx-auto h-44 w-44 object-contain" />
+      <div className="mt-1 text-center text-[10px] text-slate-500">QR BBM operasional</div>
     </div>
   );
 }

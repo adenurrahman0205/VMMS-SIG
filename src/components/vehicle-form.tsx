@@ -152,15 +152,15 @@ export function VehicleForm({
 
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Kartu BBM</p>
           <div className="grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-2">
-            <div className="overflow-hidden rounded-2xl bg-[#071526] shadow-inner">
+            <div className="flex items-center justify-center rounded-2xl bg-white p-3 ring-1 ring-slate-200">
               <img
-                src={form.bbmImage || "/images/bbm-card.jpg"}
-                alt="Kartu BBM"
-                className="h-44 w-full object-cover"
+                src={form.bbmImage || "/images/bbm-qr.png"}
+                alt="QR BBM"
+                className="h-48 w-48 object-contain"
               />
             </div>
             <div className="flex flex-col justify-center">
-              <p className="text-sm text-slate-600">Unggah foto kartu BBM unit ini. Gambar menggantikan nomor kartu.</p>
+              <p className="text-sm text-slate-600">Unggah QR kartu BBM (seperti Pertamina). Default memakai template QR.</p>
               <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#071526] px-4 py-2.5 text-sm font-semibold !text-white">
                 Pilih gambar kartu
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => onBbmFile(e.target.files?.[0])} />
