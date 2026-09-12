@@ -45,7 +45,7 @@ export default function Page() {
   }, [sort, fleet, jobs]);
   const maxKm = Math.max(...rows.map((r) => r.km), 1);
   const maxCost = Math.max(...rows.map((r) => r.cost), 1);
-  const totalCost = rows.reduce((s, r) => s + r.cost, 0);
+  const totalCost = jobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
   const totalKm = rows.reduce((s, r) => s + r.km, 0);
   const avgHealth = rows.length ? Math.round(rows.reduce((s, r) => s + r.health, 0) / rows.length) : 0;
   const milikSig = rows.filter((r) => inferOwnerKind(r) === "sig").length;
@@ -323,8 +323,7 @@ export default function Page() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((v) => (
-              <tr key={v.id} className="cursor-pointer border-t hover:bg-sky-50" onClick={() => setOpen(v)}>
+       key={v.id} className="cursor-pointer border-t hover:bg-sky-50" onClick={() => setOpen(v)}>
                 <td className="px-4 py-2 font-medium">
                   {v.plate}
                   <span className="block text-[11px] text-slate-400">{v.model}</span>
@@ -344,6 +343,10 @@ export default function Page() {
       </Card>
 
       {open && <VehiclePopup v={open} onClose={() => setOpen(null)} />}
+    </Shell>
+  );
+}
+=> setOpen(null)} />}
     </Shell>
   );
 }
