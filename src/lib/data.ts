@@ -79,6 +79,7 @@ function buildExtraFleet(): Vehicle[] {
       madeYear: p.year,
       bbmNo: "",
       ...p,
+      ownerKind: p.ownerKind ?? "sig",
     });
   };
   ["B 1101 AVN", "B 1102 AVN", "B 1103 AVN", "B 1104 AVN", "B 1105 AVN"].forEach((plate, i) =>
