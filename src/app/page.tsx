@@ -72,20 +72,48 @@ export default function Page() {
 
   return (
     <Shell title="Command Dashboard">
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {[
-          ["Armada", String(rows.length), "unit"],
-          ["Tersedia", String(nReady), "siap"],
-          ["Dipakai", String(nUsed), "hari ini"],
-          ["Biaya WO", fmt(totalCost), "selesai"],
-          ["Cost per KM", fmt(Math.round(totalCost / Math.max(totalKm, 1))), "efisiensi"],
-        ].map(([l, v, s]) => (
-          <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
-            <div className="mt-1 truncate text-xl font-semibold tracking-tight sm:text-2xl">{v}</div>
-            <div className="text-xs text-slate-400">{s}</div>
-          </div>
-        ))}
+          { l: "Armada", v: String(rows.length), s: "unit terdaftar", tone: "navy", icon: "▣", click: () => setUseF("all") },
+          { l: "Tersedia", v: String(nReady), s: "siap operasi", tone: "mint", icon: "○", click: () => setUseF("ready") },
+          { l: "Dipakai", v: String(nUsed), s: "hari ini", tone: "amber", icon: "▶", click: () => setUseF("used") },
+          { l: "Total kilometer", v: `${fmtN(totalKm)}`, s: "akumulasi odometer", tone: "sky", icon: "↗", click: () => setUseF("all") },
+          { l: "Biaya WO", v: fmt(totalCost), s: "work order selesai", tone: "rose", icon: "Rp", click: () => undefined },
+          { l: "Cost per KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "efisiensi armada", tone: "violet", icon: "÷", click: () => undefined },
+        ].map((k, i) => {
+          const skin: Record<string, string> = {
+            navy: "bg-[#071526] text-white ring-white/10",
+            mint: "bg-gradient-to-br from-emerald-50 to-white text-emerald-950 ring-emerald-100",
+            amber: "bg-gradient-to-br from-amber-50 to-white text-amber-950 ring-amber-100",
+            sky: "bg-gradient-to-br from-sky-50 to-white text-sky-950 ring-sky-100",
+            rose: "bg-gradient-to-br from-orange-50 to-white text-orange-950 ring-orange-100",
+            violet: "bg-gradient-to-br from-violet-50 to-white text-violet-950 ring-violet-100",
+          };
+          const muted: Record<string, string> = {
+            navy: "text-sky-300",
+            mint: "text-emerald-600",
+            amber: "text-amber-700",
+            sky: "text-sky-600",
+            rose: "text-orange-600",
+            violet: "text-violet-600",
+          };
+          return (
+            <button
+              key={k.l}
+              type="button"
+              onClick={k.click}
+              style={{ animationDelay: `${i * 70}ms` }}
+              className={`kpi-shine anim card-hover relative overflow-hidden rounded-2xl p-4 text-left ring-1 ${skin[k.tone]}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className={`text-[11px] font-semibold uppercase tracking-[0.12em] ${muted[k.tone]}`}>{k.l}</span>
+                <span className={`grid h-7 w-7 place-items-center rounded-lg text-xs font-bold ${k.tone === "navy" ? "bg-white/10 text-sky-200" : "bg-white/80"}`}>{k.icon}</span>
+              </div>
+              <div className="mt-3 break-words text-xl font-semibold leading-tight tracking-tight sm:text-2xl">{k.v}</div>
+              <div className={`mt-1 text-[11px] ${k.tone === "navy" ? "text-slate-400" : "text-slate-500"}`}>{k.s}</div>
+            </button>
+          );
+        })}
       </div>
 
       <Card className="mb-5 p-0">
