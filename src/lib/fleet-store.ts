@@ -1,7 +1,7 @@
 import { vehicles as seed, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 
-const KEY = "vmms-armada-v1";
+const KEY = "vmms-armada-v2";
 
 export function loadFleet(): Vehicle[] {
   if (typeof window === "undefined") return seed;

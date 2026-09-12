@@ -50,7 +50,74 @@ export const vehicles: Vehicle[] = [
   { id: "v6", plate: "B 2211 MNO", brand: "Daihatsu", model: "Gran Max", year: 2019, km: 168900, dept: "Logistik", driver: "Fajar Hidayat", status: "warning", color: "Putih", engine: "K3-VE-9901", chassis: "MHKAA1BA5K001122", loc: "Gudang Cibinong", health: 58, buyDate: "2019-05-08", buyPrice: 165000000, owner: "PT SIG Logistik", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1495 cc", hp: "97 HP", madeYear: 2019, bbmNo: "6088-2210-4581-0197" },
   { id: "v7", plate: "F 4455 PQR", brand: "Toyota", model: "Hiace", year: 2021, km: 98400, dept: "Operasional", driver: "Gilang Ramadhan", status: "ready", color: "Silver", engine: "2KD-FTV-3344", chassis: "JTFSH22P0K012987", loc: "Kantor Pusat Bogor", health: 76, buyDate: "2021-11-03", buyPrice: 545000000, owner: "PT SIG Operasional", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Solar", cc: "2494 cc", hp: "102 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0198" },
   { id: "v8", plate: "B 8899 STU", brand: "Suzuki", model: "Carry", year: 2018, km: 201340, dept: "Logistik", driver: "Hendra Gunawan", status: "inactive", color: "Putih", engine: "K14B-1122", chassis: "MHYNC12S0J008811", loc: "Gudang Cibinong", health: 41, buyDate: "2018-04-22", buyPrice: 142000000, owner: "PT SIG Logistik", address: "Kawasan Gudang Cibinong Blok D-4", fuel: "Bensin", cc: "1462 cc", hp: "95 HP", madeYear: 2018, bbmNo: "6088-2210-4581-0199" },
+  ...buildExtraFleet(),
 ];
+
+function buildExtraFleet(): Vehicle[] {
+  const owner = "PT SIG Operasional";
+  const addr = "Jl. Raya Pajajaran No. 12, Bogor";
+  const rows: Vehicle[] = [];
+  const add = (p: Partial<Vehicle> & Pick<Vehicle, "id" | "plate" | "brand" | "model" | "year" | "color">) => {
+    rows.push({
+      km: 40000,
+      dept: "Operasional",
+      driver: "Pool SIG",
+      status: "ready",
+      engine: "ENG-" + p.id.toUpperCase(),
+      chassis: "CHS-" + p.id.toUpperCase(),
+      loc: "Kantor Pusat Bogor",
+      health: 85,
+      buyDate: `${p.year}-03-01`,
+      buyPrice: 250000000,
+      owner,
+      address: addr,
+      fuel: "Bensin",
+      cc: "1500 cc",
+      hp: "104 HP",
+      madeYear: p.year,
+      bbmNo: "",
+      ...p,
+    });
+  };
+  ["B 1101 AVN", "B 1102 AVN", "B 1103 AVN", "B 1104 AVN", "B 1105 AVN"].forEach((plate, i) =>
+    add({ id: `av21-${i + 1}`, plate, brand: "Toyota", model: "Avanza", year: 2021, color: ["Silver", "Putih", "Abu-abu", "Hitam", "Merah"][i], km: 78000 + i * 3100, driver: `Driver Avanza ${i + 1}`, health: 72 })
+  );
+  ["F 2201 INB", "F 2202 INB"].forEach((plate, i) =>
+    add({ id: `inr-${i + 1}`, plate, brand: "Toyota", model: "Innova Reborn", year: 2022, color: "Hitam", km: 54000 + i * 8000, driver: `Driver Innova ${i + 1}`, dept: "General Affairs", health: 90, cc: "1998 cc", hp: "137 HP", buyPrice: 390000000 })
+  );
+  ["F 3301 XPD", "F 3302 XPD", "F 3303 XPD", "F 3304 XPD", "F 3305 XPD"].forEach((plate, i) =>
+    add({ id: `xp-${i + 1}`, plate, brand: "Mitsubishi", model: "Xpander", year: 2022, color: "Abu-abu", km: 41000 + i * 2500, driver: `Driver Xpander ${i + 1}`, dept: "Marketing", health: 84, cc: "1499 cc" })
+  );
+  ["B 4401 LXO", "B 4402 LXO"].forEach((plate, i) =>
+    add({ id: `lx-${i + 1}`, plate, brand: "Daihatsu", model: "Luxio", year: 2020, color: "Putih", km: 92000 + i * 4000, driver: `Driver Luxio ${i + 1}`, health: 70, cc: "1495 cc" })
+  );
+  ["B 5501 AAV", "B 5502 AAV", "B 5503 AAV", "B 5504 AAV", "B 5505 AAV"].forEach((plate, i) =>
+    add({ id: `aan-${i + 1}`, plate, brand: "Toyota", model: "Avanza All New", year: 2021, color: "Putih", km: 36000 + i * 2200, driver: `Driver All New ${i + 1}`, health: 81 })
+  );
+  ["F 6601 CLH", "F 6602 CLH", "F 6603 CLH", "F 6604 CLH"].forEach((plate, i) =>
+    add({ id: `clh-${i + 1}`, plate, brand: "Toyota", model: "Calya Type G", year: 2025, color: "Hitam", km: 4200 + i * 800, driver: `Driver Calya Hitam ${i + 1}`, health: 96, buyDate: "2025-02-10", madeYear: 2025 })
+  );
+  ["F 7701 CLP", "F 7702 CLP", "F 7703 CLP", "F 7704 CLP"].forEach((plate, i) =>
+    add({ id: `clp-${i + 1}`, plate, brand: "Toyota", model: "Calya Type G", year: 2025, color: "Putih", km: 3800 + i * 700, driver: `Driver Calya Putih ${i + 1}`, health: 95, buyDate: "2025-02-12", madeYear: 2025 })
+  );
+  add({
+    id: "pjs-1",
+    plate: "F 8801 PJS",
+    brand: "Mitsubishi",
+    model: "Pajero Sport",
+    year: 2022,
+    color: "Hitam",
+    km: 31200,
+    driver: "Dedi Kurniawan",
+    dept: "Direksi",
+    health: 91,
+    fuel: "Solar",
+    cc: "2442 cc",
+    hp: "181 HP",
+    buyPrice: 620000000,
+  });
+  return rows;
+}
 
 export const maintenance: Maintenance[] = [
   { id: "MT-2026-000123", vehicleId: "v1", date: "2026-09-10", type: "Service Berkala", km: 85240, shop: "Auto Service A", cost: 1250000, status: "selesai", complaint: "Servis rutin", action: "Ganti oli & filter", items: [{ name: "Oli Mesin", qty: 5, price: 120000 }, { name: "Filter Oli", qty: 1, price: 85000 }, { name: "Filter Udara", qty: 1, price: 150000 }] },
@@ -99,9 +166,16 @@ export const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 export const fmtN = (n: number) => new Intl.NumberFormat("id-ID").format(n);
 
-export function vehiclePhoto(v: { model: string; brand?: string }) {
+export function vehiclePhoto(v: { model: string; brand?: string; color?: string }) {
   const m = v.model.toLowerCase();
+  const c = (v.color || "").toLowerCase();
+  if (m.includes("pajero")) return "/images/pajero.jpg";
+  if (m.includes("luxio")) return "/images/luxio.jpg";
+  if (m.includes("calya") && (c.includes("hitam") || c.includes("black"))) return "/images/calya-black.jpg";
+  if (m.includes("calya")) return "/images/calya-white.jpg";
+  if (m.includes("reborn") || (m.includes("innova") && (c.includes("hitam") || c.includes("black")))) return "/images/innova-black.jpg";
   if (m.includes("innova")) return "/images/innova.jpg";
+  if (m.includes("all new") || (m.includes("avanza") && (c.includes("putih") || c.includes("white")))) return "/images/avanza-white.jpg";
   if (m.includes("avanza")) return "/images/avanza.jpg";
   if (m.includes("elf")) return "/images/elf.jpg";
   if (m.includes("hr-v") || m.includes("hrv")) return "/images/hrv.jpg";
