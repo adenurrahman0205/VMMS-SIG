@@ -141,7 +141,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const initials = displayName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "U";
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="min-h-dvh lg:pl-64">
       {navOpen && (
         <button
           type="button"
@@ -152,8 +152,8 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       )}
       <aside
         className={cn(
-          "flex h-screen w-64 shrink-0 flex-col bg-[#071526] text-slate-200 lg:sticky lg:top-0",
-          "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:h-dvh max-lg:w-72 max-lg:max-w-[85vw] max-lg:transition-transform max-lg:duration-200",
+          "fixed inset-y-0 left-0 z-50 flex h-dvh w-64 flex-col overflow-hidden bg-[#071526] text-slate-200",
+          "max-lg:w-72 max-lg:max-w-[85vw] max-lg:transition-transform max-lg:duration-200",
           navOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
         )}
       >
