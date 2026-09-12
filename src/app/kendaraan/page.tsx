@@ -24,10 +24,20 @@ export default function KendaraanPage() {
     saveFleet(next);
   }
 
+  const counts = useMemo(
+    () => ({
+      all: vehicles.length,
+      ready: vehicles.filter((v) => v.status === "ready").length,
+      warning: vehicles.filter((v) => v.status === "warning").length,
+      maintenance: vehicles.filter((v) => v.status === "maintenance").length,
+    }),
+    [vehicles]
+  );
+
   const list = useMemo(
     () =>
       vehicles.filter((v) => {
-        const hit = `${v.plate} ${v.brand} ${v.model} ${v.driver}`.toLowerCase().includes(q.toLowerCase());
+        const hit = `${v.plate} ${v.brand} ${v.model} ${v.driver} ${v.dept}`.toLowerCase().includes(q.toLowerCase());
         return hit && (f === "all" || v.status === f);
       }),
     [q, f, vehicles]
@@ -52,53 +62,119 @@ export default function KendaraanPage() {
 
   return (
     <Shell title="Armada">
-      <div className="mb-5 flex flex-wrap items-center gap-2">
-        <input
-          className="min-w-72 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm"
-          placeholder="Cari nopol, merk, driver..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        {(["all", "ready", "warning", "maintenance"] as const).map((k) => (
+      <section className="anim relative mb-6 overflow-hidden rounded-3xl">
+        <img src="/images/hero-fleet.png" alt="" className="h-40 w-full object-cover sm:h-48" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/75 to-[#071526]/25" />
+        <div className="absolute inset-0 flex flex-col justify-end p-6 text-white sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Fleet gallery</p>
+            <h2 className="text-2xl font-semibold tracking-tight">Semua unit operasional SIG</h2>
+            <p className="mt-1 text-sm text-slate-300">{counts.all} kendaraan · klik foto untuk dossier</p>
+          </div>
+          <button
+            className="mt-4 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 hover:bg-sky-400 sm:mt-0"
+            onClick={() => {
+              setMode("create");
+              setEditor(blankVehicle());
+            }}
+          >
+            + Tambah kendaraan
+          </button>
+        </div>
+      </section>
+
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {(
+          [
+            ["all", "Semua", counts.all, "bg-white"],
+            ["ready", "Ready", counts.ready, "bg-emerald-50"],
+            ["warning", "Warning", counts.warning, "bg-amber-50"],
+            ["maintenance", "Bengkel", counts.maintenance, "bg-red-50"],
+          ] as const
+        ).map(([k, l, n, bg]) => (
           <button
             key={k}
             onClick={() => setF(k)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium ${f === k ? "bg-[#071526] text-white" : "border border-slate-200 bg-white"}`}
+            className={`rounded-2xl px-4 py-3 text-left ring-1 transition ${bg} ${
+              f === k ? "ring-[#071526] shadow-md" : "ring-slate-200"
+            }`}
           >
-            {k === "all" ? "Semua" : k}
+            <div className="text-[11px] uppercase tracking-wide text-slate-500">{l}</div>
+            <div className="text-2xl font-semibold tracking-tight">{n}</div>
           </button>
         ))}
-        <button
-          className="ml-auto rounded-full bg-[#071526] px-4 py-2 text-sm font-semibold text-white"
-          onClick={() => {
-            setMode("create");
-            setEditor(blankVehicle());
-          }}
-        >
-          + Tambah kendaraan
-        </button>
+      </div>
+
+      <div className="mb-6 flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
+        <span className="mr-2 text-slate-400">⌕</span>
+        <input
+          className="w-full bg-transparent text-sm outline-none"
+          placeholder="Cari nomor polisi, merk, model, driver, atau departemen…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <span className="hidden text-xs text-slate-400 sm:inline">{list.length} hasil</span>
       </div>
       {msg && <p className="mb-3 text-xs text-amber-700">{msg}</p>}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+
+      {list.length === 0 && (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-500">
+          Tidak ada unit pada filter ini.
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {list.map((v) => (
-          <div key={v.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <Link href={`/kendaraan/${v.id}`} className="block">
-              <div className="relative h-44 overflow-hidden">
-                <img src={vehiclePhoto(v)} alt="" className="h-full w-full object-cover" />
-                <div className="absolute left-3 top-3">
-                  <Badge status={v.status} />
-                </div>
+          <article key={v.id} className="card-hover group overflow-hidden rounded-3xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+            <Link href={`/kendaraan/${v.id}`} className="relative block h-52 overflow-hidden">
+              <img src={vehiclePhoto(v)} alt="" className="img-zoom h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute left-4 top-4">
+                <Badge status={v.status} />
+              </div>
+              <div className="absolute bottom-4 left-4 right-4 text-white">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-sky-200">{v.plate}</div>
+                <h3 className="text-xl font-semibold tracking-tight">
+                  {v.brand} {v.model}
+                </h3>
               </div>
             </Link>
-            <div className="p-4">
-              <div className="text-lg font-semibold">{v.brand} {v.model}</div>
-              <div className="text-sm text-slate-500">{v.plate} · {v.year} · {fmtN(v.km)} km</div>
-              <div className="mt-3 flex gap-2">
-                <Link href={`/kendaraan/${v.id}`} className="rounded-lg border px-3 py-1.5 text-xs">
+            <div className="p-5">
+              <div className="mb-4 flex items-center justify-between text-xs text-slate-500">
+                <span>
+                  Health <b className="text-slate-800">{v.health}</b>
+                </span>
+                <span>{v.year} · {v.color}</span>
+              </div>
+              <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400"
+                  style={{ width: `${v.health}%` }}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-xl bg-slate-50 py-2">
+                  <div className="text-sm font-semibold text-slate-800">{fmtN(v.km)}</div>
+                  <div className="text-[10px] uppercase text-slate-400">KM</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 py-2">
+                  <div className="truncate px-1 text-sm font-semibold text-slate-800">{v.driver.split(" ")[0]}</div>
+                  <div className="text-[10px] uppercase text-slate-400">Driver</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 py-2">
+                  <div className="truncate px-1 text-sm font-semibold text-slate-800">{v.dept.split(" ")[0]}</div>
+                  <div className="text-[10px] uppercase text-slate-400">Dept</div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <Link
+                  href={`/kendaraan/${v.id}`}
+                  className="rounded-xl bg-[#071526] py-2 text-center text-xs font-semibold text-white"
+                >
                   Detail
                 </Link>
                 <button
-                  className="rounded-lg bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-800"
+                  className="rounded-xl bg-sky-50 py-2 text-xs font-semibold text-sky-800"
                   onClick={() => {
                     setMode("edit");
                     setEditor(v);
@@ -106,14 +182,15 @@ export default function KendaraanPage() {
                 >
                   Update
                 </button>
-                <button className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700" onClick={() => remove(v)}>
-                  Delete
+                <button className="rounded-xl bg-red-50 py-2 text-xs font-semibold text-red-700" onClick={() => remove(v)}>
+                  Hapus
                 </button>
               </div>
             </div>
-          </div>
+          </article>
         ))}
       </div>
+
       {editor && (
         <VehicleForm
           initial={editor}
