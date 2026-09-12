@@ -1,12 +1,25 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
-import { fmt, fmtN, maintenance, vehicles } from "@/lib/data";
+import { fmt, fmtN, type Maintenance, type Vehicle } from "@/lib/data";
+import { loadFleet } from "@/lib/fleet-store";
+import { loadJobs } from "@/lib/maintenance-store";
 
 export default function Biaya() {
-  const rows = vehicles
-    .map((v) => ({ ...v, c: maintenance.filter((m) => m.vehicleId === v.id).reduce((s, m) => s + m.cost, 0) }))
-    .sort((a, b) => b.c - a.c);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [jobs, setJobs] = useState<Maintenance[]>([]);
+  useEffect(() => {
+    setVehicles(loadFleet());
+    setJobs(loadJobs());
+  }, []);
+  const rows = useMemo(
+    () =>
+      vehicles
+        .map((v) => ({ ...v, c: jobs.filter((m) => m.vehicleId === v.id).reduce((s, m) => s + m.cost, 0) }))
+        .sort((a, b) => b.c - a.c),
+    [vehicles, jobs]
+  );
   return (
     <Shell title="Biaya & Analitik">
       <Card className="p-0">

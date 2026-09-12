@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { documents, fmt, fmtN, inferOwnerKind, maintenance, ownerKindLabel, vehiclePhoto, vehicles, type Vehicle } from "@/lib/data";
+import { documents, fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";
+import { loadJobs } from "@/lib/maintenance-store";
 
 function BbmCard({ v }: { v: Vehicle }) {
   return <BbmPreview src={v.bbmImage} size="lg" />;
@@ -16,9 +17,11 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
   const { id } = use(params);
   const [tab, setTab] = useState("overview");
   const [v, setV] = useState<Vehicle | undefined>(undefined);
+  const [jobs, setJobs] = useState<Maintenance[]>([]);
   useEffect(() => {
     const all = loadFleet();
     setV(all.find((x) => x.id === id) ?? vehicles.find((x) => x.id === id));
+    setJobs(loadJobs());
   }, [id]);
   if (!v) {
     return (
@@ -27,9 +30,9 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
       </Shell>
     );
   }
-  const hist = maintenance.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
+  const hist = jobs.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
   const docs = documents.filter((d) => d.vehicleId === v.id);
-  const s = statsFor(v);
+  const s = statsFor(v, jobs);
   const tabs = [
     ["overview", "Identitas"],
     ["maintenance", "Histori"],

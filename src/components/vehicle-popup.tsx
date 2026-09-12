@@ -3,16 +3,22 @@
 import Link from "next/link";
 import { Badge } from "@/components/shell";
 import { BbmPreview } from "@/components/bbm-preview";
-import { fmt, fmtN, inferOwnerKind, maintenance, ownerKindLabel, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
+import { loadJobs } from "@/lib/maintenance-store";
+import { useEffect, useState } from "react";
 
 function BbmCard({ v }: { v: Vehicle }) {
   return <BbmPreview src={v.bbmImage} size="sm" />;
 }
 
 export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }) {
-  const s = statsFor(v);
-  const hist = maintenance.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
+  const [jobs, setJobs] = useState<Maintenance[]>([]);
+  useEffect(() => {
+    setJobs(loadJobs());
+  }, []);
+  const s = statsFor(v, jobs);
+  const hist = jobs.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
   const specs: [string, string][] = [
     ["Nomor Plat", v.plate],
     ["Tahun mobil / pembuatan", String(v.madeYear)],

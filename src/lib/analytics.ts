@@ -1,7 +1,13 @@
-import { maintenance, vehicles, type Vehicle } from "./data";
+import { maintenance as seedJobs, vehicles, type Maintenance, type Vehicle } from "./data";
+import { loadJobs } from "./maintenance-store";
 
-export function statsFor(v: Vehicle) {
-  const rows = maintenance.filter((m) => m.vehicleId === v.id);
+function jobs(): Maintenance[] {
+  if (typeof window === "undefined") return seedJobs;
+  return loadJobs();
+}
+
+export function statsFor(v: Vehicle, list?: Maintenance[]) {
+  const rows = (list ?? jobs()).filter((m) => m.vehicleId === v.id);
   const cost = rows.reduce((s, m) => s + m.cost, 0);
   const hit = (k: string) =>
     rows.filter((m) => `${m.type} ${m.items.map((i) => i.name).join(" ")}`.toLowerCase().includes(k)).length;
