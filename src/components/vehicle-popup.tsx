@@ -2,16 +2,12 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/shell";
+import { BbmPreview } from "@/components/bbm-preview";
 import { fmt, fmtN, maintenance, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 
 function BbmCard({ v }: { v: Vehicle }) {
-  return (
-    <div className="rounded-2xl bg-white p-3">
-      <img src={v.bbmImage || "/images/bbm-qr.png"} alt="QR BBM" className="mx-auto h-44 w-44 object-contain" />
-      <div className="mt-1 text-center text-[10px] text-slate-500">QR BBM operasional</div>
-    </div>
-  );
+  return <BbmPreview src={v.bbmImage} size="sm" />;
 }
 
 export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }) {

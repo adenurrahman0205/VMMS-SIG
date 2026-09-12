@@ -5,15 +5,11 @@ import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
+import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";
 
 function BbmCard({ v }: { v: Vehicle }) {
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <img src={v.bbmImage || "/images/bbm-qr.png"} alt="QR BBM" className="mx-auto h-52 w-52 object-contain" />
-      <div className="mt-2 text-center text-xs text-slate-500">QR BBM operasional SIG</div>
-    </div>
-  );
+  return <BbmPreview src={v.bbmImage} size="lg" />;
 }
 
 export default function Detail({ params }: { params: Promise<{ id: string }> }) {
