@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, inferOwnerKind, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
@@ -72,12 +72,13 @@ export default function Page() {
 
   return (
     <Shell title="Command Dashboard">
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
         {[
           ["Armada", String(rows.length), "unit"],
           ["Tersedia", String(nReady), "siap"],
           ["Dipakai", String(nUsed), "hari ini"],
           ["Biaya WO", fmt(totalCost), "selesai"],
+          ["Cost per KM", fmt(Math.round(totalCost / Math.max(totalKm, 1))), "efisiensi"],
         ].map(([l, v, s]) => (
           <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
