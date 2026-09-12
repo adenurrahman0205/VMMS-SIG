@@ -25,15 +25,18 @@ export default function KendaraanPage() {
     saveFleet(next);
   }
 
-  const counts = useMemo(
-    () => ({
+  const counts = useMemo(() => {
+    const sig = vehicles.filter((v) => inferOwnerKind(v) === "sig").length;
+    const vendor = vehicles.filter((v) => inferOwnerKind(v) === "vendor").length;
+    return {
       all: vehicles.length,
       ready: vehicles.filter((v) => v.status === "ready").length,
       warning: vehicles.filter((v) => v.status === "warning").length,
       maintenance: vehicles.filter((v) => v.status === "maintenance").length,
-    }),
-    [vehicles]
-  );
+      sig,
+      vendor,
+    };
+  }, [vehicles]);
 
   const list = useMemo(
     () =>
@@ -86,6 +89,35 @@ export default function KendaraanPage() {
           </button>
         </div>
       </section>
+
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => setOwn("sig")}
+          className={`rounded-3xl p-5 text-left ring-1 transition ${
+            own === "sig" ? "bg-[#071526] text-white ring-[#071526] shadow-lg" : "bg-white ring-slate-200"
+          }`}
+        >
+          <div className={`text-[11px] font-semibold uppercase tracking-wide ${own === "sig" ? "text-sky-300" : "text-slate-500"}`}>
+            Milik pribadi · PT SIG
+          </div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight">{counts.sig}</div>
+          <p className={`mt-1 text-sm ${own === "sig" ? "text-slate-300" : "text-slate-500"}`}>unit aset sendiri</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setOwn("vendor")}
+          className={`rounded-3xl p-5 text-left ring-1 transition ${
+            own === "vendor" ? "bg-violet-700 text-white ring-violet-700 shadow-lg" : "bg-white ring-slate-200"
+          }`}
+        >
+          <div className={`text-[11px] font-semibold uppercase tracking-wide ${own === "vendor" ? "text-violet-200" : "text-slate-500"}`}>
+            Milik vendor / rental
+          </div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight">{counts.vendor}</div>
+          <p className={`mt-1 text-sm ${own === "vendor" ? "text-violet-100" : "text-slate-500"}`}>unit sewa / mitra</p>
+        </button>
+      </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {(
@@ -154,8 +186,15 @@ export default function KendaraanPage() {
             <Link href={`/kendaraan/${v.id}`} className="relative block h-52 overflow-hidden">
               <img src={vehiclePhoto(v)} alt="" className="img-zoom h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute left-4 top-4">
+              <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                 <Badge status={v.status} />
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    inferOwnerKind(v) === "vendor" ? "bg-violet-500 text-white" : "bg-sky-500 text-white"
+                  }`}
+                >
+                  {ownerKindLabel(inferOwnerKind(v))}
+                </span>
               </div>
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-sky-200">{v.plate}</div>

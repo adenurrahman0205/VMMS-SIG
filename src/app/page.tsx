@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, inferOwnerKind, vehiclePhoto, type Vehicle } from "@/lib/data";
 import { fleetRows } from "@/lib/analytics";
 
 type SortKey = "health" | "km" | "cost" | "ban" | "jobs";
@@ -27,6 +27,8 @@ export default function Page() {
   const totalCost = rows.reduce((s, r) => s + r.cost, 0);
   const totalKm = rows.reduce((s, r) => s + r.km, 0);
   const avgHealth = Math.round(rows.reduce((s, r) => s + r.health, 0) / rows.length);
+  const milikSig = rows.filter((r) => inferOwnerKind(r) === "sig").length;
+  const milikVendor = rows.filter((r) => inferOwnerKind(r) === "vendor").length;
 
   const filters: { id: SortKey; label: string }[] = [
     { id: "health", label: "Skor tertinggi" },
@@ -96,6 +98,19 @@ export default function Page() {
             </div>
           );
         })}
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-3xl bg-white p-5 ring-1 ring-slate-200">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-600">Milik pribadi · PT SIG</div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight">{milikSig}</div>
+          <p className="mt-1 text-sm text-slate-500">unit aset sendiri</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5 ring-1 ring-slate-200">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-violet-600">Milik vendor / rental</div>
+          <div className="mt-1 text-4xl font-semibold tracking-tight">{milikVendor}</div>
+          <p className="mt-1 text-sm text-slate-500">unit sewa / mitra</p>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
