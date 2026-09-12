@@ -1,18 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { fmt, fmtN, inferOwnerKind, vehiclePhoto, type Vehicle } from "@/lib/data";
-import { fleetRows } from "@/lib/analytics";
+import { fmt, fmtN, inferOwnerKind, ownerKindLabel, vehiclePhoto, type Vehicle } from "@/lib/data";
+import { statsFor } from "@/lib/analytics";
+import { loadFleet } from "@/lib/fleet-store";
+import { loadJobs } from "@/lib/maintenance-store";
+import type { Maintenance } from "@/lib/data";
 
 type SortKey = "health" | "km" | "cost" | "ban" | "jobs";
 
 export default function Page() {
   const [sort, setSort] = useState<SortKey>("health");
   const [open, setOpen] = useState<Vehicle | null>(null);
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+  const [jobs, setJobs] = useState<Maintenance[]>([]);
+
+  useEffect(() => {
+    setFleet(loadFleet());
+    setJobs(loadJobs());
+  }, []);
+
   const rows = useMemo(() => {
-    const list = [...fleetRows()];
+    const list = fleet.map((v) => ({ ...v, ...statsFor(v, jobs) }));
     list.sort((a, b) => {
       if (sort === "km") return b.km - a.km;
       if (sort === "cost") return b.cost - a.cost;
@@ -21,7 +33,7 @@ export default function Page() {
       return b.health - a.health;
     });
     return list;
-  }, [sort]);
+  }, [sort, fleet, jobs]);
   const maxKm = Math.max(...rows.map((r) => r.km), 1);
   const maxCost = Math.max(...rows.map((r) => r.cost), 1);
   const totalCost = rows.reduce((s, r) => s + r.cost, 0);
