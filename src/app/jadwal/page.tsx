@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
+import { PengajuanModal } from "@/components/pengajuan-modal";
 import { type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
@@ -14,6 +14,7 @@ export default function Jadwal() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
+  const [showAjuan, setShowAjuan] = useState(false);
 
   useEffect(() => {
     setFleet(loadFleet());
@@ -97,9 +98,9 @@ export default function Jadwal() {
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Dispatch calendar</p>
             <h2 className="text-2xl font-semibold">Kalender & pengingat pengajuan</h2>
           </div>
-          <Link href="/jadwal/pengajuan" className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white">
+          <button type="button" onClick={() => setShowAjuan(true)} className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white">
             + Pengajuan pemakaian
-          </Link>
+          </button>
         </div>
       </section>
 
@@ -218,6 +219,13 @@ export default function Jadwal() {
           );
         })}
       </div>
+
+      {showAjuan && (
+        <PengajuanModal
+          onClose={() => setShowAjuan(false)}
+          onSaved={() => setBookings(loadBookings())}
+        />
+      )}
     </Shell>
   );
 }
