@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Card, Shell } from "@/components/shell";
-import { fmtN, type Vehicle } from "@/lib/data";
+import { Badge, Shell } from "@/components/shell";
+import { fmtN, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { vehicleService } from "@/lib/services/vehicle.service";
 
 export default function KendaraanPage() {
@@ -29,14 +29,14 @@ export default function KendaraanPage() {
   );
 
   return (
-    <Shell title="Daftar Kendaraan">
-      <p className="mb-3 text-xs text-slate-500">
-        Sumber data: {source === "supabase" ? "Supabase (live)" : "demo lokal (DB kosong / RLS / belum login)"}
+    <Shell title="Armada">
+      <p className="mb-4 text-xs text-slate-500">
+        Sumber: {source === "supabase" ? "Supabase live" : "katalog visual demo"} · {list.length} unit
       </p>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-5 flex flex-wrap gap-2">
         <input
-          className="min-w-72 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-          placeholder="Cari No Polisi / Merk / Model / Driver"
+          className="min-w-72 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm"
+          placeholder="Cari nopol, merk, driver..."
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -44,39 +44,38 @@ export default function KendaraanPage() {
           <button
             key={k}
             onClick={() => setF(k)}
-            className={`rounded-full border px-3 py-1.5 text-xs ${f === k ? "border-[#0b1f3a] bg-[#0b1f3a] text-white" : "border-slate-200 bg-white"}`}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${f === k ? "bg-[#071526] text-white" : "bg-white border border-slate-200"}`}
           >
             {k === "all" ? "Semua" : k}
           </button>
         ))}
       </div>
-      <Card className="p-0">
-        <table className="w-full text-sm">
-          <thead className="text-left text-[11px] uppercase text-slate-500">
-            <tr>
-              {["No Polisi", "Kendaraan", "Tahun", "KM", "Dept", "Driver", "Health", "Status"].map((h) => (
-                <th key={h} className="px-4 py-2">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((v) => (
-              <tr key={v.id} className="border-t border-slate-100">
-                <td className="px-4 py-2">
-                  <Link className="font-semibold text-[#1a3d6d]" href={`/kendaraan/${v.id}`}>{v.plate}</Link>
-                </td>
-                <td className="px-4 py-2">{v.brand} {v.model}</td>
-                <td className="px-4 py-2">{v.year}</td>
-                <td className="px-4 py-2">{fmtN(v.km)}</td>
-                <td className="px-4 py-2">{v.dept}</td>
-                <td className="px-4 py-2">{v.driver}</td>
-                <td className="px-4 py-2">{v.health}/100</td>
-                <td className="px-4 py-2"><Badge status={v.status} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {list.map((v, i) => (
+          <Link
+            key={v.id}
+            href={`/kendaraan/${v.id}`}
+            className={`anim card-hover delay-${(i % 4) + 1} overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm`}
+          >
+            <div className="relative h-44 overflow-hidden">
+              <img src={vehiclePhoto(v)} alt={`${v.brand} ${v.model}`} className="img-zoom h-full w-full object-cover" />
+              <div className="absolute left-3 top-3">
+                <Badge status={v.status} />
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-lg font-semibold tracking-tight">{v.brand} {v.model}</div>
+              <div className="text-sm text-slate-500">{v.plate} · {v.year} · {v.color}</div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                <div className="rounded-lg bg-slate-50 p-2">KM<br /><b>{fmtN(v.km)}</b></div>
+                <div className="rounded-lg bg-slate-50 p-2">Health<br /><b>{v.health}/100</b></div>
+                <div className="rounded-lg bg-slate-50 p-2">Dept<br /><b>{v.dept}</b></div>
+                <div className="rounded-lg bg-slate-50 p-2">Driver<br /><b>{v.driver}</b></div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </Shell>
   );
 }

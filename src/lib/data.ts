@@ -87,6 +87,18 @@ export const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 export const fmtN = (n: number) => new Intl.NumberFormat("id-ID").format(n);
 
+export function vehiclePhoto(v: { model: string; brand?: string }) {
+  const m = v.model.toLowerCase();
+  if (m.includes("innova")) return "/images/innova.jpg";
+  if (m.includes("avanza")) return "/images/avanza.jpg";
+  if (m.includes("elf")) return "/images/elf.jpg";
+  if (m.includes("hr-v") || m.includes("hrv")) return "/images/hrv.jpg";
+  if (m.includes("xpander")) return "/images/xpander.jpg";
+  if (m.includes("hiace")) return "/images/hiace.jpg";
+  if (m.includes("carry") || m.includes("gran")) return "/images/carry.jpg";
+  return "/images/innova.jpg";
+}
+
 export const statusMap: Record<Status, { label: string; cls: string }> = {
   ready: { label: "Ready", cls: "bg-emerald-50 text-emerald-700" },
   warning: { label: "Warning", cls: "bg-amber-50 text-amber-700" },

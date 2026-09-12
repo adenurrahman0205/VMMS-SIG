@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { documents, fmt, fmtN, maintenance, vehicles } from "@/lib/data";
+import { documents, fmt, fmtN, maintenance, vehiclePhoto, vehicles } from "@/lib/data";
 
 export default function Detail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -15,12 +15,18 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
   const tabs = ["overview", "maintenance", "sparepart", "biaya", "dokumen"];
   return (
     <Shell title={`${v.brand} ${v.model}`}>
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{v.brand} {v.model} — {v.plate}</h2>
-          <p className="mt-1 text-sm text-slate-500">{v.dept} · {v.loc} · {v.driver}</p>
+      <div className="anim mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="relative h-64">
+          <img src={vehiclePhoto(v)} alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute bottom-0 flex w-full items-end justify-between p-6 text-white">
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight">{v.brand} {v.model}</h2>
+              <p className="text-sm text-slate-200">{v.plate} · {v.dept} · {v.driver} · {v.loc}</p>
+            </div>
+            <Badge status={v.status} />
+          </div>
         </div>
-        <Badge status={v.status} />
       </div>
       <div className="mb-4 flex gap-1 border-b border-slate-200">
         {tabs.map((t) => (
