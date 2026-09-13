@@ -51,14 +51,23 @@ export default function UserPemakaian() {
           <div className="divide-y">
             {rows.map((b) => {
               const v = fleet.find((x) => x.id === b.vehicleId);
+              const approvedWhen = b.approvedAt
+                ? new Date(b.approvedAt).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })
+                : "";
               return (
                 <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                   <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-xl object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId} · {v?.plate}</div>
                     <div className="text-xs text-slate-500">{b.date} · {b.purpose}</div>
+                    {b.status === "disetujui" && (
+                      <div className="mt-1 rounded-xl bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-800">
+                        Disetujui oleh <b>{b.approvedBy || "Admin"}</b>
+                        {approvedWhen ? ` · ${approvedWhen}` : ""}
+                      </div>
+                    )}
                   </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase">{b.status}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase ${b.status === "disetujui" ? "bg-emerald-50 text-emerald-800" : b.status === "ditolak" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}>{b.status}</span>
                 </div>
               );
             })}

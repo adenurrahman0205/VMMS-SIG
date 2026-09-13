@@ -14,6 +14,8 @@ export type Booking = {
   phone?: string;
   note?: string;
   rejectReason?: string;
+  approvedBy?: string;
+  approvedAt?: string;
   status: BookingStatus;
 };
 

@@ -8,6 +8,8 @@ import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 import { loadUsers, type AppUser } from "@/lib/user-store";
+import { createBrowserSupabase } from "@/lib/supabase/client";
+import { mergeLocalUser } from "@/lib/services/profile.service";
 
 function waHref(phone: string) {
   const d = phone.replace(/\D/g, "");
@@ -23,6 +25,7 @@ export default function Jadwal() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
+  const [actor, setActor] = useState("Admin");
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [showAjuan, setShowAjuan] = useState(false);
@@ -35,6 +38,12 @@ export default function Jadwal() {
     setBookings(loadBookings());
     setJobs(loadJobs());
     setUsers(loadUsers());
+    (async () => {
+      const sb = createBrowserSupabase();
+      const { data } = await sb.auth.getUser();
+      const u = mergeLocalUser(data.user?.email ?? "", data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
+      setActor(u.name || data.user?.email || "Admin");
+    })();
   }, []);
 
   function persist(next: Booking[]) {
@@ -84,9 +93,18 @@ export default function Jadwal() {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   function setStatus(id: string, status: Booking["status"], reason?: string) {
+    const now = new Date().toISOString();
     persist(
       bookings.map((b) =>
-        b.id === id ? { ...b, status, rejectReason: status === "ditolak" ? reason || b.rejectReason : b.rejectReason } : b
+        b.id === id
+          ? {
+              ...b,
+              status,
+              rejectReason: status === "ditolak" ? reason || b.rejectReason : b.rejectReason,
+              approvedBy: status === "disetujui" ? actor : b.approvedBy,
+              approvedAt: status === "disetujui" ? now : b.approvedAt,
+            }
+          : b
       )
     );
   }
