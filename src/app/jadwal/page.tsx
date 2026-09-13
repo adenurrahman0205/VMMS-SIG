@@ -73,6 +73,10 @@ export default function Jadwal() {
     );
   }
 
+  function removeBooking(id: string) {
+    persist(bookings.filter((b) => b.id !== id));
+  }
+
   function setVehicleStatus(id: string, status: Status) {
     const next = fleet.map((x) => (x.id === id ? { ...x, status } : x));
     setFleet(next);
@@ -388,24 +392,6 @@ export default function Jadwal() {
             />
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setRejectId(null)}>Batal</button>
-              <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold !text-white">Tolak pengajuan</button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {showAjuan && (
-        <PengajuanModal
-          vehicleId={ajuanVehicle}
-          date={selected}
-          onClose={() => setShowAjuan(false)}
-          onSaved={() => setBookings(loadBookings())}
-        />
-      )}
-    </Shell>
-  );
-}
-" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setRejectId(null)}>Batal</button>
               <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold !text-white">Tolak pengajuan</button>
             </div>
           </form>
