@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
-import { type Vehicle, vehiclePhoto } from "@/lib/data";
+import { type Maintenance, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
+import { loadJobs } from "@/lib/maintenance-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -12,6 +13,7 @@ const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 export default function Jadwal() {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [jobs, setJobs] = useState<Maintenance[]>([]);
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [showAjuan, setShowAjuan] = useState(false);
@@ -22,6 +24,7 @@ export default function Jadwal() {
   useEffect(() => {
     setFleet(loadFleet());
     setBookings(loadBookings());
+    setJobs(loadJobs());
   }, []);
 
   function persist(next: Booking[]) {
@@ -55,7 +58,13 @@ export default function Jadwal() {
   }, [bookings]);
 
   const today = ymd(new Date());
+
+  function serviceJobsOn(iso: string) {
+    return jobs.filter((j) => j.status === "proses" && ((j.date <= iso && iso <= today) || j.date === iso));
+  }
+
   const dayBookings = byDate.get(selected) ?? [];
+  const dayService = serviceJobsOn(selected);
   const approvedToday = (byDate.get(today) ?? []).filter((b) => b.status === "disetujui");
   const pendingToday = (byDate.get(today) ?? []).filter((b) => b.status === "pengajuan");
   const inUseIds = new Set(approvedToday.map((b) => b.vehicleId));
@@ -131,8 +140,10 @@ export default function Jadwal() {
             {cells.map((iso, i) => {
               if (!iso) return <div key={`e${i}`} className="min-h-[48px] rounded-xl bg-slate-50/50 sm:min-h-[72px]" />;
               const list = byDate.get(iso) ?? [];
-              const n = list.filter((b) => b.status !== "ditolak").length;
+              const svc = serviceJobsOn(iso);
+              const n = list.filter((b) => b.status !== "ditolak").length + svc.length;
               const pending = list.some((b) => b.status === "pengajuan");
+              const hasSvc = svc.length > 0;
               const isSel = iso === selected;
               const isToday = iso === today;
               return (
@@ -152,6 +163,7 @@ export default function Jadwal() {
                     )}
                   </div>
                   {pending && <div className={`mt-1 text-[10px] ${isSel ? "text-amber-200" : "text-amber-700"}`}>Ada pengajuan</div>}
+                  {hasSvc && <div className={`text-[10px] ${isSel ? "text-red-200" : "text-red-700"}`}>Diservice</div>}
                 </button>
               );
             })}
@@ -160,9 +172,27 @@ export default function Jadwal() {
 
         <Card className="flex flex-col p-5 lg:col-span-2">
           <h3 className="font-semibold">{selectedLabel}</h3>
-          <p className="mb-3 text-sm text-slate-500">{dayBookings.length} catatan di tanggal ini</p>
+          <p className="mb-3 text-sm text-slate-500">{dayBookings.length + dayService.length} catatan di tanggal ini</p>
           <div className="max-h-[420px] space-y-2 overflow-auto">
-            {dayBookings.length === 0 && <p className="text-sm text-slate-400">Belum ada pemakaian / pengajuan.</p>}
+            {dayBookings.length === 0 && dayService.length === 0 && <p className="text-sm text-slate-400">Belum ada pemakaian / pengajuan.</p>}
+            {dayService.map((j) => {
+              const v = fleet.find((x) => x.id === j.vehicleId);
+              return (
+                <div key={j.id} className="rounded-xl bg-red-50 p-3 ring-1 ring-red-100">
+                  <div className="flex gap-3">
+                    <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : j.vehicleId}</div>
+                      <div className="text-xs text-slate-500">{v?.plate} · {j.shop || "Bengkel"}</div>
+                      <div className="text-[11px] text-slate-400">{j.type} · {j.complaint || "Sedang diservice"}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">Sedang diservice</span>
+                  </div>
+                </div>
+              );
+            })}
             {dayBookings.map((b) => {
               const v = fleet.find((x) => x.id === b.vehicleId);
               return (
@@ -204,7 +234,7 @@ export default function Jadwal() {
             <h3 className="font-semibold">Tabel pemakaian kendaraan</h3>
             <p className="text-xs text-slate-500">Mengikuti tanggal kalender: {selectedLabel}</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{dayBookings.length} baris</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{dayBookings.length + dayService.length} baris</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[920px] text-sm">
