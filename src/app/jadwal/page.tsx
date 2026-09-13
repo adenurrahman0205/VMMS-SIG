@@ -16,6 +16,8 @@ export default function Jadwal() {
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [showAjuan, setShowAjuan] = useState(false);
   const [ajuanVehicle, setAjuanVehicle] = useState("");
+  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
     setFleet(loadFleet());
@@ -209,6 +211,9 @@ export default function Jadwal() {
                         <button className="text-xs font-semibold text-red-600" onClick={() => { setRejectId(b.id); setRejectReason(""); }}>Tolak</button>
                       </>
                     )}
+                    {(b.status === "disetujui" || b.status === "ditolak") && (
+                      <button className="text-xs font-semibold text-red-600" onClick={() => removeBooking(b.id)}>Hapus</button>
+                    )}
                   </div>
                 </div>
               );
@@ -265,7 +270,12 @@ export default function Jadwal() {
                       <td className="px-4 py-3">{b.userName}</td>
                       <td className="px-4 py-3 text-slate-600">{b.dept || v?.dept || "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{b.jabatan || v?.jabatan || "—"}</td>
-                      <td className="max-w-[200px] truncate px-4 py-3 text-slate-600" title={b.purpose}>{b.purpose}</td>
+                      <td className="max-w-[200px] px-4 py-3 text-slate-600">
+                        <div className="truncate" title={b.purpose}>{b.purpose}</div>
+                        {b.status === "ditolak" && b.rejectReason && (
+                          <div className="mt-1 text-[11px] text-red-600">Alasan: {b.rejectReason}</div>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase ${st}`}>{b.status}</span>
                       </td>
@@ -273,10 +283,10 @@ export default function Jadwal() {
                         {b.status === "pengajuan" ? (
                           <div className="flex gap-2">
                             <button type="button" className="text-xs font-semibold text-emerald-700" onClick={() => setStatus(b.id, "disetujui")}>Setujui</button>
-                            <button type="button" className="text-xs font-semibold text-red-600" onClick={() => setStatus(b.id, "ditolak")}>Tolak</button>
+                            <button type="button" className="text-xs font-semibold text-red-600" onClick={() => { setRejectId(b.id); setRejectReason(""); }}>Tolak</button>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <button type="button" className="text-xs font-semibold text-red-600" onClick={() => removeBooking(b.id)}>Hapus</button>
                         )}
                       </td>
                     </tr>
