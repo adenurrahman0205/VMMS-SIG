@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import {
   blankWorkshop,
   loadWorkshops,
+  nextWorkshopCode,
   saveWorkshops,
   waHref,
   type Workshop,
@@ -66,14 +67,9 @@ export default function WorkshopsPage() {
   function save(e: React.FormEvent) {
     e.preventDefault();
     if (!editor) return;
-    const code = editor.code.trim().toUpperCase();
-    const dup = rows.some((w) => w.id !== editor.id && w.code.toUpperCase() === code);
-    if (dup) {
-      window.alert("Kode bengkel sudah dipakai. Gunakan kode unik.");
-      return;
-    }
+    const exists = rows.some((w) => w.id === editor.id);
+    const code = (exists ? editor.code : nextWorkshopCode(rows)).trim().toUpperCase();
     const row = { ...editor, code };
-    const exists = rows.some((w) => w.id === row.id);
     persist(exists ? rows.map((w) => (w.id === row.id ? row : w)) : [row, ...rows]);
     setEditor(null);
     setIsNew(false);
@@ -117,7 +113,7 @@ export default function WorkshopsPage() {
             className="btn-pop shrink-0 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold !text-white shadow-lg shadow-sky-500/30"
             onClick={() => {
               setIsNew(true);
-              setEditor(blankWorkshop());
+              setEditor(blankWorkshop(rows));
             }}
           >
             + Bengkel baru

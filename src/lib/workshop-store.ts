@@ -82,10 +82,19 @@ const seed: Workshop[] = [
   },
 ];
 
-export function blankWorkshop(): Workshop {
+export function nextWorkshopCode(rows: Workshop[]): string {
+  let max = 0;
+  for (const w of rows) {
+    const m = /^BKL-(\d+)$/i.exec((w.code || "").trim());
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return `BKL-${String(max + 1).padStart(3, "0")}`;
+}
+
+export function blankWorkshop(rows: Workshop[] = []): Workshop {
   return {
     id: `w${Date.now()}`,
-    code: "",
+    code: nextWorkshopCode(rows),
     name: "",
     address: "",
     city: "",
