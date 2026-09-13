@@ -291,10 +291,14 @@ export default function Jadwal() {
                 .sort((a, b) => b.id.localeCompare(a.id))
                 .map((b) => {
                   const v = fleet.find((x) => x.id === b.vehicleId);
-                  const phone =
-                    b.phone ||
-                    loadUsers().find((u) => u.name.toLowerCase() === b.userName.toLowerCase() || u.email.toLowerCase() === b.userName.toLowerCase())?.phone ||
-                    "";
+                  const u = users.find(
+                    (x) =>
+                      (b.userId && x.id === b.userId) ||
+                      x.name.toLowerCase() === b.userName.toLowerCase() ||
+                      x.email.toLowerCase() === b.userName.toLowerCase()
+                  );
+                  const phone = b.phone || u?.phone || "";
+                  const ini = b.userName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
                   const st =
                     b.status === "disetujui"
                       ? "bg-emerald-50 text-emerald-800"
