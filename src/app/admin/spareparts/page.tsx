@@ -78,13 +78,15 @@ export default function SparePage() {
     if (!editor) return;
     const exists = rows.some((r) => r.id === editor.id);
     const code = exists ? editor.code : nextSpareCode(rows);
-    const row = {
+    const year: SparepartRow["year"] =
+      editor.year === "" || editor.year == null ? "" : Number(editor.year) || "";
+    const row: SparepartRow = {
       ...editor,
       code,
       name: editor.name.trim(),
       merk: editor.merk.trim(),
       price: Number(editor.price) || 0,
-      year: editor.year === "" ? "" : Number(editor.year) || "",
+      year,
     };
     persist(exists ? rows.map((r) => (r.id === row.id ? row : r)) : [row, ...rows]);
     setEditor(null);
