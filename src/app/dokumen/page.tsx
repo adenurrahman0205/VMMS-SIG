@@ -63,6 +63,21 @@ export default function Dokumen() {
     };
   }, [rows]);
 
+  const usedTypes = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => r.docs.forEach((d) => set.add(d.type)));
+    return set;
+  }, [rows]);
+
+  const filterTypes = useMemo(
+    () => DOC_TYPES.filter((t) => t !== "KIR" || usedTypes.has("KIR")),
+    [usedTypes]
+  );
+
+  useEffect(() => {
+    if (kind === "KIR" && !usedTypes.has("KIR")) setKind("all");
+  }, [kind, usedTypes]);
+
   const shown = useMemo(() => {
     const s = q.toLowerCase();
     return rows.filter((r) => {
@@ -87,7 +102,7 @@ export default function Dokumen() {
           <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Compliance</p>
           <h2 className="text-2xl font-semibold">Dokumen armada</h2>
           <p className="mt-1 max-w-xl text-sm text-slate-300">
-            STNK, BPKB, KIR, asuransi, dan pajak mengikuti data setiap unit di Armada. Status dihitung dari tanggal berlaku.
+            STNK, BPKB, asuransi, dan pajak mengikuti data setiap unit di Armada. Filter KIR hanya tampil jika ada unit yang memakai KIR.
           </p>
         </div>
       </section>
@@ -195,7 +210,7 @@ export default function Dokumen() {
               {on && (
                 <div className="border-t bg-slate-50/80 p-4">
                   {r.docs.length === 0 ? (
-                    <p className="text-sm text-slate-500">Unit ini belum punya STNK/KIR/asuransi di form Armada.</p>
+                    <p className="text-sm text-slate-500">Unit ini belum punya STNK/asuransi/pajak di form Armada.</p>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {r.docs.map((d) => {
