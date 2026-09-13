@@ -9,6 +9,7 @@ export type Booking = {
   userName: string;
   purpose: string;
   dept?: string;
+  jabatan?: string;
   phone?: string;
   note?: string;
   status: BookingStatus;

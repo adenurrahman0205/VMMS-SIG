@@ -23,6 +23,7 @@ export function PengajuanModal({
     date,
     userName: "",
     dept: "",
+    jabatan: "",
     phone: "",
     purpose: "",
     note: "",
@@ -43,6 +44,7 @@ export function PengajuanModal({
       userName: form.userName,
       purpose: form.purpose,
       dept: form.dept,
+      jabatan: form.jabatan,
       phone: form.phone,
       note: form.note,
       status: "pengajuan",
@@ -90,10 +92,14 @@ export function PengajuanModal({
                 <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" required value={form.userName} onChange={(e) => setForm({ ...form, userName: e.target.value })} />
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
-                Departemen
+                Divisi
                 <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.dept} onChange={(e) => setForm({ ...form, dept: e.target.value })} />
               </label>
             </div>
+            <label className="block text-xs font-semibold uppercase text-slate-500">
+              Jabatan
+              <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} />
+            </label>
             <label className="block text-xs font-semibold uppercase text-slate-500">
               Telepon
               <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -116,7 +122,7 @@ export function PengajuanModal({
                 <img src={vehiclePhoto(v)} alt="" className="mb-3 h-44 w-full rounded-2xl object-cover" />
                 <p className="font-semibold">{v.brand} {v.model}</p>
                 <p className="text-sm text-slate-500">{v.plate} · {v.color} · {v.fuel}</p>
-                <p className="mt-2 text-xs text-slate-400">{v.dept} · {v.driver}</p>
+                <p className="mt-2 text-xs text-slate-400">{v.dept}{v.jabatan ? ` · ${v.jabatan}` : ""} · {v.driver}</p>
               </>
             ) : (
               <p className="text-sm text-slate-400">Pilih kendaraan di formulir untuk melihat foto unit.</p>

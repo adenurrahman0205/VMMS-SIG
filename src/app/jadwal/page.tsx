@@ -185,7 +185,7 @@ export default function Jadwal() {
                     <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-lg object-cover" />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId}</div>
-                      <div className="text-xs text-slate-500">{v?.plate} · {b.userName} {b.dept ? `· ${b.dept}` : ""}</div>
+                      <div className="text-xs text-slate-500">{v?.plate} · {b.userName} {b.dept ? `· ${b.dept}` : ""}{b.jabatan ? ` · ${b.jabatan}` : ""}</div>
                       <div className="text-[11px] text-slate-400">{b.purpose}</div>
                       {b.note && <div className="mt-1 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">Note: {b.note}</div>}
                     </div>

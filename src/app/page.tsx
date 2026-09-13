@@ -70,7 +70,7 @@ export default function Page() {
   const todayUse = todayBookings.map((b) => {
     const v = fleet.find((x) => x.id === b.vehicleId);
     const u = users.find((x) => x.name.toLowerCase() === b.userName.toLowerCase());
-    return { b, v, jabatan: u?.jabatan || "—", divisi: b.dept || u?.dept || "—" };
+    return { b, v, jabatan: b.jabatan || u?.jabatan || "—", divisi: b.dept || u?.dept || "—" };
   });
 
   function usageOf(v: Row) {
