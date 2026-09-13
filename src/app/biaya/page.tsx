@@ -259,6 +259,76 @@ export default function Biaya() {
         </Card>
       </div>
 
+      <div className="mb-6">
+        <h3 className="mb-1 text-lg font-semibold">Kategori sparepart</h3>
+        <p className="mb-4 text-sm text-slate-500">Klik kartu Ban, Oli, Rem, dan lainnya untuk melihat unit mana yang biayanya paling besar.</p>
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
+          {categories.map((c) => {
+            const top = c.units[0];
+            const on = catOpen === c.name;
+            return (
+              <button
+                key={c.name}
+                type="button"
+                onClick={() => setCatOpen(on ? null : c.name)}
+                className={`rounded-3xl p-4 text-left text-white shadow-md bg-gradient-to-br ${CAT_TONE[c.name] ?? CAT_TONE.Lainnya} ${on ? "ring-4 ring-sky-300" : ""}`}
+              >
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">{c.name}</div>
+                <div className="mt-2 text-2xl font-semibold">{fmt(c.total)}</div>
+                <div className="mt-1 text-xs text-white/85">{c.units.length} unit · qty {c.qty}</div>
+                {top && (
+                  <div className="mt-3 rounded-xl bg-black/20 px-3 py-2 text-xs">
+                    Termahal: <b>{top.plate}</b> {top.brand} {top.model} · {fmt(top.amount)}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {categories.filter((c) => !catOpen || c.name === catOpen).map((c) => {
+          const max = Math.max(...c.units.map((u) => u.amount), 1);
+          return (
+            <div key={`tbl-${c.name}`} className="mb-4 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+              <div className="border-b bg-slate-50 px-4 py-3">
+                <h4 className="font-semibold">Detail {c.name}</h4>
+                <p className="text-xs text-slate-500">Total {fmt(c.total)} · diurutkan dari biaya terbesar</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="text-left text-[11px] uppercase text-slate-500">
+                    <tr>
+                      {["Unit", "Item", "Qty", "Biaya", "Terakhir", "Porsi"].map((h) => (
+                        <th key={h} className="px-4 py-2">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c.units.map((u, i) => (
+                      <tr key={u.id} className={`border-t ${i === 0 ? "bg-amber-50/80" : ""}`}>
+                        <td className="px-4 py-2">
+                          <Link href={`/kendaraan/${u.id}`} className="font-semibold text-sky-800">{u.plate}</Link>
+                          <div className="text-xs text-slate-500">{u.brand} {u.model}</div>
+                          {i === 0 && <span className="text-[10px] font-semibold uppercase text-amber-700">Termahal</span>}
+                        </td>
+                        <td className="px-4 py-2 text-slate-600">{u.items.join(", ")}</td>
+                        <td className="px-4 py-2">{u.qty}</td>
+                        <td className="px-4 py-2 font-semibold">{fmt(u.amount)}</td>
+                        <td className="px-4 py-2 text-slate-500">{u.last}</td>
+                        <td className="px-4 py-2">
+                          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                            <div className={`h-full rounded-full bg-gradient-to-r ${CAT_TONE[c.name]}`} style={{ width: `${(u.amount / max) * 100}%` }} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <input
           className="min-w-[200px] flex-1 rounded-xl border bg-white px-3 py-2 text-sm"
