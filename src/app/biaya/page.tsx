@@ -42,15 +42,6 @@ function catOf(name: string) {
   return "Lainnya";
 }
 
-const CAT_TONE: Record<string, string> = {
-  Ban: "from-orange-500 to-amber-400",
-  Oli: "from-sky-600 to-cyan-400",
-  Filter: "from-violet-600 to-fuchsia-400",
-  Rem: "from-red-600 to-rose-400",
-  AC: "from-teal-600 to-emerald-400",
-  Lainnya: "from-slate-600 to-slate-400",
-};
-
 function verdict(score: number, cost: number) {
   if (score >= 85) return "Sangat ekonomis";
   if (score >= 70) return "Masih ekonomis";
@@ -138,45 +129,48 @@ export default function Biaya() {
   const maxCost = Math.max(...rows.map((r) => r.cost), 1);
   const avgCost = summary.total / Math.max(rows.length, 1);
 
-  const categories = useMemo(() => {
-    type VU = { id: string; plate: string; model: string; brand: string; amount: number; qty: number; last: string; items: string[] };
+  const partIndex = useMemo(() => {
+    type VU = { id: string; plate: string; model: string; brand: string; amount: number; qty: number; last: string };
     const map = new Map<string, { total: number; qty: number; units: Map<string, VU> }>();
     doneAll.forEach((m) => {
       const v = vehicles.find((x) => x.id === m.vehicleId);
       m.items.forEach((it) => {
-        const cat = catOf(it.name);
+        const name = it.name.trim() || "Tanpa nama";
         const amt = it.qty * it.price;
-        if (!map.has(cat)) map.set(cat, { total: 0, qty: 0, units: new Map() });
-        const g = map.get(cat)!;
+        if (!map.has(name)) map.set(name, { total: 0, qty: 0, units: new Map() });
+        const g = map.get(name)!;
         g.total += amt;
         g.qty += it.qty;
-        const uid = m.vehicleId;
-        const cur = g.units.get(uid) ?? {
-          id: uid,
-          plate: v?.plate ?? uid,
+        const cur = g.units.get(m.vehicleId) ?? {
+          id: m.vehicleId,
+          plate: v?.plate ?? m.vehicleId,
           model: v?.model ?? "",
           brand: v?.brand ?? "",
           amount: 0,
           qty: 0,
           last: m.date,
-          items: [],
         };
         cur.amount += amt;
         cur.qty += it.qty;
         if (m.date > cur.last) cur.last = m.date;
-        if (!cur.items.includes(it.name)) cur.items.push(it.name);
-        g.units.set(uid, cur);
+        g.units.set(m.vehicleId, cur);
       });
     });
     return [...map.entries()]
       .map(([name, g]) => ({
         name,
+        cat: catOf(name),
         total: g.total,
         qty: g.qty,
         units: [...g.units.values()].sort((a, b) => b.amount - a.amount),
       }))
       .sort((a, b) => b.total - a.total);
   }, [doneAll, vehicles]);
+
+  const partShown = useMemo(() => {
+    const s = partQ.toLowerCase();
+    return partIndex.filter((p) => `${p.name} ${p.cat} ${p.units[0]?.plate ?? ""}`.toLowerCase().includes(s));
+  }, [partIndex, partQ]);
 
   return (
     <Shell title="Biaya & Analitik">
@@ -491,15 +485,6 @@ export default function Biaya() {
                     })}
                   </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </Shell>
-  );
-}
-    </div>
               )}
             </div>
           );
