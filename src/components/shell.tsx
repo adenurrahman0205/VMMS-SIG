@@ -205,7 +205,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         </div>
       </aside>
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/80 px-3 py-3 backdrop-blur-md sm:px-7 sm:py-3.5">
+        <header className="fixed top-0 right-0 z-40 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:px-7 sm:py-3.5 lg:left-64 left-0">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
@@ -233,9 +233,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
               ) : (
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-[#071526] text-xs font-semibold text-white">{initials}</span>
               )}
-              <span className="hidden text-left sm:block">
-                <span className="block text-sm font-semibold text-slate-800">{displayName}</span>
-                <span className="block text-[11px] text-slate-400">{email || "belum login"}</span>
+              <span className="hidden min-w-0 max-w-[220px] text-left sm:block">
+                <span className="block truncate text-sm font-semibold text-slate-800">{displayName}</span>
+                <span className="block truncate text-[11px] text-slate-400">{email || "belum login"}</span>
               </span>
             </button>
             {menu && (

@@ -26,15 +26,15 @@ export function mergeLocalUser(email: string, authId: string, meta: Record<strin
   const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   return {
     id: authId || found?.id || "me",
-    name: cloud.name || found?.name || email.split("@")[0] || "Pengguna",
-    email,
-    phone: cloud.phone || found?.phone || "",
-    dept: cloud.dept || found?.dept || "",
-    jabatan: cloud.jabatan || found?.jabatan || "",
+    name: found?.name || cloud.name || email.split("@")[0] || "Pengguna",
+    email: found?.email || email,
+    phone: found?.phone || cloud.phone || "",
+    dept: found?.dept || cloud.dept || "",
+    jabatan: found?.jabatan || cloud.jabatan || "",
     role: found?.role ?? "USER",
     active: found?.active ?? true,
     createdAt: found?.createdAt ?? new Date().toISOString().slice(0, 10),
-    avatar: cloud.avatar || found?.avatar || "",
+    avatar: found?.avatar || cloud.avatar || "",
   };
 }
 
@@ -51,16 +51,20 @@ export function cacheUser(row: AppUser) {
 
 export async function saveProfileCloud(fields: ProfileFields) {
   const sb = createBrowserSupabase();
-  const { error } = await sb.auth.updateUser({
-    data: {
-      name: fields.name,
-      full_name: fields.name,
-      phone: fields.phone,
-      dept: fields.dept,
-      jabatan: fields.jabatan,
-      avatar: fields.avatar || "",
-    },
-  });
+  const payload = {
+    name: fields.name,
+    full_name: fields.name,
+    phone: fields.phone,
+    dept: fields.dept,
+    jabatan: fields.jabatan,
+    avatar: fields.avatar || "",
+  };
+  let { error } = await sb.auth.updateUser({ data: payload });
+  if (error && fields.avatar) {
+    const retry = await sb.auth.updateUser({ data: { ...payload, avatar: "" } });
+    if (!retry.error) return;
+    error = retry.error;
+  }
   if (error) throw error;
 }
 
