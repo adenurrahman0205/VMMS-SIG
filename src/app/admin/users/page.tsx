@@ -191,11 +191,10 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setFormMsg(""); setEditor(u); }}>Ubah</button>
-                    {u.active ? (
-                      <button className="text-xs font-semibold text-red-600" onClick={() => archive(u)}>Hapus</button>
-                    ) : (
-                      <button className="text-xs font-semibold text-emerald-700" onClick={() => restore(u)}>Pulihkan</button>
+                    {!u.active && (
+                      <button className="mr-3 text-xs font-semibold text-emerald-700" onClick={() => restore(u)}>Pulihkan</button>
                     )}
+                    <button className="text-xs font-semibold text-red-600" onClick={() => removeUser(u)}>Hapus</button>
                   </td>
                 </tr>
               ))}
