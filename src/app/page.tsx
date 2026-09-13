@@ -300,93 +300,80 @@ export default function Page() {
         </Card>
       </div>
 
-      <Card className="overflow-hidden p-0">
-        <div className="flex flex-wrap items-end justify-between gap-2 border-b bg-white px-5 py-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">Fleet snapshot</p>
-            <h3 className="text-lg font-semibold">Ringkasan armada</h3>
-            <p className="text-xs text-slate-500">
-              {filtered.length} unit tampil · {fmtN(totalKm)} KM · biaya WO selesai {fmt(totalCost)} · klik baris untuk detail
-            </p>
-          </div>
+      <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+        <div className="border-b px-5 py-4">
+          <h3 className="text-lg font-semibold">Ringkasan armada</h3>
+          <p className="mt-0.5 text-xs text-slate-500">{filtered.length} unit · {fmtN(totalKm)} KM · WO selesai {fmt(totalCost)}</p>
         </div>
-        <div className="max-h-[520px] overflow-auto">
-          <table className="w-full min-w-[980px] text-sm">
-            <thead className="sticky top-0 z-10 bg-[#071526] text-left text-[11px] uppercase tracking-wide text-sky-200">
-              <tr>
-                {["Unit", "Pemakaian", "Driver / divisi", "Odometer", "Servis berikutnya", "WO & biaya", "Health"].map((h) => (
-                  <th key={h} className="px-4 py-3 font-semibold">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">Tidak ada unit pada filter ini.</td>
-                </tr>
-              )}
-              {filtered.map((v) => {
-                const kind = usageOf(v);
-                const left = kmToService(v);
-                const due = dueServiceKm(v);
-                const label = kind === "maintenance" ? "Sedang diservice" : kind === "used" ? "Sedang dipakai" : v.status === "inactive" ? "Tidak aktif" : "Tersedia";
-                const chip =
-                  kind === "maintenance"
-                    ? "bg-red-50 text-red-700"
-                    : kind === "used"
-                      ? "bg-amber-50 text-amber-800"
-                      : v.status === "inactive"
-                        ? "bg-slate-100 text-slate-600"
-                        : "bg-emerald-50 text-emerald-700";
-                const hb = v.health >= 75 ? "from-emerald-400 to-sky-400" : v.health >= 55 ? "from-amber-400 to-orange-400" : "from-red-400 to-rose-500";
-                return (
-                  <tr key={v.id} className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/80" onClick={() => setOpen(v)}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img src={vehiclePhoto(v)} alt="" className="h-12 w-[4.5rem] rounded-xl object-cover ring-1 ring-slate-200" />
-                        <div className="min-w-0">
-                          <div className="font-semibold">{v.plate}</div>
-                          <div className="text-xs text-slate-500">{v.brand} {v.model} · {v.year} · {v.color}</div>
-                          <div className="text-[11px] text-slate-400">{v.ownerKind === "vendor" ? "Vendor / Rental" : "PT SIG"}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${chip}`}>{label}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{v.driver || "—"}</div>
-                      <div className="text-xs text-slate-500">{v.dept || "—"}{v.jabatan ? ` · ${v.jabatan}` : ""}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold">{fmtN(v.km)} KM</div>
-                      <div className="text-[11px] text-slate-400">cost/KM {fmt(Math.round(v.cost / Math.max(v.km, 1)))}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className={`font-semibold ${left <= 0 ? "text-red-600" : left < 1000 ? "text-amber-700" : "text-slate-800"}`}>
-                        {left <= 0 ? "Lewat jadwal" : `${fmtN(left)} KM lagi`}
-                      </div>
-                      <div className="text-[11px] text-slate-400">target {fmtN(due)} KM</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold">{fmt(v.cost)}</div>
-                      <div className="text-[11px] text-slate-400">{v.jobs} WO · oli {v.oli} · ban {v.ban}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 text-sm font-semibold">{v.health}</span>
-                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
-                          <div className={`h-full rounded-full bg-gradient-to-r ${hb}`} style={{ width: `${v.health}%` }} />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="hidden border-b bg-slate-50 px-5 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400 lg:grid lg:grid-cols-12 lg:gap-4">
+          <span className="col-span-4">Unit</span>
+          <span className="col-span-2">Driver</span>
+          <span className="col-span-2">KM / servis</span>
+          <span className="col-span-2">Biaya WO</span>
+          <span className="col-span-2">Health</span>
         </div>
-      </Card>
+        <div className="max-h-[540px] divide-y overflow-y-auto">
+          {filtered.length === 0 && <p className="px-5 py-12 text-center text-sm text-slate-400">Tidak ada unit pada filter ini.</p>}
+          {filtered.map((v) => {
+            const kind = usageOf(v);
+            const left = kmToService(v);
+            const due = dueServiceKm(v);
+            const label = kind === "maintenance" ? "Diservice" : kind === "used" ? "Dipakai" : v.status === "inactive" ? "Nonaktif" : "Tersedia";
+            const chip =
+              kind === "maintenance"
+                ? "bg-red-50 text-red-700"
+                : kind === "used"
+                  ? "bg-amber-50 text-amber-800"
+                  : v.status === "inactive"
+                    ? "bg-slate-100 text-slate-600"
+                    : "bg-emerald-50 text-emerald-700";
+            const hb = v.health >= 75 ? "bg-emerald-500" : v.health >= 55 ? "bg-amber-500" : "bg-red-500";
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setOpen(v)}
+                className="grid w-full grid-cols-1 items-center gap-4 px-5 py-3.5 text-left transition hover:bg-slate-50 lg:grid-cols-12"
+              >
+                <div className="flex items-center gap-3 lg:col-span-4">
+                  <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 shrink-0 rounded-2xl object-cover" />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold">{v.plate}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${chip}`}>{label}</span>
+                    </div>
+                    <div className="truncate text-xs text-slate-500">{v.brand} {v.model} · {v.year}</div>
+                    <div className="text-[11px] text-slate-400">{v.color} · {v.ownerKind === "vendor" ? "Vendor" : "PT SIG"}</div>
+                  </div>
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="truncate text-sm font-medium">{v.driver || "—"}</div>
+                  <div className="truncate text-xs text-slate-500">{v.dept || "—"}</div>
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="text-sm font-semibold">{fmtN(v.km)} KM</div>
+                  <div className={`text-xs ${left <= 0 ? "font-semibold text-red-600" : left < 1000 ? "text-amber-700" : "text-slate-500"}`}>
+                    {left <= 0 ? "Lewat servis" : `Servis ${fmtN(left)} KM`} · {fmtN(due)}
+                  </div>
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="text-sm font-semibold">{fmt(v.cost)}</div>
+                  <div className="text-xs text-slate-500">{v.jobs} WO · {fmt(Math.round(v.cost / Math.max(v.km, 1)))}/KM</div>
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="font-semibold">{v.health}</span>
+                    <span className="text-slate-400">/100</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full ${hb}`} style={{ width: `${v.health}%` }} />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {open && <VehiclePopup v={open} onClose={() => setOpen(null)} />}
     </Shell>
