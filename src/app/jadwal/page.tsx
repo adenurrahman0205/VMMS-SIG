@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
-import { type Vehicle, vehiclePhoto } from "@/lib/data";
-import { loadFleet } from "@/lib/fleet-store";
+import { type Status, type Vehicle, vehiclePhoto } from "@/lib/data";
+import { loadFleet, saveFleet } from "@/lib/fleet-store";
+import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -72,8 +73,29 @@ export default function Jadwal() {
     );
   }
 
-  function removeBooking(id: string) {
-    persist(bookings.filter((b) => b.id !== id));
+  function setVehicleStatus(id: string, status: Status) {
+    const next = fleet.map((x) => (x.id === id ? { ...x, status } : x));
+    setFleet(next);
+    saveFleet(next);
+  }
+
+  function startService(v: Vehicle) {
+    setVehicleStatus(v.id, "maintenance");
+    const jobs = loadJobs();
+    const job = blankJob(v.id);
+    job.type = "Service Berkala";
+    job.km = v.km;
+    job.complaint = "Unit masuk bengkel / sedang diservice";
+    job.status = "proses";
+    saveJobs([job, ...jobs]);
+  }
+
+  function finishService(v: Vehicle) {
+    setVehicleStatus(v.id, "ready");
+    const jobs = loadJobs().map((j) =>
+      j.vehicleId === v.id && j.status === "proses" ? { ...j, status: "selesai" as const } : j
+    );
+    saveJobs(jobs);
   }
 
   const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
@@ -309,20 +331,31 @@ export default function Jadwal() {
                   {service ? "Tidak bisa diajukan" : used ? `Dipakai ${who?.userName || ""}` : requested ? `Request ${who?.userName || ""}` : "Siap diajukan"}
                 </div>
               </div>
-              <button
-                type="button"
-                disabled={!canAjukan}
-                onClick={() => {
-                  if (!canAjukan) return;
-                  setAjuanVehicle(v.id);
-                  setShowAjuan(true);
-                }}
-                className={`shrink-0 rounded-xl px-3 py-2 text-xs font-semibold ${
-                  canAjukan ? "bg-[#071526] !text-white hover:bg-sky-700" : "cursor-not-allowed bg-slate-200 text-slate-400"
-                }`}
-              >
-                Ajukan
-              </button>
+              <div className="flex shrink-0 flex-col gap-1.5">
+                <button
+                  type="button"
+                  disabled={!canAjukan}
+                  onClick={() => {
+                    if (!canAjukan) return;
+                    setAjuanVehicle(v.id);
+                    setShowAjuan(true);
+                  }}
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    canAjukan ? "bg-[#071526] !text-white hover:bg-sky-700" : "cursor-not-allowed bg-slate-200 text-slate-400"
+                  }`}
+                >
+                  Ajukan
+                </button>
+                {service ? (
+                  <button type="button" onClick={() => finishService(v)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold !text-white">
+                    Selesai service
+                  </button>
+                ) : !used ? (
+                  <button type="button" onClick={() => startService(v)} className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold !text-white">
+                    Masuk service
+                  </button>
+                ) : null}
+              </div>
             </div>
           );
         })}
@@ -355,6 +388,24 @@ export default function Jadwal() {
             />
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setRejectId(null)}>Batal</button>
+              <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold !text-white">Tolak pengajuan</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showAjuan && (
+        <PengajuanModal
+          vehicleId={ajuanVehicle}
+          date={selected}
+          onClose={() => setShowAjuan(false)}
+          onSaved={() => setBookings(loadBookings())}
+        />
+      )}
+    </Shell>
+  );
+}
+" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setRejectId(null)}>Batal</button>
               <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold !text-white">Tolak pengajuan</button>
             </div>
           </form>
