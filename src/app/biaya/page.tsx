@@ -251,8 +251,8 @@ export default function Biaya() {
             </div>
           </div>
           {snapUnit ? (
-            <Link href={`/kendaraan/${snapUnit.v.id}`} className="block p-4">
-              <div className="relative overflow-hidden rounded-2xl">
+            <div className="p-4">
+              <Link href={`/kendaraan/${snapUnit.v.id}`} className="relative block overflow-hidden rounded-2xl">
                 <img src={vehiclePhoto(snapUnit.v)} alt="" className="img-zoom h-40 w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/30 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
@@ -269,29 +269,65 @@ export default function Biaya() {
                     <div className="absolute inset-0 grid place-items-center text-sm font-semibold">{snapUnit.score}</div>
                   </div>
                 </div>
+              </Link>
+              <p className="mt-3 text-sm text-slate-300">
+                {snapUnit.verdict} · driver {snapUnit.v.driver || "—"} · {snapUnit.v.dept || "—"}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Ranking biaya #{[...rows].sort((a, b) => b.cost - a.cost).findIndex((x) => x.v.id === snapUnit.v.id) + 1} dari {rows.length}
+                {" · "}
+                {snapUnit.cost - avgCost >= 0 ? `${fmt(Math.round(snapUnit.cost - avgCost))} di atas` : `${fmt(Math.round(avgCost - snapUnit.cost))} di bawah`} rata-rata armada
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  ["Biaya WO", fmt(snapUnit.cost)],
+                  ["WO selesai", String(snapUnit.jobs)],
+                  ["Cost / KM", fmt(Math.round(snapUnit.cpk))],
+                  ["Odometer", `${fmtN(snapUnit.v.km)} KM`],
+                  ["Health", `${snapUnit.v.health}/100`],
+                  ["Skor", String(snapUnit.score)],
+                  ["Servis puncak", snapUnit.peak ? fmt(snapUnit.peak.cost) : "—"],
+                  ["WO terakhir", snapUnit.done[0]?.date ?? "—"],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-2xl bg-white/10 px-2 py-2 ring-1 ring-white/10">
+                    <div className="text-[10px] uppercase tracking-wide text-slate-400">{k}</div>
+                    <div className="mt-0.5 truncate text-sm font-semibold">{v}</div>
+                  </div>
+                ))}
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
-                  <div className="text-[10px] uppercase text-slate-400">Biaya</div>
-                  <div className="text-sm font-semibold">{fmt(snapUnit.cost)}</div>
+              {snapUnit.peak && (
+                <div className="mt-3 rounded-2xl bg-white/5 px-3 py-2 text-xs text-slate-300 ring-1 ring-white/10">
+                  Servis termahal unit ini: <b className="text-white">{snapUnit.peak.type}</b> {fmt(snapUnit.peak.cost)}
+                  <span className="text-slate-500"> · {snapUnit.peak.date} · {snapUnit.peak.shop || "bengkel"}</span>
                 </div>
-                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
-                  <div className="text-[10px] uppercase text-slate-400">WO</div>
-                  <div className="text-sm font-semibold">{snapUnit.jobs}</div>
+              )}
+              {snapUnit.parts.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Sparepart teratas unit ini</div>
+                  <div className="mt-2 space-y-1.5">
+                    {snapUnit.parts.slice(0, 4).map((p) => (
+                      <div key={p.name} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="truncate text-slate-300">{p.name} · qty {p.qty}</span>
+                        <span className="font-semibold text-white">{fmt(p.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
-                  <div className="text-[10px] uppercase text-slate-400">Cost/KM</div>
-                  <div className="text-sm font-semibold">{fmt(Math.round(snapUnit.cpk))}</div>
-                </div>
+              )}
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="rounded-xl bg-white/5 py-2 text-slate-400">Armada <b className="block text-white">{summary.n}</b></div>
+                <div className="rounded-xl bg-white/5 py-2 text-slate-400">WO semua <b className="block text-white">{summary.jobs}</b></div>
+                <div className="rounded-xl bg-white/5 py-2 text-slate-400">Skor rata <b className="block text-white">{summary.avgScore}</b></div>
               </div>
-            </Link>
+              <Link href={`/kendaraan/${snapUnit.v.id}`} className="mt-3 inline-flex text-xs font-semibold text-sky-300">Buka dossier unit →</Link>
+            </div>
           ) : (
             <p className="p-6 text-sm text-slate-400">Belum ada data unit.</p>
           )}
           {summary.peak && (
             <div className="mx-4 mb-4 rounded-2xl bg-white/5 px-3 py-2 text-xs text-slate-300 ring-1 ring-white/10">
-              WO terbesar: <b className="text-white">{summary.peak.plate}</b> {fmt(summary.peak.peak.cost)}
-              <span className="text-slate-500"> · {summary.peak.peak.date}</span>
+              WO terbesar armada: <b className="text-white">{summary.peak.plate}</b> {fmt(summary.peak.peak.cost)}
+              <span className="text-slate-500"> · {summary.peak.peak.date} · {summary.peak.peak.type}</span>
             </div>
           )}
         </div>
