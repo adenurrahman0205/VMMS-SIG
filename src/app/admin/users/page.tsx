@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Shell } from "@/components/shell";
 import { blankUser, loadUsers, saveUsers, type AppRole, type AppUser } from "@/lib/user-store";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { compressAvatar } from "@/lib/services/profile.service";
+
+function initials(name: string) {
+  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
+}
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
@@ -166,6 +171,13 @@ export default function UsersPage() {
               {list.map((u) => (
                 <tr key={u.id} className="border-t border-slate-100">
                   <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {u.avatar ? (
+                        <img src={u.avatar} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-slate-200" />
+                      ) : (
+                        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#071526] text-[11px] font-semibold text-white">{initials(u.name)}</span>
+                      )}
+                      <div className="min-w-0">
                     <div className="font-semibold">{u.name}</div>
                     {u.phone ? (
                       <a
@@ -179,6 +191,8 @@ export default function UsersPage() {
                     ) : (
                       <div className="text-xs text-slate-400">—</div>
                     )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">{u.dept || "—"}</td>
