@@ -278,48 +278,37 @@ export default function Jadwal() {
         {fleet.map((v) => {
           const service = v.status === "maintenance";
           const used = !service && inUseIds.has(v.id);
-          const who = approvedToday.find((b) => b.vehicleId === v.id);
-          const kind: UsageKind = service ? "maintenance" : used ? "dipakai" : "tersedia";
-          const pill =
-            kind === "maintenance"
-              ? "bg-red-50 text-red-800"
-              : kind === "dipakai"
-                ? "bg-amber-100 text-amber-900"
+          const requested = !service && !used && pendingIds.has(v.id);
+          const who = approvedToday.find((b) => b.vehicleId === v.id) || pendingToday.find((b) => b.vehicleId === v.id);
+          const label = service ? "Maintenance" : used ? "Sedang dipakai" : requested ? "Ada request" : "Tersedia";
+          const pill = service
+            ? "bg-red-50 text-red-800"
+            : used
+              ? "bg-amber-100 text-amber-900"
+              : requested
+                ? "bg-sky-50 text-sky-800"
                 : "bg-emerald-50 text-emerald-800";
           return (
-            <div
-              key={v.id}
-              onClick={() => {
-                if (kind === "tersedia") {
-                  setAjuanVehicle(v.id);
-                  setShowAjuan(true);
-                }
-              }}
-              className={`flex items-center gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200 ${
-                kind === "tersedia" ? "cursor-pointer hover:ring-sky-400" : ""
-              }`}
-            >
+            <div key={v.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200">
               <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
-                <div className="truncate font-semibold">{v.brand} {v.model}</div>
-                <div className="text-xs text-slate-500">{v.plate}</div>
-                <div className="text-[11px] text-slate-400">
-                  {used ? `Dipakai: ${who?.userName}` : service ? "Bengkel / perbaikan" : "Klik kartu untuk pengajuan"}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="truncate font-semibold">{v.brand} {v.model}</span>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${pill}`}>{label}</span>
                 </div>
+                <div className="text-xs text-slate-500">{v.plate}</div>
+                <div className="text-[11px] text-slate-400">{used || requested ? who?.userName || "—" : "Siap diajukan"}</div>
               </div>
-              <select
-                value={kind}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  setUsage(v, e.target.value as UsageKind);
+              <button
+                type="button"
+                onClick={() => {
+                  setAjuanVehicle(v.id);
+                  setShowAjuan(true);
                 }}
-                className={`max-w-[150px] rounded-full border-0 px-2 py-1.5 text-xs font-semibold ${pill}`}
+                className="shrink-0 rounded-xl bg-[#071526] px-3 py-2 text-xs font-semibold !text-white hover:bg-sky-700"
               >
-                <option value="tersedia">Tersedia</option>
-                <option value="dipakai">Sedang dipakai</option>
-                <option value="maintenance">Sedang Maintenance</option>
-              </select>
+                Ajukan
+              </button>
             </div>
           );
         })}
