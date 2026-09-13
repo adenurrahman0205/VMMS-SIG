@@ -83,6 +83,16 @@ a { color: inherit; text-decoration: none; }
 }
 .nav-link:hover { transform: translateX(3px); }
 
+.btn-pop {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn-pop:hover {
+  transform: translateY(-2px);
+}
+.btn-pop:active {
+  transform: scale(0.98);
+}
+
 @keyframes barIn {
   from { transform: scaleX(0); opacity: 0.4; }
   to { transform: scaleX(1); opacity: 1; }
