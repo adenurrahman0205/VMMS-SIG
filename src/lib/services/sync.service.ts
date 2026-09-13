@@ -1,6 +1,6 @@
 import { createBrowserSupabase } from "@/lib/supabase/client";
 
-type KvKey = "fleet" | "bookings" | "users" | "jobs" | "workshops";
+type KvKey = "fleet" | "bookings" | "users" | "jobs" | "workshops" | "spareparts";
 
 const STORAGE: Record<KvKey, string> = {
   fleet: "vmms-armada-v3",
@@ -8,6 +8,7 @@ const STORAGE: Record<KvKey, string> = {
   users: "vmms-users-v1",
   jobs: "vmms-maintenance-v1",
   workshops: "vmms-workshops-v1",
+  spareparts: "vmms-spareparts-v1",
 };
 
 let hydrated = false;

@@ -1,5 +1,6 @@
 import { computeVehicleHealth, maintenance as seed, vehicles as seedVehicles, type Maintenance, type Vehicle } from "./data";
 import { loadFleet, saveFleet } from "./fleet-store";
+import { ingestFromJobs } from "./sparepart-store";
 import { pushCloud } from "./services/sync.service";
 
 const KEY = "vmms-maintenance-v2";
