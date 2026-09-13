@@ -139,6 +139,20 @@ export function saveWorkshops(rows: Workshop[]) {
   void pushCloud("workshops", rows);
 }
 
+export function findWorkshop(list: Workshop[], shop?: string, workshopId?: string): Workshop | undefined {
+  if (workshopId) {
+    const byId = list.find((w) => w.id === workshopId);
+    if (byId) return byId;
+  }
+  const s = (shop || "").trim().toLowerCase();
+  if (!s) return undefined;
+  return (
+    list.find((w) => w.name.toLowerCase() === s) ||
+    list.find((w) => w.code.toLowerCase() === s) ||
+    list.find((w) => w.name.toLowerCase().includes(s) || s.includes(w.name.toLowerCase()))
+  );
+}
+
 export function waHref(phone: string) {
   const d = phone.replace(/\D/g, "");
   if (!d) return "";

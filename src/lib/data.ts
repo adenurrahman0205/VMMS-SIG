@@ -70,6 +70,7 @@ export type Maintenance = {
   type: string;
   km: number;
   shop: string;
+  workshopId?: string;
   cost: number;
   jasa?: number;
   status: "selesai" | "proses";

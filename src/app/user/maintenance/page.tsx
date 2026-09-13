@@ -6,6 +6,8 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
 import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
 import { loadFleet } from "@/lib/fleet-store";
+import { loadWorkshops, type Workshop } from "@/lib/workshop-store";
+import { WorkshopSelect } from "@/components/workshop-select";
 import { fmt, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import type { AppUser } from "@/lib/user-store";
 
@@ -15,6 +17,7 @@ const inputCls = "mt-1 w-full rounded-xl border px-3 py-2.5 text-sm";
 export default function UserWo() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [fleet, setFleet] = useState<Vehicle[]>([]);
+  const [shops, setShops] = useState<Workshop[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(() => blankJob());
@@ -30,6 +33,7 @@ export default function UserWo() {
       const u = mergeLocalUser(data.user?.email ?? "", data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
       setMe(u);
       setFleet(loadFleet());
+      setShops(loadWorkshops());
       setJobs(mine(loadJobs(), u));
     })();
   }, []);
@@ -116,8 +120,15 @@ export default function UserWo() {
               </select>
             </label>
             <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
-              Bengkel
-              <input className={inputCls} value={form.shop} onChange={(e) => setForm({ ...form, shop: e.target.value })} />
+              Bengkel mitra
+              <WorkshopSelect
+                shops={shops}
+                value={form.shop}
+                workshopId={form.workshopId}
+                required
+                className={inputCls}
+                onPick={(w) => setForm({ ...form, shop: w?.name || "", workshopId: w?.id })}
+              />
             </label>
             <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
               Keluhan

@@ -6,6 +6,8 @@ import { Badge, Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
+import { findWorkshop, loadWorkshops, type Workshop } from "@/lib/workshop-store";
+import { WorkshopCell, WorkshopSelect } from "@/components/workshop-select";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
@@ -15,6 +17,7 @@ const inputCls =
 export default function Mnt() {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
+  const [shops, setShops] = useState<Workshop[]>([]);
   const [q, setQ] = useState("");
   const [st, setSt] = useState<"all" | "proses" | "selesai">("all");
   const [from, setFrom] = useState("");
@@ -30,6 +33,7 @@ export default function Mnt() {
   useEffect(() => {
     setFleet(loadFleet());
     setJobs(loadJobs());
+    setShops(loadWorkshops());
   }, []);
 
   function persist(next: Maintenance[]) {
@@ -51,7 +55,8 @@ export default function Mnt() {
     return jobs
       .filter((j) => {
         const v = findFleetUnit(fleet, j.vehicleId);
-        const blob = `${j.id} ${j.type} ${j.shop} ${j.complaint} ${v?.plate} ${v?.model}`.toLowerCase();
+        const shop = findWorkshop(shops, j.shop, j.workshopId);
+        const blob = `${j.id} ${j.type} ${j.shop} ${shop?.code ?? ""} ${shop?.city ?? ""} ${j.complaint} ${v?.plate} ${v?.model}`.toLowerCase();
         const okQ = blob.includes(q.toLowerCase());
         const okS = st === "all" || j.status === st;
         const okFrom = !from || j.date >= from;
@@ -59,7 +64,7 @@ export default function Mnt() {
         return okQ && okS && okFrom && okTo;
       })
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
-  }, [jobs, fleet, q, st, from, to]);
+  }, [jobs, fleet, shops, q, st, from, to]);
 
   const stats = useMemo(() => {
     const proses = filtered.filter((j) => j.status === "proses");
@@ -69,6 +74,7 @@ export default function Mnt() {
   }, [filtered]);
 
   const histJob = jobs.find((j) => j.id === histId);
+  const histShop = histJob ? findWorkshop(shops, histJob.shop, histJob.workshopId) : undefined;
   const histV = findFleetUnit(fleet, histJob?.vehicleId ?? "");
   const histDayJobs = histJob
     ? jobs.filter((j) => j.vehicleId === histJob.vehicleId && j.date === histJob.date).sort((a, b) => a.id.localeCompare(b.id))
@@ -328,7 +334,9 @@ export default function Mnt() {
                     </td>
                     <td className="px-4 py-3">{m.type}</td>
                     <td className="px-4 py-3">{fmtN(m.km)}</td>
-                    <td className="px-4 py-3">{m.shop || "—"}</td>
+                    <td className="px-4 py-3">
+                      <WorkshopCell shops={shops} shop={m.shop} workshopId={m.workshopId} />
+                    </td>
                     <td className="max-w-[180px] truncate px-4 py-3 text-slate-600">{m.complaint || "—"}</td>
                     <td className="px-4 py-3 font-semibold">
                       {m.status === "selesai" ? fmt(woTotal(m)) : <span className="text-slate-400">—</span>}
@@ -399,7 +407,7 @@ export default function Mnt() {
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-lg font-semibold">{histJob.type}</div>
-                  <div className="text-xs text-slate-500">{histJob.id} · KM {fmtN(histJob.km)} · {histJob.shop || "Bengkel belum diisi"}</div>
+                  <div className="text-xs text-slate-500">{histJob.id} · KM {fmtN(histJob.km)} · {findWorkshop(shops, histJob.shop, histJob.workshopId)?.name || histJob.shop || "Bengkel belum diisi"}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-[11px] uppercase text-slate-400">{histJob.status === "selesai" ? "Total WO" : "Belum ditagih"}</div>
@@ -411,7 +419,10 @@ export default function Mnt() {
                   ["Tanggal", histJob.date],
                   ["Status", histJob.status],
                   ["Odometer", `${fmtN(histJob.km)} KM`],
-                  ["Bengkel", histJob.shop || "—"],
+                  ["Bengkel", histShop?.name || histJob.shop || "—"],
+                  ["Kode bengkel", histShop?.code || "—"],
+                  ["Alamat bengkel", histShop?.address || "—"],
+                  ["Telp / WA", histShop?.phone || "—"],
                   ["Sparepart", fmt(histJob.items.reduce((s, it) => s + it.qty * it.price, 0))],
                   ["Jasa", fmt(Number(histJob.jasa) || 0)],
                   ["Health unit", `${histV.health}/100`],
@@ -530,8 +541,15 @@ export default function Mnt() {
                   </label>
                 </div>
                 <label className="block text-xs font-semibold uppercase text-slate-500">
-                  Bengkel
-                  <input className={inputCls} value={editor.shop} onChange={(e) => setEditor({ ...editor, shop: e.target.value })} />
+                  Bengkel mitra
+                  <WorkshopSelect
+                    shops={shops}
+                    value={editor.shop}
+                    workshopId={editor.workshopId}
+                    required
+                    className={inputCls}
+                    onPick={(w) => setEditor({ ...editor, shop: w?.name || "", workshopId: w?.id })}
+                  />
                 </label>
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Keluhan
