@@ -5,7 +5,9 @@ export type SparepartRow = {
   id: string;
   code: string;
   name: string;
+  merk: string;
   vehicleKind: string;
+  year: number | "";
   price: number;
   workshop: string;
   workshopId?: string;
@@ -16,6 +18,14 @@ export type SparepartRow = {
 };
 
 const KEY = "vmms-spareparts-v1";
+
+function normalize(r: SparepartRow): SparepartRow {
+  return {
+    ...r,
+    merk: r.merk ?? "",
+    year: r.year === undefined || r.year === null ? "" : r.year,
+  };
+}
 
 export function nextSpareCode(rows: SparepartRow[]): string {
   let max = 0;
@@ -31,7 +41,9 @@ export function blankSpare(rows: SparepartRow[] = []): SparepartRow {
     id: `sp${Date.now()}`,
     code: nextSpareCode(rows),
     name: "",
+    merk: "",
     vehicleKind: "",
+    year: "",
     price: 0,
     workshop: "",
     notes: "",
@@ -40,8 +52,8 @@ export function blankSpare(rows: SparepartRow[] = []): SparepartRow {
   };
 }
 
-function fingerprint(name: string, vehicleKind: string, workshop: string) {
-  return `${name.trim().toLowerCase()}|${vehicleKind.trim().toLowerCase()}|${workshop.trim().toLowerCase()}`;
+export function fingerprint(r: { name: string; merk?: string; vehicleKind: string; year?: number | ""; workshop: string }) {
+  return `${(r.name || "").trim().toLowerCase()}|${(r.merk || "").trim().toLowerCase()}|${(r.vehicleKind || "").trim().toLowerCase()}|${r.year || ""}|${(r.workshop || "").trim().toLowerCase()}`;
 }
 
 export function loadSpareparts(): SparepartRow[] {
@@ -50,7 +62,7 @@ export function loadSpareparts(): SparepartRow[] {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as SparepartRow[];
-      if (Array.isArray(p)) return p;
+      if (Array.isArray(p)) return p.map(normalize);
     }
   } catch {
     /* ignore */
@@ -59,37 +71,41 @@ export function loadSpareparts(): SparepartRow[] {
 }
 
 export function saveSpareparts(rows: SparepartRow[]) {
-  localStorage.setItem(KEY, JSON.stringify(rows));
+  localStorage.setItem(KEY, JSON.stringify(rows.map(normalize)));
   void pushCloud("spareparts", rows);
 }
 
 /** Tambah baris baru dari WO. Tidak menimpa/menghapus katalog, tidak mengubah WO. */
 export function ingestFromJobs(jobs: Maintenance[], fleet: Vehicle[]) {
   const rows = loadSpareparts();
-  const seen = new Set(rows.map((r) => fingerprint(r.name, r.vehicleKind, r.workshop)));
+  const seen = new Set(rows.map((r) => fingerprint(r)));
   const extra: SparepartRow[] = [];
   jobs.forEach((j) => {
     const v = fleet.find((x) => x.id === j.vehicleId);
     const kind = v ? `${v.brand} ${v.model}`.trim() : "";
+    const year = v?.year ?? "";
     const shop = j.shop || "";
     j.items.forEach((it) => {
       const name = (it.name || "").trim();
       if (!name) return;
-      const fp = fingerprint(name, kind, shop);
-      if (seen.has(fp)) return;
-      seen.add(fp);
-      extra.push({
+      const row: SparepartRow = {
         id: `spwo${j.id}-${extra.length}-${Date.now()}`,
         code: nextSpareCode([...rows, ...extra]),
         name,
+        merk: "",
         vehicleKind: kind,
+        year,
         price: Number(it.price) || 0,
         workshop: shop,
         source: "wo",
         woId: j.id,
         notes: `Dari work order ${j.id}`,
         active: true,
-      });
+      };
+      const fp = fingerprint(row);
+      if (seen.has(fp)) return;
+      seen.add(fp);
+      extra.push(row);
     });
   });
   if (!extra.length) return rows;

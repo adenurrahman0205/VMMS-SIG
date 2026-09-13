@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
-import { fmt } from "@/lib/data";
+import { fmt, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
 import { loadWorkshops } from "@/lib/workshop-store";
 import {
   blankSpare,
   ingestFromJobs,
-  loadSpareparts,
   nextSpareCode,
   saveSpareparts,
   type SparepartRow,
@@ -20,29 +19,42 @@ const inputCls =
 
 export default function SparePage() {
   const [rows, setRows] = useState<SparepartRow[]>([]);
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [q, setQ] = useState("");
   const [shopF, setShopF] = useState("all");
   const [kindF, setKindF] = useState("all");
+  const [yearF, setYearF] = useState("all");
   const [editor, setEditor] = useState<SparepartRow | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [detail, setDetail] = useState<SparepartRow | null>(null);
-  const [kinds, setKinds] = useState<string[]>([]);
   const [shops, setShops] = useState<string[]>([]);
 
   useEffect(() => {
-    const fleet = loadFleet();
-    const jobs = loadJobs();
-    const catalog = ingestFromJobs(jobs, fleet);
-    setRows(catalog);
-    const k = new Set<string>();
-    fleet.forEach((v) => k.add(`${v.brand} ${v.model}`.trim()));
-    catalog.forEach((r) => r.vehicleKind && k.add(r.vehicleKind));
-    setKinds(Array.from(k).sort());
+    const f = loadFleet();
+    setFleet(f);
+    setRows(ingestFromJobs(loadJobs(), f));
     const s = new Set<string>();
     loadWorkshops().forEach((w) => w.active && s.add(w.name));
-    catalog.forEach((r) => r.workshop && s.add(r.workshop));
     setShops(Array.from(s).sort());
   }, []);
+
+  const kinds = useMemo(() => {
+    const k = new Set<string>();
+    fleet.forEach((v) => k.add(`${v.brand} ${v.model}`.trim()));
+    rows.forEach((r) => r.vehicleKind && k.add(r.vehicleKind));
+    return Array.from(k).sort();
+  }, [fleet, rows]);
+
+  const yearsForKind = useMemo(() => {
+    const map = new Map<string, number[]>();
+    fleet.forEach((v) => {
+      const k = `${v.brand} ${v.model}`.trim();
+      const arr = map.get(k) ?? [];
+      if (v.year && !arr.includes(v.year)) arr.push(v.year);
+      map.set(k, arr.sort((a, b) => b - a));
+    });
+    return map;
+  }, [fleet]);
 
   function persist(next: SparepartRow[]) {
     saveSpareparts(next);
@@ -55,17 +67,25 @@ export default function SparePage() {
       if (!r.active) return false;
       if (shopF !== "all" && r.workshop !== shopF) return false;
       if (kindF !== "all" && r.vehicleKind !== kindF) return false;
+      if (yearF !== "all" && String(r.year) !== yearF) return false;
       if (!s) return true;
-      return `${r.code} ${r.name} ${r.vehicleKind} ${r.workshop}`.toLowerCase().includes(s);
+      return `${r.code} ${r.name} ${r.merk} ${r.vehicleKind} ${r.year} ${r.workshop}`.toLowerCase().includes(s);
     });
-  }, [rows, q, shopF, kindF]);
+  }, [rows, q, shopF, kindF, yearF]);
 
   function save(e: React.FormEvent) {
     e.preventDefault();
     if (!editor) return;
     const exists = rows.some((r) => r.id === editor.id);
     const code = exists ? editor.code : nextSpareCode(rows);
-    const row = { ...editor, code, name: editor.name.trim(), price: Number(editor.price) || 0 };
+    const row = {
+      ...editor,
+      code,
+      name: editor.name.trim(),
+      merk: editor.merk.trim(),
+      price: Number(editor.price) || 0,
+      year: editor.year === "" ? "" : Number(editor.year) || "",
+    };
     persist(exists ? rows.map((r) => (r.id === row.id ? row : r)) : [row, ...rows]);
     setEditor(null);
     setIsNew(false);
@@ -77,6 +97,8 @@ export default function SparePage() {
     if (detail?.id === r.id) setDetail(null);
   }
 
+  const editorYears = editor?.vehicleKind ? yearsForKind.get(editor.vehicleKind) ?? [] : [];
+
   return (
     <Shell title="Sparepart">
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
@@ -87,7 +109,7 @@ export default function SparePage() {
             <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Parts catalog</p>
             <h2 className="text-2xl font-semibold sm:text-3xl">Master sparepart</h2>
             <p className="mt-1 max-w-xl text-sm text-slate-300">
-              Katalog terpisah dari work order. Item WO baru masuk otomatis; ubah/hapus di sini tidak mengubah histori WO.
+              Dipilah per merk, jenis mobil, dan tahun. Ubah/hapus katalog tidak mengubah histori work order.
             </p>
           </div>
           <button
@@ -121,13 +143,21 @@ export default function SparePage() {
       <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center">
         <div className="flex min-w-[220px] flex-1 items-center rounded-2xl border border-slate-200 bg-white px-3 py-2">
           <span className="mr-2 text-slate-400">⌕</span>
-          <input className="w-full text-sm outline-none" placeholder="Cari kode, nama, jenis mobil, bengkel…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input className="w-full text-sm outline-none" placeholder="Cari kode, nama, merk, jenis, tahun…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={kindF} onChange={(e) => setKindF(e.target.value)}>
+        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={kindF} onChange={(e) => { setKindF(e.target.value); setYearF("all"); }}>
           <option value="all">Semua jenis mobil</option>
           {kinds.map((k) => (
             <option key={k}>{k}</option>
           ))}
+        </select>
+        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={yearF} onChange={(e) => setYearF(e.target.value)}>
+          <option value="all">Semua tahun</option>
+          {Array.from(new Set(rows.map((r) => r.year).filter(Boolean)))
+            .sort((a, b) => Number(b) - Number(a))
+            .map((y) => (
+              <option key={String(y)}>{y}</option>
+            ))}
         </select>
         <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={shopF} onChange={(e) => setShopF(e.target.value)}>
           <option value="all">Semua bengkel</option>
@@ -139,10 +169,10 @@ export default function SparePage() {
 
       <div className="anim overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[920px] text-sm">
+          <table className="w-full min-w-[1080px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Kode", "Nama sparepart", "Jenis mobil", "Harga", "Bengkel", "Sumber", ""].map((h) => (
+                {["Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "Harga", "Bengkel", "Sumber", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -150,7 +180,7 @@ export default function SparePage() {
             <tbody>
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={9} className="px-4 py-14 text-center text-slate-400">
                     Belum ada sparepart. Tambah manual atau buat WO berisi item sparepart.
                   </td>
                 </tr>
@@ -164,7 +194,9 @@ export default function SparePage() {
                 >
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-sky-800">{r.code}</td>
                   <td className="px-4 py-3 font-semibold">{r.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{r.merk || "—"}</td>
                   <td className="px-4 py-3 text-slate-600">{r.vehicleKind || "—"}</td>
+                  <td className="px-4 py-3 font-medium">{r.year || "—"}</td>
                   <td className="px-4 py-3 font-semibold">{fmt(r.price)}</td>
                   <td className="px-4 py-3">{r.workshop || "—"}</td>
                   <td className="px-4 py-3">
@@ -173,7 +205,7 @@ export default function SparePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setEditor(r); }}>
+                    <button type="button" className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setEditor({ ...r, merk: r.merk || "", year: r.year ?? "" }); }}>
                       Ubah
                     </button>
                     <button type="button" className="text-xs font-semibold text-red-600" onClick={() => remove(r)}>
@@ -190,18 +222,17 @@ export default function SparePage() {
       {detail && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
-          <div
-            className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="bg-[#071526] px-6 py-5 text-white">
               <p className="font-mono text-[11px] tracking-wide text-sky-300">{detail.code}</p>
               <h2 className="text-2xl font-semibold">{detail.name}</h2>
-              <p className="text-sm text-slate-300">{detail.source === "wo" ? "Masuk dari work order" : "Input manual"} — hapus/ubah tidak mengubah WO</p>
+              <p className="text-sm text-slate-300">{detail.merk || "Merk belum diisi"} · {detail.vehicleKind || "—"} {detail.year || ""}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 p-6">
               {[
+                ["Merk sparepart", detail.merk || "—"],
                 ["Jenis mobil", detail.vehicleKind || "—"],
+                ["Tahun mobil", detail.year ? String(detail.year) : "—"],
                 ["Harga", fmt(detail.price)],
                 ["Bengkel", detail.workshop || "—"],
                 ["WO terkait", detail.woId || "—"],
@@ -215,11 +246,7 @@ export default function SparePage() {
             </div>
             <div className="flex justify-end gap-2 border-t px-6 py-4">
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setDetail(null)}>Tutup</button>
-              <button
-                type="button"
-                className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white"
-                onClick={() => { setIsNew(false); setEditor(detail); setDetail(null); }}
-              >
+              <button type="button" className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => { setIsNew(false); setEditor(detail); setDetail(null); }}>
                 Ubah
               </button>
             </div>
@@ -249,26 +276,58 @@ export default function SparePage() {
                 <input className={inputCls} required value={editor.name} onChange={(e) => setEditor({ ...editor, name: e.target.value })} />
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
-                Jenis mobil
-                <input className={inputCls} list="kind-list" placeholder="Toyota Avanza" value={editor.vehicleKind} onChange={(e) => setEditor({ ...editor, vehicleKind: e.target.value })} />
-                <datalist id="kind-list">
-                  {kinds.map((k) => (
-                    <option key={k} value={k} />
-                  ))}
-                </datalist>
+                Merk sparepart
+                <input className={inputCls} required placeholder="Toyota, Denso, Bosch…" value={editor.merk} onChange={(e) => setEditor({ ...editor, merk: e.target.value })} />
               </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Jenis mobil
+                  <select
+                    className={inputCls}
+                    required
+                    value={editor.vehicleKind}
+                    onChange={(e) => {
+                      const kind = e.target.value;
+                      const ys = yearsForKind.get(kind) ?? [];
+                      setEditor({ ...editor, vehicleKind: kind, year: ys[0] ?? "" });
+                    }}
+                  >
+                    <option value="">Pilih dari armada</option>
+                    {kinds.map((k) => (
+                      <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Tahun mobil
+                  <select
+                    className={inputCls}
+                    required
+                    value={editor.year === "" ? "" : String(editor.year)}
+                    onChange={(e) => setEditor({ ...editor, year: e.target.value ? Number(e.target.value) : "" })}
+                  >
+                    <option value="">Pilih tahun</option>
+                    {editorYears.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                    {editor.year && !editorYears.includes(Number(editor.year)) && (
+                      <option value={String(editor.year)}>{editor.year}</option>
+                    )}
+                  </select>
+                </label>
+              </div>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Harga
                 <input className={inputCls} type="number" min={0} required value={editor.price} onChange={(e) => setEditor({ ...editor, price: Number(e.target.value) || 0 })} />
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Bengkel
-                <input className={inputCls} list="shop-list" value={editor.workshop} onChange={(e) => setEditor({ ...editor, workshop: e.target.value })} />
-                <datalist id="shop-list">
+                <select className={inputCls} value={editor.workshop} onChange={(e) => setEditor({ ...editor, workshop: e.target.value })}>
+                  <option value="">Pilih bengkel</option>
                   {shops.map((k) => (
-                    <option key={k} value={k} />
+                    <option key={k} value={k}>{k}</option>
                   ))}
-                </datalist>
+                </select>
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Catatan
