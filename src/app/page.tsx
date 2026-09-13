@@ -70,7 +70,10 @@ export default function Page() {
   const todayUse = todayBookings.map((b) => {
     const v = fleet.find((x) => x.id === b.vehicleId);
     const u = users.find(
-      (x) => x.name.toLowerCase() === b.userName.toLowerCase() || x.email.toLowerCase() === b.userName.toLowerCase()
+      (x) =>
+        (b.userId && x.id === b.userId) ||
+        x.name.toLowerCase() === b.userName.toLowerCase() ||
+        x.email.toLowerCase() === b.userName.toLowerCase()
     );
     const phone = b.phone || u?.phone || "";
     return { b, v, u, phone, jabatan: b.jabatan || u?.jabatan || "—", divisi: b.dept || u?.dept || "—" };

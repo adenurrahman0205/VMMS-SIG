@@ -7,6 +7,7 @@ export type Booking = {
   vehicleId: string;
   date: string;
   userName: string;
+  userId?: string;
   purpose: string;
   dept?: string;
   jabatan?: string;

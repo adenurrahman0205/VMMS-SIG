@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, type Booking } from "@/lib/schedule-store";
+import { loadUsers, type AppUser } from "@/lib/user-store";
 
 export function PengajuanModal({
   onClose,
@@ -18,6 +19,8 @@ export function PengajuanModal({
 }) {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
+  const [userId, setUserId] = useState("");
   const [ok, setOk] = useState("");
   const [err, setErr] = useState("");
   const [form, setForm] = useState({
@@ -34,6 +37,7 @@ export function PengajuanModal({
   useEffect(() => {
     setFleet(loadFleet());
     setBookings(loadBookings());
+    setUsers(loadUsers().filter((u) => u.active));
   }, []);
 
   const v = fleet.find((x) => x.id === form.vehicleId);
@@ -124,8 +128,6 @@ export function PengajuanModal({
                   setForm({
                     ...form,
                     vehicleId: id,
-                    dept: form.dept || unit?.dept || "",
-                    jabatan: form.jabatan || unit?.jabatan || "",
                   });
                 }}
               >
@@ -164,23 +166,62 @@ export function PengajuanModal({
               <div className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Unit tersedia pada tanggal ini.</div>
             )}
 
+            <label className="block text-xs font-semibold uppercase text-slate-500">
+              Nama pemohon
+              <select
+                className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm"
+                required
+                value={userId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const u = users.find((x) => x.id === id);
+                  setUserId(id);
+                  setForm({
+                    ...form,
+                    userName: u?.name || "",
+                    dept: u?.dept || "",
+                    jabatan: u?.jabatan || "",
+                    phone: u?.phone || "",
+                  });
+                }}
+              >
+                <option value="">Pilih dari daftar User</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} · {u.dept || "—"} · {u.jabatan || "—"}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {userId && (
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                {users.find((x) => x.id === userId)?.avatar ? (
+                  <img src={users.find((x) => x.id === userId)!.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-[#071526] text-xs font-semibold text-white">
+                    {form.userName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 text-sm">
+                  <div className="font-semibold">{form.userName}</div>
+                  <div className="text-xs text-slate-500">{form.jabatan || "—"} · {form.dept || "—"}</div>
+                  <div className="text-xs text-emerald-700">{form.phone || "Telp belum diisi di User"}</div>
+                </div>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-xs font-semibold uppercase text-slate-500">
-                Nama pemohon
-                <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" required value={form.userName} onChange={(e) => setForm({ ...form, userName: e.target.value })} />
+                Divisi
+                <input className="mt-1 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm" readOnly value={form.dept} />
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
-                Divisi
-                <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.dept} onChange={(e) => setForm({ ...form, dept: e.target.value })} />
+                Jabatan
+                <input className="mt-1 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm" readOnly value={form.jabatan} />
               </label>
             </div>
             <label className="block text-xs font-semibold uppercase text-slate-500">
-              Jabatan
-              <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} />
-            </label>
-            <label className="block text-xs font-semibold uppercase text-slate-500">
               Telepon
-              <input className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input className="mt-1 w-full rounded-xl border bg-slate-50 px-3 py-2.5 text-sm" readOnly value={form.phone} />
             </label>
             <label className="block text-xs font-semibold uppercase text-slate-500">
               Keperluan
