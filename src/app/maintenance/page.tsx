@@ -311,7 +311,7 @@ export default function Mnt() {
                   <tr
                     key={m.id}
                     className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/70"
-                    onClick={() => setHistUnit(m.vehicleId)}
+                    onClick={() => setHistId(m.id)}
                   >
                     <td className="px-4 py-3">
                       <div className="font-mono text-[11px] text-slate-500">{m.id}</div>
