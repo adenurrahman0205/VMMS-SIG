@@ -69,8 +69,11 @@ export default function Page() {
 
   const todayUse = todayBookings.map((b) => {
     const v = fleet.find((x) => x.id === b.vehicleId);
-    const u = users.find((x) => x.name.toLowerCase() === b.userName.toLowerCase());
-    return { b, v, jabatan: b.jabatan || u?.jabatan || "—", divisi: b.dept || u?.dept || "—" };
+    const u = users.find(
+      (x) => x.name.toLowerCase() === b.userName.toLowerCase() || x.email.toLowerCase() === b.userName.toLowerCase()
+    );
+    const phone = b.phone || u?.phone || "";
+    return { b, v, u, phone, jabatan: b.jabatan || u?.jabatan || "—", divisi: b.dept || u?.dept || "—" };
   });
 
   function usageOf(v: Row) {
