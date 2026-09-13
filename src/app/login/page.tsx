@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
@@ -13,6 +13,13 @@ export default function Login() {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("idle") === "1") {
+      setMsg("Sesi berakhir karena tidak ada aktivitas selama 30 detik. Masuk kembali untuk lanjut.");
+    }
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
 import { hydrateCloud } from "@/lib/services/sync.service";
-import type { AppRole } from "@/lib/user-store";
+import { IdleGuard } from "@/components/idle-guard";
 
 const adminItems: [string, string][] = [
   ["/", "Dashboard"],
@@ -166,6 +166,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
 
   return (
     <div className="h-dvh overflow-hidden lg:pl-64">
+      <IdleGuard />
       {navOpen && (
         <button
           type="button"
