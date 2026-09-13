@@ -231,7 +231,10 @@ export function Shell({ title, children }: { title: string; children: React.Reac
             <button
               type="button"
               className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 lg:hidden"
-              onClick={() => setNavOpen(true)}
+              onClick={() => {
+                setFabOpen(false);
+                setNavOpen(true);
+              }}
               aria-label="Buka menu"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
@@ -278,7 +281,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         <button
           type="button"
           aria-hidden={!fabOpen}
-          className={cn("fab-scrim fixed inset-0 z-[55] bg-[#071526]/55 backdrop-blur-[2px]", fabOpen ? "opacity-100" : "opacity-0")}
+          className={cn("fab-scrim fixed inset-0 z-[35] bg-[#071526]/55 backdrop-blur-[2px]", fabOpen && !navOpen ? "opacity-100" : "opacity-0")}
           onClick={() => setFabOpen(false)}
         />
         <div
@@ -325,7 +328,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
         onClick={() => setFabOpen((v) => !v)}
         className={cn(
-          "fixed bottom-5 left-1/2 z-[60] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
+          "fixed bottom-5 left-1/2 z-[37] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
           fabOpen ? "bg-red-500 shadow-red-500/40" : "bg-[#071526] shadow-[#071526]/40"
         )}
       >
