@@ -325,7 +325,7 @@ export default function Biaya() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
