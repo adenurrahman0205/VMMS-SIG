@@ -1,31 +1,251 @@
 "use client";
-import { Badge, Card, Shell } from "@/components/shell";
-import { documents, vehicles } from "@/lib/data";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Shell } from "@/components/shell";
+import {
+  DOC_TYPES,
+  docStatusFromExpire,
+  docsForVehicle,
+  fmtN,
+  vehiclePhoto,
+  type Vehicle,
+  type VehicleDoc,
+} from "@/lib/data";
+import { loadFleet } from "@/lib/fleet-store";
+
+type St = "all" | "aktif" | "segera" | "expired" | "kosong";
+
+function daysLeft(expire: string) {
+  if (!expire) return null;
+  return Math.ceil((new Date(expire + "T00:00:00").getTime() - Date.now()) / 86400000);
+}
+
+function liveDoc(d: VehicleDoc): VehicleDoc {
+  return { ...d, status: docStatusFromExpire(d.expire) };
+}
 
 export default function Dokumen() {
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+  const [q, setQ] = useState("");
+  const [st, setSt] = useState<St>("all");
+  const [kind, setKind] = useState<string>("all");
+  const [open, setOpen] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFleet(loadFleet());
+  }, []);
+
+  const rows = useMemo(() => {
+    return fleet.map((v) => {
+      const docs = docsForVehicle(v).map(liveDoc);
+      const worst = docs.some((d) => d.status === "expired")
+        ? "expired"
+        : docs.some((d) => d.status === "segera")
+          ? "segera"
+          : docs.length
+            ? "aktif"
+            : "kosong";
+      return { v, docs, worst };
+    });
+  }, [fleet]);
+
+  const stats = useMemo(() => {
+    const docs = rows.flatMap((r) => r.docs);
+    return {
+      n: rows.length,
+      docs: docs.length,
+      aktif: docs.filter((d) => d.status === "aktif").length,
+      segera: docs.filter((d) => d.status === "segera").length,
+      expired: docs.filter((d) => d.status === "expired").length,
+      kosong: rows.filter((r) => r.docs.length === 0).length,
+    };
+  }, [rows]);
+
+  const shown = useMemo(() => {
+    const s = q.toLowerCase();
+    return rows.filter((r) => {
+      const blob = `${r.v.plate} ${r.v.brand} ${r.v.model} ${r.v.driver} ${r.v.dept}`.toLowerCase();
+      if (s && !blob.includes(s)) return false;
+      if (kind !== "all" && !r.docs.some((d) => d.type === kind)) return false;
+      if (st === "kosong") return r.docs.length === 0;
+      if (st !== "all") {
+        if (kind !== "all") return r.docs.some((d) => d.type === kind && d.status === st);
+        return r.docs.some((d) => d.status === st);
+      }
+      return true;
+    });
+  }, [rows, q, st, kind]);
+
   return (
-    <Shell title="Dokumen Kendaraan">
-      <p className="mb-3 text-sm text-slate-500">File (STNK/KIR/invoice) dirancang untuk Supabase Storage — terpisah dari PostgreSQL.</p>
-      <Card className="p-0">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs text-slate-500">
-            <tr>{["Kendaraan", "Jenis", "Berlaku", "Status"].map((h) => <th key={h} className="px-4 py-2">{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {documents.map((d, i) => {
-              const v = vehicles.find((x) => x.id === d.vehicleId)!;
-              return (
-                <tr key={i} className="border-t">
-                  <td className="px-4 py-2">{v.plate} {v.model}</td>
-                  <td className="px-4 py-2">{d.type}</td>
-                  <td className="px-4 py-2">{d.expire}</td>
-                  <td className="px-4 py-2"><Badge status={d.status} /></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Card>
+    <Shell title="Dokumen">
+      <section className="anim relative mb-6 overflow-hidden rounded-3xl">
+        <img src="/images/hero-fleet.png" alt="" className="h-36 w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/85 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-end p-5 text-white sm:p-7">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Compliance</p>
+          <h2 className="text-2xl font-semibold">Dokumen armada</h2>
+          <p className="mt-1 max-w-xl text-sm text-slate-300">
+            STNK, BPKB, KIR, asuransi, dan pajak mengikuti data setiap unit di Armada. Status dihitung dari tanggal berlaku.
+          </p>
+        </div>
+      </section>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {[
+          ["Unit", String(stats.n), "seluruh armada"],
+          ["Dokumen", String(stats.docs), "semua jenis"],
+          ["Aktif", String(stats.aktif), "masih berlaku"],
+          ["Segera", String(stats.segera), "≤ 60 hari"],
+          ["Expired", String(stats.expired), `${stats.kosong} unit tanpa data`],
+        ].map(([l, n, s]) => (
+          <div key={l} className="rounded-2xl bg-[#071526] p-4 text-white ring-1 ring-white/10">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">{l}</div>
+            <div className="mt-2 text-2xl font-semibold">{n}</div>
+            <div className="mt-1 text-[11px] text-slate-400">{s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <input
+          className="min-w-[200px] flex-1 rounded-xl border bg-white px-3 py-2 text-sm"
+          placeholder="Cari plat, model, driver…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        {(["all", "aktif", "segera", "expired", "kosong"] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setSt(k)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${st === k ? "bg-[#071526] !text-white" : "bg-white ring-1 ring-slate-200"}`}
+          >
+            {k === "all" ? "Semua" : k === "kosong" ? "Tanpa dokumen" : k}
+          </button>
+        ))}
+      </div>
+      <div className="mb-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setKind("all")}
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${kind === "all" ? "bg-sky-600 !text-white" : "bg-white ring-1 ring-slate-200"}`}
+        >
+          Semua jenis
+        </button>
+        {DOC_TYPES.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setKind(t)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${kind === t ? "bg-sky-600 !text-white" : "bg-white ring-1 ring-slate-200"}`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {shown.length === 0 && <p className="rounded-3xl bg-white p-8 text-center text-sm text-slate-400 ring-1 ring-slate-200">Tidak ada unit pada filter ini.</p>}
+        {shown.map((r) => {
+          const on = open === r.v.id;
+          const tone =
+            r.worst === "expired"
+              ? "ring-red-200"
+              : r.worst === "segera"
+                ? "ring-amber-200"
+                : r.worst === "kosong"
+                  ? "ring-slate-200"
+                  : "ring-slate-200";
+          return (
+            <div key={r.v.id} className={`overflow-hidden rounded-3xl bg-white ring-1 ${tone}`}>
+              <button type="button" className="flex w-full flex-wrap items-center gap-4 p-4 text-left" onClick={() => setOpen(on ? null : r.v.id)}>
+                <img src={vehiclePhoto(r.v)} alt="" className="h-16 w-24 rounded-2xl object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg font-semibold">{r.v.plate}</span>
+                    <span className="text-slate-500">{r.v.brand} {r.v.model}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">
+                      {r.v.ownerKind === "vendor" ? "Vendor" : "PT SIG"}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {r.v.driver || "—"} · {r.v.dept || "—"} · {fmtN(r.v.km)} KM
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {r.docs.length === 0 && <span className="text-xs text-slate-400">Belum ada dokumen — isi di Update kendaraan</span>}
+                    {r.docs.map((d) => {
+                      const cls =
+                        d.status === "expired"
+                          ? "bg-red-50 text-red-700"
+                          : d.status === "segera"
+                            ? "bg-amber-50 text-amber-800"
+                            : "bg-emerald-50 text-emerald-700";
+                      return (
+                        <span key={d.type + d.expire} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${cls}`}>
+                          {d.type} · {d.status}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="text-right text-xs text-slate-400">{on ? "Tutup" : "Detail"}</div>
+              </button>
+              {on && (
+                <div className="border-t bg-slate-50/80 p-4">
+                  {r.docs.length === 0 ? (
+                    <p className="text-sm text-slate-500">Unit ini belum punya STNK/KIR/asuransi di form Armada.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {r.docs.map((d) => {
+                        const left = daysLeft(d.expire);
+                        const cls =
+                          d.status === "expired"
+                            ? "border-red-200 bg-red-50/50"
+                            : d.status === "segera"
+                              ? "border-amber-200 bg-amber-50/40"
+                              : "border-slate-200 bg-white";
+                        return (
+                          <div key={d.type + d.expire} className={`rounded-2xl border p-4 ${cls}`}>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="text-sm font-semibold">{d.type}</div>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                  d.status === "expired"
+                                    ? "bg-red-100 text-red-700"
+                                    : d.status === "segera"
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-emerald-100 text-emerald-700"
+                                }`}
+                              >
+                                {d.status}
+                              </span>
+                            </div>
+                            <div className="mt-3 text-[11px] uppercase tracking-wide text-slate-400">Berlaku sampai</div>
+                            <div className="text-lg font-semibold">{d.expire || "—"}</div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              {left == null
+                                ? "Tanggal belum diisi"
+                                : left < 0
+                                  ? `Kadaluarsa ${Math.abs(left)} hari lalu`
+                                  : left === 0
+                                    ? "Habis hari ini"
+                                    : `${left} hari lagi`}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <Link href={`/kendaraan/${r.v.id}`} className="mt-4 inline-block text-sm font-semibold text-sky-700">
+                    Buka dossier unit →
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </Shell>
   );
 }
