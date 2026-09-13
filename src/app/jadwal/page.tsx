@@ -7,6 +7,14 @@ import { type Maintenance, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
+import { loadUsers } from "@/lib/user-store";
+
+function waHref(phone: string) {
+  const d = phone.replace(/\D/g, "");
+  if (!d) return "";
+  const n = d.startsWith("0") ? `62${d.slice(1)}` : d;
+  return `https://wa.me/${n}`;
+}
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
@@ -232,15 +240,15 @@ export default function Jadwal() {
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-[#071526] px-5 py-4 text-white">
           <div>
             <h3 className="font-semibold">Tabel pemakaian kendaraan</h3>
-            <p className="text-xs text-slate-500">Mengikuti tanggal kalender: {selectedLabel}</p>
+            <p className="text-xs text-sky-200">Mengikuti tanggal kalender: {selectedLabel}</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{dayBookings.length + dayService.length} baris</span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">{dayBookings.length + dayService.length} baris</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[920px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Tanggal", "Unit", "Pemohon", "Divisi", "Jabatan", "Keperluan", "Status", "Aksi"].map((h) => (
+                {["Tanggal", "Unit", "Pemohon", "No. telp", "Divisi", "Jabatan", "Keperluan", "Status", "Aksi"].map((h) => (
                   <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -248,7 +256,7 @@ export default function Jadwal() {
             <tbody>
               {dayBookings.length === 0 && dayService.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Tidak ada pemakaian pada tanggal ini. Pilih tanggal di kalender.</td>
+                  <td colSpan={9} className="px-4 py-10 text-center text-slate-400">Tidak ada pemakaian pada tanggal ini. Pilih tanggal di kalender.</td>
                 </tr>
               )}
               {dayService.map((j) => {
@@ -266,6 +274,7 @@ export default function Jadwal() {
                       </div>
                     </td>
                     <td className="px-4 py-3">{j.shop || "Bengkel"}</td>
+                    <td className="px-4 py-3 text-slate-400">—</td>
                     <td className="px-4 py-3 text-slate-600">{v?.dept || "—"}</td>
                     <td className="px-4 py-3 text-slate-600">—</td>
                     <td className="max-w-[200px] px-4 py-3 text-slate-600">{j.type}{j.complaint ? ` · ${j.complaint}` : ""}</td>
@@ -280,6 +289,10 @@ export default function Jadwal() {
                 .sort((a, b) => b.id.localeCompare(a.id))
                 .map((b) => {
                   const v = fleet.find((x) => x.id === b.vehicleId);
+                  const phone =
+                    b.phone ||
+                    loadUsers().find((u) => u.name.toLowerCase() === b.userName.toLowerCase() || u.email.toLowerCase() === b.userName.toLowerCase())?.phone ||
+                    "";
                   const st =
                     b.status === "disetujui"
                       ? "bg-emerald-50 text-emerald-800"
