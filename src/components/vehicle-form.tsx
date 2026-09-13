@@ -52,14 +52,40 @@ export function VehicleForm({
     setForm({ ...form, [k]: n });
   }
 
-  function onBbmFile(file?: File) {
-    if (!file) return;
+  function readImage(file: File, maxW: number, cb: (data: string) => void) {
     const reader = new FileReader();
     reader.onload = () => {
-      const data = String(reader.result || "");
-      setForm((f) => ({ ...f, bbmImage: data }));
+      const src = String(reader.result || "");
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / Math.max(img.width, 1));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          cb(src);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      img.onerror = () => cb(src);
+      img.src = src;
     };
     reader.readAsDataURL(file);
+  }
+
+  function onBbmFile(file?: File) {
+    if (!file) return;
+    readImage(file, 720, (data) => setForm((f) => ({ ...f, bbmImage: data })));
+  }
+
+  function onPhotoFile(file?: File) {
+    if (!file) return;
+    readImage(file, 960, (data) => setForm((f) => ({ ...f, photo: data })));
   }
 
   return (
