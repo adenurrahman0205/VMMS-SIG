@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
-import { type Status, type Vehicle, vehiclePhoto } from "@/lib/data";
-import { loadFleet, saveFleet } from "@/lib/fleet-store";
+import { type Vehicle, vehiclePhoto } from "@/lib/data";
+import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -57,7 +57,9 @@ export default function Jadwal() {
   const today = ymd(new Date());
   const dayBookings = byDate.get(selected) ?? [];
   const approvedToday = (byDate.get(today) ?? []).filter((b) => b.status === "disetujui");
+  const pendingToday = (byDate.get(today) ?? []).filter((b) => b.status === "pengajuan");
   const inUseIds = new Set(approvedToday.map((b) => b.vehicleId));
+  const pendingIds = new Set(pendingToday.map((b) => b.vehicleId));
   const notes = bookings
     .filter((b) => b.status === "pengajuan" && b.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -72,32 +74,6 @@ export default function Jadwal() {
 
   function removeBooking(id: string) {
     persist(bookings.filter((b) => b.id !== id));
-  }
-
-  type UsageKind = "tersedia" | "dipakai" | "maintenance";
-
-  function setUsage(v: Vehicle, kind: UsageKind) {
-    const nextStatus: Status = kind === "maintenance" ? "maintenance" : "ready";
-    const nextFleet = fleet.map((x) => (x.id === v.id ? { ...x, status: nextStatus } : x));
-    setFleet(nextFleet);
-    saveFleet(nextFleet);
-
-    const others = bookings.filter((b) => !(b.date === today && b.vehicleId === v.id && b.status === "disetujui"));
-    if (kind === "dipakai") {
-      persist([
-        ...others,
-        {
-          id: `b${Date.now()}`,
-          vehicleId: v.id,
-          date: today,
-          userName: v.driver || "Pengguna",
-          purpose: "Pemakaian harian",
-          status: "disetujui",
-        },
-      ]);
-    } else {
-      persist(others);
-    }
   }
 
   const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
