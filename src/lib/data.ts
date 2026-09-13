@@ -35,6 +35,7 @@ export type Vehicle = {
   madeYear: number;
   bbmNo: string;
   bbmImage?: string;
+  photo?: string;
   nextServiceKm?: number;
   transmission?: Transmission;
   documents?: VehicleDoc[];
@@ -210,7 +211,8 @@ export const fmt = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 export const fmtN = (n: number) => new Intl.NumberFormat("id-ID").format(n);
 
-export function vehiclePhoto(v: { model: string; brand?: string; color?: string }) {
+export function vehiclePhoto(v: { model: string; brand?: string; color?: string; photo?: string }) {
+  if (v.photo) return v.photo;
   const m = v.model.toLowerCase();
   const c = (v.color || "").toLowerCase();
   if (m.includes("pajero")) return "/images/pajero.jpg";

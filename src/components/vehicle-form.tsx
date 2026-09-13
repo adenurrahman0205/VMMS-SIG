@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
-import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle } from "@/lib/data";
+import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle, vehiclePhoto } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 
 function Field({
@@ -84,6 +84,23 @@ export function VehicleForm({
         </div>
 
         <div className="overflow-auto px-6 py-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Foto kendaraan</p>
+          <div className="mb-6 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[220px_1fr]">
+            <img src={vehiclePhoto(form)} alt="" className="h-36 w-full rounded-2xl object-cover ring-1 ring-slate-200" />
+            <div className="flex flex-col justify-center">
+              <p className="text-sm text-slate-600">Unggah foto unit. Jika kosong, dipakai foto default sesuai model.</p>
+              <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#071526] px-4 py-2.5 text-sm font-semibold !text-white">
+                Pilih foto
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => onPhotoFile(e.target.files?.[0])} />
+              </label>
+              {form.photo && (
+                <button type="button" className="mt-2 text-left text-xs font-semibold text-red-600" onClick={() => setForm({ ...form, photo: "" })}>
+                  Kembali ke foto default
+                </button>
+              )}
+            </div>
+          </div>
+
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Identitas unit</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label="Nomor plat">
