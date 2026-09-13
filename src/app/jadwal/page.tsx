@@ -309,31 +309,20 @@ export default function Jadwal() {
                   {service ? "Tidak bisa diajukan" : used ? `Dipakai ${who?.userName || ""}` : requested ? `Request ${who?.userName || ""}` : "Siap diajukan"}
                 </div>
               </div>
-              <div className="flex shrink-0 flex-col gap-1.5">
-                <button
-                  type="button"
-                  disabled={!canAjukan}
-                  onClick={() => {
-                    if (!canAjukan) return;
-                    setAjuanVehicle(v.id);
-                    setShowAjuan(true);
-                  }}
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    canAjukan ? "bg-[#071526] !text-white hover:bg-sky-700" : "cursor-not-allowed bg-slate-200 text-slate-400"
-                  }`}
-                >
-                  Ajukan
-                </button>
-                {service ? (
-                  <button type="button" onClick={() => finishService(v)} className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold !text-white">
-                    Selesai service
-                  </button>
-                ) : !used ? (
-                  <button type="button" onClick={() => startService(v)} className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold !text-white">
-                    Masuk service
-                  </button>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                disabled={!canAjukan}
+                onClick={() => {
+                  if (!canAjukan) return;
+                  setAjuanVehicle(v.id);
+                  setShowAjuan(true);
+                }}
+                className={`shrink-0 rounded-xl px-3 py-2 text-xs font-semibold ${
+                  canAjukan ? "bg-[#071526] !text-white hover:bg-sky-700" : "cursor-not-allowed bg-slate-200 text-slate-400"
+                }`}
+              >
+                Ajukan
+              </button>
             </div>
           );
         })}
