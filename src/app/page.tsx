@@ -301,35 +301,85 @@ export default function Page() {
       </div>
 
       <Card className="overflow-hidden p-0">
-        <div className="border-b px-4 py-3">
-          <h3 className="text-sm font-semibold">Ringkasan armada</h3>
-          <p className="text-xs text-slate-500">{fmtN(totalKm)} km akumulasi · mengikuti filter pencarian</p>
+        <div className="flex flex-wrap items-end justify-between gap-2 border-b bg-white px-5 py-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">Fleet snapshot</p>
+            <h3 className="text-lg font-semibold">Ringkasan armada</h3>
+            <p className="text-xs text-slate-500">
+              {filtered.length} unit tampil · {fmtN(totalKm)} KM · biaya WO selesai {fmt(totalCost)} · klik baris untuk detail
+            </p>
+          </div>
         </div>
-        <div className="max-h-80 overflow-auto">
-          <table className="w-full min-w-[700px] text-sm">
-            <thead className="sticky top-0 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+        <div className="max-h-[520px] overflow-auto">
+          <table className="w-full min-w-[980px] text-sm">
+            <thead className="sticky top-0 z-10 bg-[#071526] text-left text-[11px] uppercase tracking-wide text-sky-200">
               <tr>
-                {["Unit", "Status", "KM", "Biaya", "Servis", "Health"].map((h) => (
-                  <th key={h} className="px-4 py-2 font-semibold">{h}</th>
+                {["Unit", "Pemakaian", "Driver / divisi", "Odometer", "Servis berikutnya", "WO & biaya", "Health"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">Tidak ada unit pada filter ini.</td>
+                </tr>
+              )}
               {filtered.map((v) => {
                 const kind = usageOf(v);
+                const left = kmToService(v);
+                const due = dueServiceKm(v);
+                const label = kind === "maintenance" ? "Sedang diservice" : kind === "used" ? "Sedang dipakai" : v.status === "inactive" ? "Tidak aktif" : "Tersedia";
+                const chip =
+                  kind === "maintenance"
+                    ? "bg-red-50 text-red-700"
+                    : kind === "used"
+                      ? "bg-amber-50 text-amber-800"
+                      : v.status === "inactive"
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-emerald-50 text-emerald-700";
+                const hb = v.health >= 75 ? "from-emerald-400 to-sky-400" : v.health >= 55 ? "from-amber-400 to-orange-400" : "from-red-400 to-rose-500";
                 return (
-                  <tr key={v.id} className="cursor-pointer border-t border-slate-100 hover:bg-sky-50" onClick={() => setOpen(v)}>
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{v.plate}</div>
-                      <div className="text-[11px] text-slate-400">{v.brand} {v.model}</div>
+                  <tr key={v.id} className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/80" onClick={() => setOpen(v)}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <img src={vehiclePhoto(v)} alt="" className="h-12 w-[4.5rem] rounded-xl object-cover ring-1 ring-slate-200" />
+                        <div className="min-w-0">
+                          <div className="font-semibold">{v.plate}</div>
+                          <div className="text-xs text-slate-500">{v.brand} {v.model} · {v.year} · {v.color}</div>
+                          <div className="text-[11px] text-slate-400">{v.ownerKind === "vendor" ? "Vendor / Rental" : "PT SIG"}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-2">
-                      <Badge status={kind === "used" ? "warning" : v.status} />
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${chip}`}>{label}</span>
                     </td>
-                    <td className="px-4 py-2">{fmtN(v.km)}</td>
-                    <td className="px-4 py-2">{fmt(v.cost)}</td>
-                    <td className="px-4 py-2">{v.jobs}x</td>
-                    <td className="px-4 py-2">{v.health}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{v.driver || "—"}</div>
+                      <div className="text-xs text-slate-500">{v.dept || "—"}{v.jabatan ? ` · ${v.jabatan}` : ""}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold">{fmtN(v.km)} KM</div>
+                      <div className="text-[11px] text-slate-400">cost/KM {fmt(Math.round(v.cost / Math.max(v.km, 1)))}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className={`font-semibold ${left <= 0 ? "text-red-600" : left < 1000 ? "text-amber-700" : "text-slate-800"}`}>
+                        {left <= 0 ? "Lewat jadwal" : `${fmtN(left)} KM lagi`}
+                      </div>
+                      <div className="text-[11px] text-slate-400">target {fmtN(due)} KM</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold">{fmt(v.cost)}</div>
+                      <div className="text-[11px] text-slate-400">{v.jobs} WO · oli {v.oli} · ban {v.ban}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 text-sm font-semibold">{v.health}</span>
+                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${hb}`} style={{ width: `${v.health}%` }} />
+                        </div>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
