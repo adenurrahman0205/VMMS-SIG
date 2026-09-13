@@ -122,6 +122,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [displayName, setDisplayName] = useState("Pengguna");
   const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
@@ -131,6 +132,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   useEffect(() => {
     setNavOpen(false);
     setMenu(false);
+    setFabOpen(false);
   }, [path]);
 
   useEffect(() => {
@@ -160,6 +162,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   }
 
   const initials = displayName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "U";
+  const navItems = role === "USER" ? userItems : role ? adminItems : [];
 
   return (
     <div className="h-dvh overflow-hidden lg:pl-64">
@@ -191,7 +194,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           <div className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wider text-slate-500">
             {role === "USER" ? "Layanan" : "Monitoring"}
           </div>
-          {(role === "USER" ? userItems : role ? adminItems : []).map(([href, label]) => {
+          {(navItems).map(([href, label]) => {
             const on = path === href || (href !== "/" && href !== "/user" && path.startsWith(href));
             return (
               <Link
@@ -268,8 +271,65 @@ export function Shell({ title, children }: { title: string; children: React.Reac
             )}
           </div>
         </header>
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-7 lg:pb-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
       </div>
+
+      <div className={cn("lg:hidden", fabOpen ? "pointer-events-auto" : "pointer-events-none")}>
+        <button
+          type="button"
+          aria-hidden={!fabOpen}
+          className={cn("fab-scrim fixed inset-0 z-[55] bg-[#071526]/55 backdrop-blur-[2px]", fabOpen ? "opacity-100" : "opacity-0")}
+          onClick={() => setFabOpen(false)}
+        />
+        <div
+          className={cn(
+            "fab-sheet fixed inset-x-0 bottom-0 z-[56] max-h-[78dvh] overflow-auto rounded-t-[28px] bg-white pb-[5.5rem] shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
+            fabOpen ? "translate-y-0" : "translate-y-full"
+          )}
+        >
+          <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200" />
+          <p className="px-5 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            {role === "USER" ? "Layanan" : "Menu"}
+          </p>
+          <nav className="grid grid-cols-3 gap-2 px-4 pb-3">
+            {navItems.map(([href, label]) => {
+              const on = path === href || (href !== "/" && href !== "/user" && path.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setFabOpen(false)}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 text-center text-[11px] font-semibold active:scale-[0.97]",
+                    on ? "bg-sky-500 !text-white shadow-md shadow-sky-500/25" : "bg-slate-50 text-slate-700"
+                  )}
+                >
+                  <NavIcon href={href} />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+          <button
+            type="button"
+            onClick={logout}
+            className="mx-4 mb-2 w-[calc(100%-2rem)] rounded-2xl bg-red-50 py-3 text-sm font-semibold text-red-700"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
+        onClick={() => setFabOpen((v) => !v)}
+        className="fixed bottom-5 left-1/2 z-[60] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full bg-sky-500 text-white shadow-xl shadow-sky-500/40 transition-transform duration-300 active:scale-95 lg:hidden"
+      >
+        <svg viewBox="0 0 24 24" className={cn("h-7 w-7 transition-transform duration-300", fabOpen && "rotate-45")} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
     </div>
   );
 }
