@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
+import { BookingDetailPopup } from "@/components/booking-detail-popup";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
 import { loadBookings, type Booking } from "@/lib/schedule-store";
@@ -13,6 +14,7 @@ import type { AppUser } from "@/lib/user-store";
 export default function UserPemakaian() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<Booking | null>(null);
   const [rows, setRows] = useState<Booking[]>([]);
   const [fleet, setFleet] = useState<Vehicle[]>([]);
 
@@ -38,7 +40,7 @@ export default function UserPemakaian() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Pengajuan saya</h2>
-          <p className="text-sm text-slate-500">Pemohon terkunci ke akun login Anda.</p>
+          <p className="text-sm text-slate-500">Klik baris untuk melihat detail. Pemohon terkunci ke akun login Anda.</p>
         </div>
         <button type="button" className="rounded-full bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => setOpen(true)}>
           + Ajukan pemakaian
@@ -55,7 +57,12 @@ export default function UserPemakaian() {
                 ? new Date(b.approvedAt).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })
                 : "";
               return (
-                <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setDetail(b)}
+                  className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50 active:scale-[0.995]"
+                >
                   <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-xl object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId} · {v?.plate}</div>
@@ -68,7 +75,8 @@ export default function UserPemakaian() {
                     )}
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase ${b.status === "disetujui" ? "bg-emerald-50 text-emerald-800" : b.status === "ditolak" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800"}`}>{b.status}</span>
-                </div>
+                  <span className="text-xs font-semibold text-sky-700">Detail →</span>
+                </button>
               );
             })}
           </div>
@@ -79,6 +87,14 @@ export default function UserPemakaian() {
           lockUser={me}
           onClose={() => setOpen(false)}
           onSaved={() => refresh(me)}
+        />
+      )}
+      {detail && (
+        <BookingDetailPopup
+          booking={detail}
+          vehicle={fleet.find((x) => x.id === detail.vehicleId)}
+          me={me}
+          onClose={() => setDetail(null)}
         />
       )}
     </Shell>
