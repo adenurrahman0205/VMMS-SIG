@@ -7,7 +7,7 @@ import { type Maintenance, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
-import { loadUsers } from "@/lib/user-store";
+import { loadUsers, type AppUser } from "@/lib/user-store";
 
 function waHref(phone: string) {
   const d = phone.replace(/\D/g, "");
@@ -22,6 +22,7 @@ export default function Jadwal() {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [showAjuan, setShowAjuan] = useState(false);
@@ -33,6 +34,7 @@ export default function Jadwal() {
     setFleet(loadFleet());
     setBookings(loadBookings());
     setJobs(loadJobs());
+    setUsers(loadUsers());
   }, []);
 
   function persist(next: Booking[]) {
@@ -311,7 +313,16 @@ export default function Jadwal() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">{b.userName}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {u?.avatar ? (
+                            <img src={u.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
+                          ) : (
+                            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#071526] text-[10px] font-semibold text-white">{ini}</span>
+                          )}
+                          <span className="font-medium">{b.userName}</span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         {phone ? (
                           <a href={waHref(phone)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">
