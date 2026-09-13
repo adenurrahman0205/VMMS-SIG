@@ -146,7 +146,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const initials = displayName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "U";
 
   return (
-    <div className="min-h-dvh lg:pl-64">
+    <div className="h-dvh overflow-hidden lg:pl-64">
       {navOpen && (
         <button
           type="button"
@@ -204,8 +204,8 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           </button>
         </div>
       </aside>
-      <div className="min-w-0 flex-1">
-        <header className="fixed top-0 right-0 z-40 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:px-7 sm:py-3.5 lg:left-64 left-0">
+      <div className="flex h-dvh min-w-0 flex-col">
+        <header className="z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:px-7 sm:py-3.5">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
@@ -250,7 +250,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
             )}
           </div>
         </header>
-        <main className="p-4 sm:p-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
       </div>
     </div>
   );
