@@ -1,0 +1,77 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Shell } from "@/components/shell";
+import { PengajuanModal } from "@/components/pengajuan-modal";
+import { createBrowserSupabase } from "@/lib/supabase/client";
+import { mergeLocalUser } from "@/lib/services/profile.service";
+import { loadBookings, type Booking } from "@/lib/schedule-store";
+import { loadFleet } from "@/lib/fleet-store";
+import { vehiclePhoto, type Vehicle } from "@/lib/data";
+import type { AppUser } from "@/lib/user-store";
+
+export default function UserPemakaian() {
+  const [me, setMe] = useState<AppUser | null>(null);
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<Booking[]>([]);
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+
+  function refresh(u: AppUser) {
+    setFleet(loadFleet());
+    setRows(
+      loadBookings().filter((b) => b.userId === u.id || b.userName.toLowerCase() === u.name.toLowerCase())
+    );
+  }
+
+  useEffect(() => {
+    (async () => {
+      const sb = createBrowserSupabase();
+      const { data } = await sb.auth.getUser();
+      const u = mergeLocalUser(data.user?.email ?? "", data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
+      setMe(u);
+      refresh(u);
+    })();
+  }, []);
+
+  return (
+    <Shell title="Pemakaian">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Pengajuan saya</h2>
+          <p className="text-sm text-slate-500">Pemohon terkunci ke akun login Anda.</p>
+        </div>
+        <button type="button" className="rounded-full bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => setOpen(true)}>
+          + Ajukan pemakaian
+        </button>
+      </div>
+      <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+        {rows.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-slate-400">Belum ada pengajuan.</p>
+        ) : (
+          <div className="divide-y">
+            {rows.map((b) => {
+              const v = fleet.find((x) => x.id === b.vehicleId);
+              return (
+                <div key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 rounded-xl object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId} · {v?.plate}</div>
+                    <div className="text-xs text-slate-500">{b.date} · {b.purpose}</div>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase">{b.status}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {open && me && (
+        <PengajuanModal
+          lockUser={me}
+          onClose={() => setOpen(false)}
+          onSaved={() => refresh(me)}
+        />
+      )}
+    </Shell>
+  );
+}

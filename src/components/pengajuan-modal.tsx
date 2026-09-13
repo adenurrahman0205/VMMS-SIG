@@ -38,7 +38,17 @@ export function PengajuanModal({
     setFleet(loadFleet());
     setBookings(loadBookings());
     setUsers(loadUsers().filter((u) => u.active));
-  }, []);
+    if (lockUser) {
+      setUserId(lockUser.id);
+      setForm((f) => ({
+        ...f,
+        userName: lockUser.name,
+        dept: lockUser.dept,
+        jabatan: lockUser.jabatan || "",
+        phone: lockUser.phone,
+      }));
+    }
+  }, [lockUser]);
 
   const v = fleet.find((x) => x.id === form.vehicleId);
 
@@ -123,7 +133,6 @@ export function PengajuanModal({
                 value={form.vehicleId}
                 onChange={(e) => {
                   const id = e.target.value;
-                  const unit = fleet.find((x) => x.id === id);
                   setErr("");
                   setForm({
                     ...form,
@@ -171,6 +180,7 @@ export function PengajuanModal({
               <select
                 className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm"
                 required
+                disabled={!!lockUser}
                 value={userId}
                 onChange={(e) => {
                   const id = e.target.value;

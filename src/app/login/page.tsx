@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { mergeLocalUser } from "@/lib/services/profile.service";
 
 export default function Login() {
   const r = useRouter();
@@ -29,7 +31,10 @@ export default function Login() {
       setMsg(err instanceof Error ? err.message : "Gagal terhubung ke Supabase.");
       return;
     }
-    r.push("/");
+    const { data } = await sb.auth.getUser();
+    const em = data.user?.email ?? email;
+    const u = mergeLocalUser(em, data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
+    r.push(u.role === "USER" ? "/user" : "/");
     r.refresh();
   }
 
@@ -88,6 +93,9 @@ export default function Login() {
         <button disabled={busy} className="mt-5 w-full rounded-xl bg-[#071526] py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700" type="submit">
           {busy ? "..." : "Masuk"}
         </button>
+        <Link href="/register" className="mt-3 block w-full rounded-xl border border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          Registrasi
+        </Link>
       </form>
     </div>
   );

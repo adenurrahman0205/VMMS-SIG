@@ -7,8 +7,9 @@ import { cn } from "@/lib/cn";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
 import { hydrateCloud } from "@/lib/services/sync.service";
+import type { AppRole } from "@/lib/user-store";
 
-const items: [string, string][] = [
+const adminItems: [string, string][] = [
   ["/", "Dashboard"],
   ["/kendaraan", "Armada"],
   ["/jadwal", "Jadwal"],
@@ -20,6 +21,13 @@ const items: [string, string][] = [
   ["/admin/users", "User"],
   ["/profil", "Profil"],
   ["/data", "Data & Backup"],
+];
+
+const userItems: [string, string][] = [
+  ["/user", "Beranda"],
+  ["/user/pemakaian", "Pemakaian"],
+  ["/user/maintenance", "Work order"],
+  ["/profil", "Profil"],
 ];
 
 function Icon({ d, extra }: { d: string; extra?: React.ReactNode }) {
@@ -34,6 +42,7 @@ function Icon({ d, extra }: { d: string; extra?: React.ReactNode }) {
 function NavIcon({ href }: { href: string }) {
   switch (href) {
     case "/":
+    case "/user":
       return <Icon d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />;
     case "/kendaraan":
       return (
@@ -42,6 +51,7 @@ function NavIcon({ href }: { href: string }) {
           <path d="M5 17h.01M19 17h.01M5 13v4a1 1 0 0 0 1 1h1a2 2 0 1 1 4 0h2a2 2 0 1 1 4 0h1a1 1 0 0 0 1-1v-4" />
         </svg>
       );
+    case "/user/pemakaian":
     case "/jadwal":
       return (
         <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -49,6 +59,7 @@ function NavIcon({ href }: { href: string }) {
           <path d="M3 10h18M8 3v4M16 3v4" />
         </svg>
       );
+    case "/user/maintenance":
     case "/maintenance":
       return <Icon d="M14.7 6.3a4.5 4.5 0 0 0-6.4 6.4L3 18v3h3l5.3-5.3a4.5 4.5 0 0 0 6.4-6.4L15 12l-3-3 2.7-2.7Z" />;
     case "/biaya":
@@ -114,7 +125,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   const [displayName, setDisplayName] = useState("Pengguna");
   const [avatar, setAvatar] = useState("");
   const [email, setEmail] = useState("");
-
+  const [role, setRole] = useState<AppRole | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -133,6 +144,11 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       const u = mergeLocalUser(em, data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
       setDisplayName(u.name);
       setAvatar(u.avatar || "");
+      setRole(u.role);
+      const admin = u.role === "SUPER_ADMIN" || u.role === "FLEET_ADMIN";
+      const userOk = path === "/user" || path.startsWith("/user/") || path === "/profil";
+      if (!admin && !userOk) router.replace("/user");
+      if (admin && path.startsWith("/user")) router.replace("/");
     })();
   }, [path]);
 
@@ -172,9 +188,11 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           </div>
         </div>
         <nav className="flex-1 overflow-auto p-3">
-          <div className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wider text-slate-500">Monitoring</div>
-          {items.map(([href, label]) => {
-            const on = path === href || (href !== "/" && path.startsWith(href));
+          <div className="px-3 pb-1 pt-3 text-[10px] uppercase tracking-wider text-slate-500">
+            {role === "USER" ? "Layanan" : "Monitoring"}
+          </div>
+          {(role === "USER" ? userItems : role ? adminItems : []).map(([href, label]) => {
+            const on = path === href || (href !== "/" && href !== "/user" && path.startsWith(href));
             return (
               <Link
                 key={href}

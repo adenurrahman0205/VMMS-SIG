@@ -76,6 +76,7 @@ export type Maintenance = {
   complaint: string;
   action: string;
   items: { name: string; qty: number; price: number }[];
+  createdBy?: string;
 };
 
 export function woTotal(m: { cost: number; jasa?: number; items: { qty: number; price: number }[] }) {

@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const publicPath =
     path === "/login" ||
+    path === "/register" ||
     path.startsWith("/images/") ||
     path === "/favicon.ico";
 
@@ -33,7 +34,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && path === "/login") {
+  if (user && (path === "/login" || path === "/register")) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
