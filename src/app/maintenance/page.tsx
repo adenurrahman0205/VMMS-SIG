@@ -21,6 +21,11 @@ export default function Mnt() {
   const [to, setTo] = useState("");
   const [histUnit, setHistUnit] = useState<string | null>(null);
   const [editor, setEditor] = useState<Maintenance | null>(null);
+  const [cursor, setCursor] = useState(() => new Date());
+  const [selected, setSelected] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
 
   useEffect(() => {
     setFleet(loadFleet());
@@ -78,7 +83,8 @@ export default function Mnt() {
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
-  const today = selected.slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const cells = useMemo(() => {
     const first = new Date(year, month, 1);
     const start = first.getDay();
