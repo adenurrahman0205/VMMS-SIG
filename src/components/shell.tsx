@@ -8,6 +8,7 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { mergeLocalUser } from "@/lib/services/profile.service";
 import { hydrateCloud } from "@/lib/services/sync.service";
 import { IdleGuard } from "@/components/idle-guard";
+import type { AppRole } from "@/lib/user-store";
 
 const adminItems: [string, string][] = [
   ["/", "Dashboard"],
