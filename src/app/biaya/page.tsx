@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
@@ -229,101 +229,111 @@ export default function Biaya() {
             ))}
           </div>
         </Card>
-        <Card className="lg:col-span-2">
-          <h3 className="mb-3 font-semibold">Summary armada</h3>
-          <ul className="space-y-2 text-sm text-slate-600">
-            <li>Unit dinilai: <b>{summary.n}</b></li>
-            <li>Skor terbaik: <b>{summary.best?.v.plate}</b> ({summary.best?.score})</li>
-            <li>Unit termahal: <b>{summary.top?.v.plate}</b></li>
-            <li>
-              Servis tunggal terbesar:{" "}
-              <b>{summary.peak ? `${summary.peak.plate} ${fmt(summary.peak.peak.cost)}` : "—"}</b>
-              {summary.peak ? <span className="text-xs text-slate-400"> · {summary.peak.peak.date} · {summary.peak.peak.type}</span> : null}
-            </li>
-          </ul>
-          <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Sparepart terbesar</h4>
-          <div className="space-y-1.5">
-            {summary.topParts.map(([name, amt]) => (
-              <div key={name} className="flex justify-between text-sm">
-                <span className="text-slate-600">{name}</span>
-                <span className="font-semibold">{fmt(amt)}</span>
+        <div className="relative overflow-hidden rounded-3xl bg-[#071526] p-5 text-white lg:col-span-2">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sky-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 left-8 h-32 w-32 rounded-full bg-emerald-400/15 blur-3xl" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-300">Snapshot</p>
+          <h3 className="mt-1 text-xl font-semibold">Summary armada</h3>
+          <p className="mt-1 text-xs text-slate-400">{summary.n} unit · {summary.jobs} WO selesai</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400">Skor rata-rata</div>
+              <div className="mt-1 text-2xl font-semibold">{summary.avgScore}</div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400" style={{ width: `${summary.avgScore}%` }} />
               </div>
-            ))}
-            {summary.topParts.length === 0 && <p className="text-sm text-slate-400">Belum ada item WO selesai.</p>}
+            </div>
+            <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400">Cost / KM</div>
+              <div className="mt-1 text-lg font-semibold leading-tight">{fmt(Math.round(summary.cpk))}</div>
+              <div className="mt-1 text-[11px] text-slate-400">{fmtN(summary.km)} KM</div>
+            </div>
           </div>
-        </Card>
+
+          {summary.best && (
+            <Link href={`/kendaraan/${summary.best.v.id}`} className="mt-3 flex items-center gap-3 rounded-2xl bg-emerald-400/10 p-3 ring-1 ring-emerald-400/30">
+              <img src={vehiclePhoto(summary.best.v)} alt="" className="h-12 w-16 rounded-xl object-cover" />
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300">Paling ekonomis</div>
+                <div className="truncate font-semibold">{summary.best.v.plate}</div>
+                <div className="text-xs text-slate-400">{summary.best.v.model} · skor {summary.best.score}</div>
+              </div>
+            </Link>
+          )}
+          {summary.top && (
+            <Link href={`/kendaraan/${summary.top.v.id}`} className="mt-2 flex items-center gap-3 rounded-2xl bg-rose-400/10 p-3 ring-1 ring-rose-400/25">
+              <img src={vehiclePhoto(summary.top.v)} alt="" className="h-12 w-16 rounded-xl object-cover" />
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-rose-300">Biaya tertinggi</div>
+                <div className="truncate font-semibold">{summary.top.v.plate}</div>
+                <div className="text-xs text-slate-400">{summary.top.v.model} · {fmt(summary.top.cost)}</div>
+              </div>
+            </Link>
+          )}
+          {summary.peak && (
+            <div className="mt-2 rounded-2xl bg-white/5 px-3 py-2 text-xs text-slate-300 ring-1 ring-white/10">
+              WO terbesar: <b className="text-white">{summary.peak.plate}</b> {fmt(summary.peak.peak.cost)}
+              <span className="text-slate-500"> · {summary.peak.peak.date} · {summary.peak.peak.type}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b px-4 py-3">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4">
           <div>
             <h3 className="font-semibold">Peringkat sparepart</h3>
-            <p className="text-xs text-slate-500">Satu baris per jenis item. Klik untuk unit yang paling boros di item itu.</p>
+            <p className="text-xs text-slate-500">Cari nama item, klik baris untuk unit yang paling boros.</p>
           </div>
           <input
-            className="w-full max-w-xs rounded-xl border px-3 py-2 text-sm sm:w-64"
-            placeholder="Cari nama sparepart…"
+            className="w-full max-w-xs rounded-xl border bg-slate-50 px-3 py-2 text-sm sm:w-64"
+            placeholder="Cari oli, ban, filter…"
             value={partQ}
             onChange={(e) => setPartQ(e.target.value)}
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
-              <tr>
-                {["Sparepart", "Kelompok", "Total", "Qty", "Unit termahal", ""].map((h) => (
-                  <th key={h || "x"} className="px-4 py-2">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {partShown.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Tidak ada sparepart.</td></tr>
-              )}
-              {partShown.map((p) => {
-                const top = p.units[0];
-                const on = partOpen === p.name;
-                return (
-                  <Fragment key={p.name}>
-                    <tr className="cursor-pointer border-t hover:bg-sky-50/60" onClick={() => setPartOpen(on ? null : p.name)}>
-                      <td className="px-4 py-2 font-semibold">{p.name}</td>
-                      <td className="px-4 py-2 text-slate-500">{p.cat}</td>
-                      <td className="px-4 py-2 font-semibold">{fmt(p.total)}</td>
-                      <td className="px-4 py-2">{p.qty}</td>
-                      <td className="px-4 py-2">
-                        {top ? (
-                          <span>
-                            <b>{top.plate}</b> {top.model}
-                            <span className="block text-xs text-slate-500">{fmt(top.amount)}</span>
-                          </span>
-                        ) : "—"}
-                      </td>
-                      <td className="px-4 py-2 text-xs text-sky-700">{on ? "Tutup" : `${p.units.length} unit`}</td>
-                    </tr>
-                    {on && (
-                      <tr className="border-t bg-slate-50">
-                        <td colSpan={6} className="px-4 py-3">
-                          <div className="space-y-1">
-                            {p.units.map((u, i) => (
-                              <div key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-slate-100">
-                                <span>
-                                  {i === 0 && <span className="mr-2 text-[10px] font-semibold uppercase text-amber-700">Termahal</span>}
-                                  <Link href={`/kendaraan/${u.id}`} className="font-semibold">{u.plate}</Link>
-                                  <span className="text-slate-500"> · {u.brand} {u.model}</span>
-                                </span>
-                                <span className="text-slate-500">qty {u.qty} · {u.last}</span>
-                                <span className="font-semibold">{fmt(u.amount)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="divide-y">
+          {partShown.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-400">Tidak ada sparepart.</p>}
+          {partShown.map((p) => {
+            const top = p.units[0];
+            const on = partOpen === p.name;
+            const maxP = Math.max(partIndex[0]?.total || 1, 1);
+            return (
+              <div key={p.name} className={on ? "bg-slate-50" : ""}>
+                <button type="button" className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left" onClick={() => setPartOpen(on ? null : p.name)}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="font-semibold">{p.name}</span>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">{p.cat}</span>
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-gradient-to-r from-[#071526] to-sky-400" style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%` }} />
+                    </div>
+                    {top && <div className="mt-1 text-xs text-slate-500">Termahal: {top.plate} {top.model} · {fmt(top.amount)}</div>}
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">{fmt(p.total)}</div>
+                    <div className="text-[11px] text-slate-400">{p.qty} pcs · {p.units.length} unit</div>
+                  </div>
+                </button>
+                {on && (
+                  <div className="grid gap-2 px-4 pb-4 sm:grid-cols-2">
+                    {p.units.map((u, i) => (
+                      <Link key={u.id} href={`/kendaraan/${u.id}`} className="flex items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-slate-200">
+                        <span>
+                          {i === 0 && <span className="mr-1 text-[10px] font-semibold uppercase text-amber-700">#1</span>}
+                          <b>{u.plate}</b>
+                          <span className="text-slate-500"> {u.model}</span>
+                        </span>
+                        <span className="font-semibold">{fmt(u.amount)}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
