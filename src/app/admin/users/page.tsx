@@ -235,6 +235,38 @@ export default function UsersPage() {
               </button>
             </div>
             <div className="space-y-3 p-6">
+              <div className="flex items-center gap-4">
+                {editor.avatar ? (
+                  <img src={editor.avatar} alt="" className="h-16 w-16 rounded-full object-cover ring-1 ring-slate-200" />
+                ) : (
+                  <span className="grid h-16 w-16 place-items-center rounded-full bg-[#071526] text-sm font-semibold text-white">{initials(editor.name)}</span>
+                )}
+                <div>
+                  <label className="inline-flex cursor-pointer rounded-xl bg-[#071526] px-3 py-2 text-xs font-semibold !text-white">
+                    Pilih foto
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const avatar = await compressAvatar(file);
+                          setEditor({ ...editor, avatar });
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                    />
+                  </label>
+                  {editor.avatar && (
+                    <button type="button" className="ml-3 text-xs font-semibold text-red-600" onClick={() => setEditor({ ...editor, avatar: "" })}>
+                      Hapus foto
+                    </button>
+                  )}
+                </div>
+              </div>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Nama
                 <input className={inputCls} required value={editor.name} onChange={(e) => setEditor({ ...editor, name: e.target.value })} />
