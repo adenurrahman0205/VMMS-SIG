@@ -324,7 +324,10 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         type="button"
         aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
         onClick={() => setFabOpen((v) => !v)}
-        className="fixed bottom-5 left-1/2 z-[60] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full bg-sky-500 text-white shadow-xl shadow-sky-500/40 transition-transform duration-300 active:scale-95 lg:hidden"
+        className={cn(
+          "fixed bottom-5 left-1/2 z-[60] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
+          fabOpen ? "bg-red-500 shadow-red-500/40" : "bg-[#071526] shadow-[#071526]/40"
+        )}
       >
         <svg viewBox="0 0 24 24" className={cn("h-7 w-7 transition-transform duration-300", fabOpen && "rotate-45")} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
           <path d="M12 5v14M5 12h14" />
