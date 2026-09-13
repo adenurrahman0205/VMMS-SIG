@@ -289,12 +289,13 @@ export default function Mnt() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
+          <table className="w-full min-w-[1080px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status", "Aksi"].map((h) => (
+                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status"].map((h) => (
                   <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
+                <th className="sticky right-0 bg-slate-50 px-4 py-3 font-semibold">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -535,6 +536,16 @@ export default function Mnt() {
               </div>
             </div>
             <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
+              <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
+              <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan work order</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </Shell>
+  );
+}
+v className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
               <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
               <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan work order</button>
             </div>
