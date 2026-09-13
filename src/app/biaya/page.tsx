@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
-import { findFleetUnit, loadJobs } from "@/lib/maintenance-store";
+import { loadJobs } from "@/lib/maintenance-store";
 
 type Peak = { date: string; type: string; cost: number; shop: string };
 
@@ -309,14 +309,20 @@ export default function Biaya() {
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Riwayat WO (rinci)</h4>
                   <div className="space-y-2">
                     {r.done.length === 0 && <p className="text-sm text-slate-400">Belum ada histori selesai.</p>}
-                    {r.done.map((m) => (
+                    {r.done.map((m) => {
+                      const partsSum = m.items.reduce((s, it) => s + it.qty * it.price, 0);
+                      const jasa = Math.max(0, m.cost - partsSum);
+                      return (
                       <div key={m.id} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
                         <div className="flex flex-wrap justify-between gap-2">
                           <div>
                             <div className="font-semibold">{m.type}</div>
                             <div className="text-xs text-slate-500">{m.date} · {m.id} · KM {fmtN(m.km)} · {m.shop || "—"}</div>
                           </div>
-                          <div className="text-right font-semibold">{fmt(m.cost)}</div>
+                          <div className="text-right">
+                            <div className="font-semibold">{fmt(m.cost)}</div>
+                            <div className="text-[11px] text-slate-400">Total WO selesai</div>
+                          </div>
                         </div>
                         {(m.complaint || m.action) && (
                           <p className="mt-1 text-sm text-slate-600">{m.complaint || "—"} → {m.action || "—"}</p>
@@ -329,10 +335,25 @@ export default function Biaya() {
                                 <span className="font-medium">{fmt(it.qty * it.price)}</span>
                               </li>
                             ))}
+                            <li className="flex justify-between border-t border-slate-100 pt-1 text-xs text-slate-500">
+                              <span>Subtotal sparepart</span>
+                              <span>{fmt(partsSum)}</span>
+                            </li>
+                            {jasa > 0 && (
+                              <li className="flex justify-between text-xs text-slate-500">
+                                <span>Jasa bengkel / lain-lain</span>
+                                <span>{fmt(jasa)}</span>
+                              </li>
+                            )}
+                            <li className="flex justify-between font-semibold">
+                              <span>Total WO</span>
+                              <span>{fmt(m.cost)}</span>
+                            </li>
                           </ul>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
