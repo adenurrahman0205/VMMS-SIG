@@ -14,6 +14,7 @@ export default function UserHome() {
   const [me, setMe] = useState<AppUser | null>(null);
   const [nBook, setNBook] = useState(0);
   const [nWo, setNWo] = useState(0);
+  const [nFleet, setNFleet] = useState(0);
   const [nReady, setNReady] = useState(0);
   const [nUsed, setNUsed] = useState(0);
 
@@ -27,39 +28,65 @@ export default function UserHome() {
       setNBook(books.filter((b) => b.userId === u.id || b.userName.toLowerCase() === u.name.toLowerCase()).length);
       setNWo(loadJobs().filter((j) => j.createdBy === u.email || j.createdBy === u.id).length);
       const today = ymd(new Date());
+      const fleet = loadFleet();
       const usedIds = new Set(books.filter((b) => b.date === today && b.status === "disetujui").map((b) => b.vehicleId));
       let ready = 0;
       let used = 0;
-      loadFleet().forEach((v) => {
+      fleet.forEach((v) => {
         if (v.status === "inactive" || v.status === "maintenance") return;
         if (usedIds.has(v.id)) used += 1;
         else ready += 1;
       });
+      setNFleet(fleet.length);
       setNReady(ready);
       setNUsed(used);
     })();
   }, []);
 
+  const pctReady = nFleet ? nReady / nFleet : 0;
+  const pctUsed = nFleet ? nUsed / nFleet : 0;
+
   return (
     <Shell title="Portal User">
-      <section className="anim relative mb-6 overflow-hidden rounded-3xl">
-        <img src="/images/hero-fleet.png" alt="" className="h-36 w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/85 to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Role USER</p>
-          <h2 className="text-2xl font-semibold">Halo, {me?.name || "Pengguna"}</h2>
-          <p className="text-sm text-slate-300">Ajukan pemakaian atau buat work order.</p>
-        </div>
-      </section>
+      <p className="mb-4 text-sm text-slate-500">Halo, {me?.name || "Pengguna"} · status armada hari ini</p>
 
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        <div className="rounded-3xl bg-emerald-50 p-5 ring-1 ring-emerald-100">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Kendaraan tersedia</p>
-          <p className="mt-2 text-4xl font-semibold text-emerald-900">{nReady}</p>
+      <div className="mb-6 grid gap-3 lg:grid-cols-5">
+        <div className="anim relative overflow-hidden rounded-[28px] p-6 text-left text-white shadow-xl lg:col-span-2">
+          <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#071526] via-[#071526]/85 to-sky-900/40" />
+          <div className="relative flex h-full min-h-[200px] flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-200 backdrop-blur">Live fleet</span>
+              <span className="flex items-center gap-1.5 text-[11px] text-emerald-300">
+                <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+                Online
+              </span>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-slate-300">Total armada</div>
+              <div className="mt-1 text-6xl font-semibold tracking-tight">{nFleet}</div>
+              <div className="mt-2 text-sm text-slate-300">{nReady} tersedia · {nUsed} dipakai</div>
+            </div>
+          </div>
         </div>
-        <div className="rounded-3xl bg-amber-50 p-5 ring-1 ring-amber-100">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">Kendaraan dipakai</p>
-          <p className="mt-2 text-4xl font-semibold text-amber-950">{nUsed}</p>
+
+        <div className="grid grid-cols-2 gap-3 lg:col-span-3">
+          <div className="anim group relative overflow-hidden rounded-[22px] bg-[#0b1a2e] p-4 text-left text-white ring-1 ring-white/10">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">Tersedia</div>
+            <div className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{nReady}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Siap operasi</div>
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-emerald-400 transition-all duration-700 group-hover:w-full" style={{ width: `${Math.max(12, Math.min(100, pctReady * 100))}%` }} />
+            </div>
+          </div>
+          <div className="anim group relative overflow-hidden rounded-[22px] bg-[#0b1a2e] p-4 text-left text-white ring-1 ring-white/10">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">Dipakai</div>
+            <div className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{nUsed}</div>
+            <div className="mt-1 text-[11px] text-slate-400">Hari ini</div>
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-amber-400 transition-all duration-700 group-hover:w-full" style={{ width: `${Math.max(12, Math.min(100, pctUsed * 100))}%` }} />
+            </div>
+          </div>
         </div>
       </div>
 
