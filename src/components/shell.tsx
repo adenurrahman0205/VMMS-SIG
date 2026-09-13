@@ -277,17 +277,22 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         <main className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-7 lg:pb-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
       </div>
 
-      <div className={cn("lg:hidden", fabOpen ? "pointer-events-auto" : "pointer-events-none")}>
+      <div className={cn("lg:hidden", fabOpen && !navOpen ? "pointer-events-auto" : "pointer-events-none")}>
         <button
           type="button"
           aria-hidden={!fabOpen}
-          className={cn("fab-scrim fixed inset-0 z-[35] bg-[#071526]/55 backdrop-blur-[2px]", fabOpen && !navOpen ? "opacity-100" : "opacity-0")}
+          className={cn(
+            "fab-scrim fixed inset-0 bg-[#071526]/55 backdrop-blur-[2px]",
+            navOpen ? "z-30" : "z-[55]",
+            fabOpen && !navOpen ? "opacity-100" : "opacity-0"
+          )}
           onClick={() => setFabOpen(false)}
         />
         <div
           className={cn(
-            "fab-sheet fixed inset-x-0 bottom-0 z-[56] max-h-[78dvh] overflow-auto rounded-t-[28px] bg-white pb-[5.5rem] shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
-            fabOpen ? "translate-y-0" : "translate-y-full"
+            "fab-sheet fixed inset-x-0 bottom-0 max-h-[78dvh] overflow-auto rounded-t-[28px] bg-white pb-[5.5rem] shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
+            navOpen ? "z-30" : "z-[56]",
+            fabOpen && !navOpen ? "translate-y-0" : "translate-y-full"
           )}
         >
           <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200" />
