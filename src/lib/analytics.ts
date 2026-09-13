@@ -1,4 +1,4 @@
-import { maintenance as seedJobs, vehicles, type Maintenance, type Vehicle } from "./data";
+import { maintenance as seedJobs, vehicles, woTotal, type Maintenance, type Vehicle } from "./data";
 import { loadJobs } from "./maintenance-store";
 
 function jobs(): Maintenance[] {
@@ -9,7 +9,7 @@ function jobs(): Maintenance[] {
 export function statsFor(v: Vehicle, list?: Maintenance[]) {
   const rows = (list ?? jobs()).filter((m) => m.vehicleId === v.id);
   const done = rows.filter((m) => m.status === "selesai");
-  const cost = done.reduce((s, m) => s + m.cost, 0);
+  const cost = done.reduce((s, m) => s + woTotal(m), 0);
   const hit = (k: string) =>
     rows.filter((m) => `${m.type} ${m.items.map((i) => i.name).join(" ")}`.toLowerCase().includes(k)).length;
   return {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { VehiclePopup } from "@/components/vehicle-popup";
-import { dueServiceKm, fmt, fmtN, kmToService, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
+import { dueServiceKm, fmt, fmtN, kmToService, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
