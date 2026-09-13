@@ -172,6 +172,13 @@ export default function Biaya() {
     return partIndex.filter((p) => `${p.name} ${p.cat} ${p.units[0]?.plate ?? ""}`.toLowerCase().includes(s));
   }, [partIndex, partQ]);
 
+  useEffect(() => {
+    if (!partOpen && partShown[0]) setPartOpen(partShown[0].name);
+  }, [partShown, partOpen]);
+
+  const activePart = partShown.find((p) => p.name === partOpen) ?? partShown[0];
+  const snapUnit = snap === "best" ? summary.best : summary.top;
+
   return (
     <Shell title="Biaya & Analitik">
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
@@ -193,8 +200,8 @@ export default function Biaya() {
           ["Skor armada", String(summary.avgScore), "rata-rata 0–100"],
           ["Unit termahal", summary.top?.v.plate ?? "—", summary.top ? fmt(summary.top.cost) : ""],
           ["Servis terbesar", summary.peak ? fmt(summary.peak.peak.cost) : "—", summary.peak ? `${summary.peak.plate} · ${summary.peak.peak.date}` : ""],
-        ].map(([l, n, s]) => (
-          <div key={l} className="rounded-2xl bg-[#071526] p-4 text-white ring-1 ring-white/10">
+        ].map(([l, n, s], i) => (
+          <div key={l} className={`kpi-shine card-hover anim relative overflow-hidden rounded-2xl bg-[#071526] p-4 text-white ring-1 ring-white/10 delay-${i + 1}`}>
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">{l}</div>
             <div className="mt-2 break-words text-xl font-semibold">{n}</div>
             <div className="mt-1 text-[11px] text-slate-400">{s}</div>
@@ -202,138 +209,161 @@ export default function Biaya() {
         ))}
       </div>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <h3 className="mb-1 font-semibold">Perbandingan total biaya per unit</h3>
-          <p className="mb-4 text-xs text-slate-500">Garis putus = rata-rata armada {fmt(Math.round(avgCost))}</p>
-          <div className="space-y-2">
-            {shown.slice(0, 12).map((r) => (
+      <div className="mb-6 grid gap-4 lg:grid-cols-12">
+        <Card className="anim delay-1 lg:col-span-7">
+          <h3 className="mb-1 font-semibold">Perbandingan biaya per unit</h3>
+          <p className="mb-4 text-xs text-slate-500">Klik batang untuk membuka rincian. Garis = rata-rata {fmt(Math.round(avgCost))}</p>
+          <div className="space-y-2.5">
+            {shown.slice(0, 12).map((r, i) => (
               <button
                 key={r.v.id}
                 type="button"
                 onClick={() => setOpen(open === r.v.id ? null : r.v.id)}
-                className="block w-full text-left"
+                className={`group block w-full rounded-2xl p-2 text-left transition hover:bg-sky-50 ${open === r.v.id ? "bg-sky-50 ring-1 ring-sky-200" : ""}`}
               >
-                <div className="mb-0.5 flex justify-between text-xs">
+                <div className="mb-1 flex items-center justify-between text-xs">
                   <span className="font-semibold text-slate-700">{r.v.plate} · {r.v.model}</span>
-                  <span className="text-slate-500">{fmt(r.cost)}</span>
+                  <span className="font-medium text-slate-600">{fmt(r.cost)}</span>
                 </div>
-                <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="relative h-3 overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400"
-                    style={{ width: `${Math.max(4, (r.cost / maxCost) * 100)}%` }}
+                    className="bar-in h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 transition group-hover:brightness-110"
+                    style={{ width: `${Math.max(4, (r.cost / maxCost) * 100)}%`, animationDelay: `${i * 40}ms` }}
                   />
-                  <div className="absolute top-0 h-full w-px bg-slate-400/70" style={{ left: `${Math.min(98, (avgCost / maxCost) * 100)}%` }} />
+                  <div className="absolute top-0 h-full w-px bg-slate-400/80" style={{ left: `${Math.min(98, (avgCost / maxCost) * 100)}%` }} />
                 </div>
               </button>
             ))}
           </div>
         </Card>
-        <div className="relative overflow-hidden rounded-3xl bg-[#071526] p-5 text-white lg:col-span-2">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sky-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-12 left-8 h-32 w-32 rounded-full bg-emerald-400/15 blur-3xl" />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-300">Snapshot</p>
-          <h3 className="mt-1 text-xl font-semibold">Summary armada</h3>
-          <p className="mt-1 text-xs text-slate-400">{summary.n} unit · {summary.jobs} WO selesai</p>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
-              <div className="text-[10px] uppercase tracking-wide text-slate-400">Skor rata-rata</div>
-              <div className="mt-1 text-2xl font-semibold">{summary.avgScore}</div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400" style={{ width: `${summary.avgScore}%` }} />
-              </div>
+        <div className="anim delay-2 relative overflow-hidden rounded-3xl bg-[#071526] text-white lg:col-span-5">
+          <div className="pointer-events-none absolute -right-16 top-0 h-48 w-48 rounded-full bg-sky-400/25 blur-3xl" />
+          <div className="flex items-center justify-between gap-2 p-4 pb-0">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-300">Snapshot</p>
+              <h3 className="text-xl font-semibold">Summary armada</h3>
             </div>
-            <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
-              <div className="text-[10px] uppercase tracking-wide text-slate-400">Cost / KM</div>
-              <div className="mt-1 text-lg font-semibold leading-tight">{fmt(Math.round(summary.cpk))}</div>
-              <div className="mt-1 text-[11px] text-slate-400">{fmtN(summary.km)} KM</div>
+            <div className="flex rounded-full bg-white/10 p-1 text-[11px] font-semibold">
+              <button type="button" onClick={() => setSnap("best")} className={`rounded-full px-3 py-1 transition ${snap === "best" ? "bg-emerald-400 text-[#071526]" : "text-slate-300"}`}>Ekonomis</button>
+              <button type="button" onClick={() => setSnap("cost")} className={`rounded-full px-3 py-1 transition ${snap === "cost" ? "bg-rose-400 text-[#071526]" : "text-slate-300"}`}>Tertinggi</button>
             </div>
           </div>
-
-          {summary.best && (
-            <Link href={`/kendaraan/${summary.best.v.id}`} className="mt-3 flex items-center gap-3 rounded-2xl bg-emerald-400/10 p-3 ring-1 ring-emerald-400/30">
-              <img src={vehiclePhoto(summary.best.v)} alt="" className="h-12 w-16 rounded-xl object-cover" />
-              <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300">Paling ekonomis</div>
-                <div className="truncate font-semibold">{summary.best.v.plate}</div>
-                <div className="text-xs text-slate-400">{summary.best.v.model} · skor {summary.best.score}</div>
+          {snapUnit ? (
+            <Link href={`/kendaraan/${snapUnit.v.id}`} className="block p-4">
+              <div className="relative overflow-hidden rounded-2xl">
+                <img src={vehiclePhoto(snapUnit.v)} alt="" className="img-zoom h-40 w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/30 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-sky-200">{snap === "best" ? "Paling ekonomis" : "Biaya tertinggi"}</div>
+                    <div className="text-2xl font-semibold">{snapUnit.v.plate}</div>
+                    <div className="text-sm text-slate-300">{snapUnit.v.brand} {snapUnit.v.model}</div>
+                  </div>
+                  <div className="relative h-16 w-16">
+                    <svg viewBox="0 0 44 44" className="h-16 w-16 -rotate-90">
+                      <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="4" />
+                      <circle className="ring-draw" cx="22" cy="22" r="18" fill="none" stroke={snap === "best" ? "#34d399" : "#fb7185"} strokeWidth="4" strokeLinecap="round" strokeDasharray="113" strokeDashoffset={113 - (113 * snapUnit.score) / 100} />
+                    </svg>
+                    <div className="absolute inset-0 grid place-items-center text-sm font-semibold">{snapUnit.score}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
+                  <div className="text-[10px] uppercase text-slate-400">Biaya</div>
+                  <div className="text-sm font-semibold">{fmt(snapUnit.cost)}</div>
+                </div>
+                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
+                  <div className="text-[10px] uppercase text-slate-400">WO</div>
+                  <div className="text-sm font-semibold">{snapUnit.jobs}</div>
+                </div>
+                <div className="rounded-2xl bg-white/10 py-2 ring-1 ring-white/10">
+                  <div className="text-[10px] uppercase text-slate-400">Cost/KM</div>
+                  <div className="text-sm font-semibold">{fmt(Math.round(snapUnit.cpk))}</div>
+                </div>
               </div>
             </Link>
-          )}
-          {summary.top && (
-            <Link href={`/kendaraan/${summary.top.v.id}`} className="mt-2 flex items-center gap-3 rounded-2xl bg-rose-400/10 p-3 ring-1 ring-rose-400/25">
-              <img src={vehiclePhoto(summary.top.v)} alt="" className="h-12 w-16 rounded-xl object-cover" />
-              <div className="min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-rose-300">Biaya tertinggi</div>
-                <div className="truncate font-semibold">{summary.top.v.plate}</div>
-                <div className="text-xs text-slate-400">{summary.top.v.model} · {fmt(summary.top.cost)}</div>
-              </div>
-            </Link>
+          ) : (
+            <p className="p-6 text-sm text-slate-400">Belum ada data unit.</p>
           )}
           {summary.peak && (
-            <div className="mt-2 rounded-2xl bg-white/5 px-3 py-2 text-xs text-slate-300 ring-1 ring-white/10">
+            <div className="mx-4 mb-4 rounded-2xl bg-white/5 px-3 py-2 text-xs text-slate-300 ring-1 ring-white/10">
               WO terbesar: <b className="text-white">{summary.peak.plate}</b> {fmt(summary.peak.peak.cost)}
-              <span className="text-slate-500"> · {summary.peak.peak.date} · {summary.peak.peak.type}</span>
+              <span className="text-slate-500"> · {summary.peak.peak.date}</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4">
-          <div>
+      <div className="anim delay-3 mb-6 grid gap-4 lg:grid-cols-12">
+        <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 lg:col-span-5">
+          <div className="border-b px-4 py-4">
             <h3 className="font-semibold">Peringkat sparepart</h3>
-            <p className="text-xs text-slate-500">Cari nama item, klik baris untuk unit yang paling boros.</p>
+            <input
+              className="mt-3 w-full rounded-xl border bg-slate-50 px-3 py-2 text-sm"
+              placeholder="Cari oli, ban, filter…"
+              value={partQ}
+              onChange={(e) => setPartQ(e.target.value)}
+            />
           </div>
-          <input
-            className="w-full max-w-xs rounded-xl border bg-slate-50 px-3 py-2 text-sm sm:w-64"
-            placeholder="Cari oli, ban, filter…"
-            value={partQ}
-            onChange={(e) => setPartQ(e.target.value)}
-          />
-        </div>
-        <div className="divide-y">
-          {partShown.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-400">Tidak ada sparepart.</p>}
-          {partShown.map((p) => {
-            const top = p.units[0];
-            const on = partOpen === p.name;
-            const maxP = Math.max(partIndex[0]?.total || 1, 1);
-            return (
-              <div key={p.name} className={on ? "bg-slate-50" : ""}>
-                <button type="button" className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left" onClick={() => setPartOpen(on ? null : p.name)}>
+          <div className="max-h-[420px] overflow-y-auto">
+            {partShown.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-400">Tidak ada sparepart.</p>}
+            {partShown.map((p, i) => {
+              const on = activePart?.name === p.name;
+              const maxP = Math.max(partIndex[0]?.total || 1, 1);
+              return (
+                <button
+                  key={p.name}
+                  type="button"
+                  onClick={() => setPartOpen(p.name)}
+                  className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left transition ${on ? "bg-sky-50" : "hover:bg-slate-50"}`}
+                >
+                  <div className="w-6 text-xs font-semibold text-slate-400">{i + 1}</div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <span className="font-semibold">{p.name}</span>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">{p.cat}</span>
+                    <div className="truncate font-semibold">{p.name}</div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className="bar-in h-full rounded-full bg-gradient-to-r from-[#071526] to-sky-400" style={{ width: `${Math.max(6, (p.total /" style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%`, animationDelay: `${i * 35}ms` }} />
                     </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#071526] to-sky-400" style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%` }} />
-                    </div>
-                    {top && <div className="mt-1 text-xs text-slate-500">Termahal: {top.plate} {top.model} · {fmt(top.amount)}</div>}
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold">{fmt(p.total)}</div>
-                    <div className="text-[11px] text-slate-400">{p.qty} pcs · {p.units.length} unit</div>
-                  </div>
+                  <div className="text-right text-sm font-semibold">{fmt(p.total)}</div>
                 </button>
-                {on && (
-                  <div className="grid gap-2 px-4 pb-4 sm:grid-cols-2">
-                    {p.units.map((u, i) => (
-                      <Link key={u.id} href={`/kendaraan/${u.id}`} className="flex items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-slate-200">
-                        <span>
-                          {i === 0 && <span className="mr-1 text-[10px] font-semibold uppercase text-amber-700">#1</span>}
-                          <b>{u.plate}</b>
-                          <span className="text-slate-500"> {u.model}</span>
-                        </span>
-                        <span className="font-semibold">{fmt(u.amount)}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 lg:col-span-7">
+          {activePart ? (
+            <div key={activePart.name} className="pop-in p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">{activePart.cat}</span>
+                  <h3 className="mt-2 text-2xl font-semibold">{activePart.name}</h3>
+                  <p className="text-sm text-slate-500">{activePart.qty} pcs · {activePart.units.length} unit memakai item ini</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-[11px] uppercase text-slate-400">Total</div>
+                  <div className="text-2xl font-semibold">{fmt(activePart.total)}</div>
+                </div>
               </div>
-            );
-          })}
+              <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Unit termahal dulu</p>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {activePart.units.map((u, i) => (
+                  <Link key={u.id} href={`/kendaraan/${u.id}`} className="card-hover flex items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
+                    <span>
+                      {i === 0 && <span className="mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-800">#1</span>}
+                      <b>{u.plate}</b>
+                      <span className="block text-xs text-slate-500">{u.brand} {u.model} · qty {u.qty}</span>
+                    </span>
+                    <span className="font-semibold">{fmt(u.amount)}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="p-8 text-sm text-slate-400">Pilih sparepart di kiri untuk melihat unit.</p>
+          )}
         </div>
       </div>
 
