@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
@@ -65,7 +65,8 @@ export default function Biaya() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [sort, setSort] = useState<"cost" | "score" | "cpk">("cost");
-  const [catOpen, setCatOpen] = useState<string | null>("Ban");
+  const [partQ, setPartQ] = useState("");
+  const [partOpen, setPartOpen] = useState<string | null>(null);
 
   useEffect(() => {
     setVehicles(loadFleet());
@@ -259,74 +260,77 @@ export default function Biaya() {
         </Card>
       </div>
 
-      <div className="mb-6">
-        <h3 className="mb-1 text-lg font-semibold">Kategori sparepart</h3>
-        <p className="mb-4 text-sm text-slate-500">Klik kartu Ban, Oli, Rem, dan lainnya untuk melihat unit mana yang biayanya paling besar.</p>
-        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {categories.map((c) => {
-            const top = c.units[0];
-            const on = catOpen === c.name;
-            return (
-              <button
-                key={c.name}
-                type="button"
-                onClick={() => setCatOpen(on ? null : c.name)}
-                className={`rounded-3xl p-4 text-left text-white shadow-md bg-gradient-to-br ${CAT_TONE[c.name] ?? CAT_TONE.Lainnya} ${on ? "ring-4 ring-sky-300" : ""}`}
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">{c.name}</div>
-                <div className="mt-2 text-2xl font-semibold">{fmt(c.total)}</div>
-                <div className="mt-1 text-xs text-white/85">{c.units.length} unit · qty {c.qty}</div>
-                {top && (
-                  <div className="mt-3 rounded-xl bg-black/20 px-3 py-2 text-xs">
-                    Termahal: <b>{top.plate}</b> {top.brand} {top.model} · {fmt(top.amount)}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+      <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b px-4 py-3">
+          <div>
+            <h3 className="font-semibold">Peringkat sparepart</h3>
+            <p className="text-xs text-slate-500">Satu baris per jenis item. Klik untuk unit yang paling boros di item itu.</p>
+          </div>
+          <input
+            className="w-full max-w-xs rounded-xl border px-3 py-2 text-sm sm:w-64"
+            placeholder="Cari nama sparepart…"
+            value={partQ}
+            onChange={(e) => setPartQ(e.target.value)}
+          />
         </div>
-        {categories.filter((c) => !catOpen || c.name === catOpen).map((c) => {
-          const max = Math.max(...c.units.map((u) => u.amount), 1);
-          return (
-            <div key={`tbl-${c.name}`} className="mb-4 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
-              <div className="border-b bg-slate-50 px-4 py-3">
-                <h4 className="font-semibold">Detail {c.name}</h4>
-                <p className="text-xs text-slate-500">Total {fmt(c.total)} · diurutkan dari biaya terbesar</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-sm">
-                  <thead className="text-left text-[11px] uppercase text-slate-500">
-                    <tr>
-                      {["Unit", "Item", "Qty", "Biaya", "Terakhir", "Porsi"].map((h) => (
-                        <th key={h} className="px-4 py-2">{h}</th>
-                      ))}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
+              <tr>
+                {["Sparepart", "Kelompok", "Total", "Qty", "Unit termahal", ""].map((h) => (
+                  <th key={h || "x"} className="px-4 py-2">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {partShown.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">Tidak ada sparepart.</td></tr>
+              )}
+              {partShown.map((p) => {
+                const top = p.units[0];
+                const on = partOpen === p.name;
+                return (
+                  <Fragment key={p.name}>
+                    <tr className="cursor-pointer border-t hover:bg-sky-50/60" onClick={() => setPartOpen(on ? null : p.name)}>
+                      <td className="px-4 py-2 font-semibold">{p.name}</td>
+                      <td className="px-4 py-2 text-slate-500">{p.cat}</td>
+                      <td className="px-4 py-2 font-semibold">{fmt(p.total)}</td>
+                      <td className="px-4 py-2">{p.qty}</td>
+                      <td className="px-4 py-2">
+                        {top ? (
+                          <span>
+                            <b>{top.plate}</b> {top.model}
+                            <span className="block text-xs text-slate-500">{fmt(top.amount)}</span>
+                          </span>
+                        ) : "—"}
+                      </td>
+                      <td className="px-4 py-2 text-xs text-sky-700">{on ? "Tutup" : `${p.units.length} unit`}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {c.units.map((u, i) => (
-                      <tr key={u.id} className={`border-t ${i === 0 ? "bg-amber-50/80" : ""}`}>
-                        <td className="px-4 py-2">
-                          <Link href={`/kendaraan/${u.id}`} className="font-semibold text-sky-800">{u.plate}</Link>
-                          <div className="text-xs text-slate-500">{u.brand} {u.model}</div>
-                          {i === 0 && <span className="text-[10px] font-semibold uppercase text-amber-700">Termahal</span>}
-                        </td>
-                        <td className="px-4 py-2 text-slate-600">{u.items.join(", ")}</td>
-                        <td className="px-4 py-2">{u.qty}</td>
-                        <td className="px-4 py-2 font-semibold">{fmt(u.amount)}</td>
-                        <td className="px-4 py-2 text-slate-500">{u.last}</td>
-                        <td className="px-4 py-2">
-                          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
-                            <div className={`h-full rounded-full bg-gradient-to-r ${CAT_TONE[c.name]}`} style={{ width: `${(u.amount / max) * 100}%` }} />
+                    {on && (
+                      <tr className="border-t bg-slate-50">
+                        <td colSpan={6} className="px-4 py-3">
+                          <div className="space-y-1">
+                            {p.units.map((u, i) => (
+                              <div key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-slate-100">
+                                <span>
+                                  {i === 0 && <span className="mr-2 text-[10px] font-semibold uppercase text-amber-700">Termahal</span>}
+                                  <Link href={`/kendaraan/${u.id}`} className="font-semibold">{u.plate}</Link>
+                                  <span className="text-slate-500"> · {u.brand} {u.model}</span>
+                                </span>
+                                <span className="text-slate-500">qty {u.qty} · {u.last}</span>
+                                <span className="font-semibold">{fmt(u.amount)}</span>
+                              </div>
+                            ))}
                           </div>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          );
-        })}
+                    )}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -487,6 +491,15 @@ export default function Biaya() {
                     })}
                   </div>
                 </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Shell>
+  );
+}
+    </div>
               )}
             </div>
           );
