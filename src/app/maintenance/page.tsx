@@ -42,6 +42,11 @@ export default function Mnt() {
     persist(jobs.map((j) => (j.id === id ? { ...j, status } : j)));
   }
 
+  function removeJob(id: string) {
+    if (!window.confirm("Hapus work order ini? Data tidak bisa dikembalikan.")) return;
+    persist(jobs.filter((j) => j.id !== id));
+  }
+
   const filtered = useMemo(() => {
     return jobs
       .filter((j) => {
@@ -287,7 +292,7 @@ export default function Mnt() {
           <table className="w-full min-w-[980px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status"].map((h) => (
+                {["Work order", "Unit", "Jenis", "KM", "Bengkel", "Keluhan", "Biaya", "Status", "Aksi"].map((h) => (
                   <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -295,7 +300,7 @@ export default function Mnt() {
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">Tidak ada work order pada rentang tanggal ini.</td>
+                  <td colSpan={9} className="px-4 py-12 text-center text-slate-400">Tidak ada work order pada rentang tanggal ini.</td>
                 </tr>
               )}
               {filtered.map((m) => {
