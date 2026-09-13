@@ -323,7 +323,10 @@ export default function Biaya() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold">{p.name}</div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <div className="bar-in h-full rounded-full bg-gradient-to-r from-[#071526] to-sky-400" style={{ width: `${Math.max(6, (p.total /" style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%`, animationDelay: `${i * 35}ms` }} />
+                      <div
+                        className="bar-in h-full rounded-full bg-gradient-to-r from-navy to-sky-400"
+                        style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%`, animationDelay: `${i * 35}ms` }}
+                      />
                     </div>
                   </div>
                   <div className="text-right text-sm font-semibold">{fmt(p.total)}</div>
