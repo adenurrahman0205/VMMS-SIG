@@ -11,11 +11,13 @@ export function PengajuanModal({
   onSaved,
   vehicleId = "",
   date = "",
+  lockUser,
 }: {
   onClose: () => void;
   onSaved: () => void;
   vehicleId?: string;
   date?: string;
+  lockUser?: AppUser;
 }) {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
