@@ -280,32 +280,46 @@ export default function Jadwal() {
           const used = !service && inUseIds.has(v.id);
           const requested = !service && !used && pendingIds.has(v.id);
           const who = approvedToday.find((b) => b.vehicleId === v.id) || pendingToday.find((b) => b.vehicleId === v.id);
-          const label = service ? "Maintenance" : used ? "Sedang dipakai" : requested ? "Ada request" : "Tersedia";
-          const pill = service
-            ? "bg-red-50 text-red-800"
+          const canAjukan = !service && !used;
+          const wrap = service
+            ? "bg-red-50 ring-red-200"
             : used
-              ? "bg-amber-100 text-amber-900"
+              ? "bg-amber-50 ring-amber-200"
               : requested
-                ? "bg-sky-50 text-sky-800"
-                : "bg-emerald-50 text-emerald-800";
+                ? "bg-sky-50 ring-sky-200"
+                : "bg-emerald-50/60 ring-emerald-200";
+          const pill = service
+            ? "bg-red-600 text-white"
+            : used
+              ? "bg-amber-500 text-white"
+              : requested
+                ? "bg-sky-600 text-white"
+                : "bg-emerald-600 text-white";
+          const label = service ? "Sedang diservice" : used ? "Sedang dipakai" : requested ? "Ada request" : "Tersedia";
           return (
-            <div key={v.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200">
+            <div key={v.id} className={`flex items-center gap-3 rounded-2xl p-3 ring-1 ${wrap}`}>
               <img src={vehiclePhoto(v)} alt="" className="h-14 w-20 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="truncate font-semibold">{v.brand} {v.model}</span>
+                  <span className="truncate font-semibold text-slate-800">{v.brand} {v.model}</span>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${pill}`}>{label}</span>
                 </div>
                 <div className="text-xs text-slate-500">{v.plate}</div>
-                <div className="text-[11px] text-slate-400">{used || requested ? who?.userName || "—" : "Siap diajukan"}</div>
+                <div className="text-[11px] text-slate-500">
+                  {service ? "Tidak bisa diajukan" : used ? `Dipakai ${who?.userName || ""}` : requested ? `Request ${who?.userName || ""}` : "Siap diajukan"}
+                </div>
               </div>
               <button
                 type="button"
+                disabled={!canAjukan}
                 onClick={() => {
+                  if (!canAjukan) return;
                   setAjuanVehicle(v.id);
                   setShowAjuan(true);
                 }}
-                className="shrink-0 rounded-xl bg-[#071526] px-3 py-2 text-xs font-semibold !text-white hover:bg-sky-700"
+                className={`shrink-0 rounded-xl px-3 py-2 text-xs font-semibold ${
+                  canAjukan ? "bg-[#071526] !text-white hover:bg-sky-700" : "cursor-not-allowed bg-slate-200 text-slate-400"
+                }`}
               >
                 Ajukan
               </button>
