@@ -19,7 +19,7 @@ export default function Mnt() {
   const [st, setSt] = useState<"all" | "proses" | "selesai">("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [histUnit, setHistUnit] = useState<string | null>(null);
+  const [histId, setHistId] = useState<string | null>(null);
   const [editor, setEditor] = useState<Maintenance | null>(null);
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => {
@@ -68,10 +68,11 @@ export default function Mnt() {
     return { n: filtered.length, proses: proses.length, selesai: selesai.length, cost };
   }, [filtered]);
 
-  const histJobs = jobs
-    .filter((j) => j.vehicleId === histUnit)
-    .sort((a, b) => b.date.localeCompare(a.date));
-  const histV = findFleetUnit(fleet, histUnit ?? "");
+  const histJob = jobs.find((j) => j.id === histId);
+  const histV = findFleetUnit(fleet, histJob?.vehicleId ?? "");
+  const histDayJobs = histJob
+    ? jobs.filter((j) => j.vehicleId === histJob.vehicleId && j.date === histJob.date).sort((a, b) => a.id.localeCompare(b.id))
+    : [];
 
   function saveEditor(e: React.FormEvent) {
     e.preventDefault();
@@ -361,62 +362,116 @@ export default function Mnt() {
         </div>
       </div>
 
-      {histUnit && histV && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHistUnit(null)}>
+      {histJob && histV && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHistId(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <div className="anim relative max-h-[92vh] w-full max-w-3xl overflow-auto rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="relative h-40">
+            <div className="relative h-44">
               <img src={vehiclePhoto(histV)} alt="" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#071526] to-transparent" />
-              <button type="button" className="absolute right-4 top-4 rounded-full bg-black/40 px-3 py-1 text-sm !text-white" onClick={() => setHistUnit(null)}>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/55 to-transparent" />
+              <button type="button" className="absolute right-4 top-4 rounded-full bg-black/40 px-3 py-1 text-sm !text-white" onClick={() => setHistId(null)}>
                 Tutup
               </button>
-              <div className="absolute bottom-4 left-6 text-white">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Histori maintenance</p>
-                <h3 className="text-2xl font-semibold">{histV.brand} {histV.model}</h3>
-                <p className="text-sm text-slate-300">{histV.plate} · {histJobs.length} work order</p>
+              <div className="absolute bottom-4 left-5 right-5 flex flex-wrap items-end justify-between gap-3 text-white">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Work order {histJob.date}</p>
+                  <h3 className="text-2xl font-semibold">{histV.brand} {histV.model}</h3>
+                  <p className="text-sm text-slate-300">{histV.plate} · {histV.color} · {histV.driver || "—"}</p>
+                </div>
+                <Badge status={histJob.status} />
               </div>
             </div>
             <div className="p-5">
-              <div className="mb-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <div className="text-[11px] uppercase text-slate-400">Total selesai</div>
-                  <div className="text-lg font-semibold">{fmt(histJobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0))}</div>
+              {histDayJobs.length > 1 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {histDayJobs.map((j) => (
+                    <button
+                      key={j.id}
+                      type="button"
+                      onClick={() => setHistId(j.id)}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${j.id === histJob.id ? "bg-[#071526] !text-white" : "bg-slate-100 text-slate-600"}`}
+                    >
+                      {j.id}
+                    </button>
+                  ))}
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <div className="text-[11px] uppercase text-slate-400">Status unit</div>
-                  <div className="mt-1"><Badge status={histV.status} /></div>
+              )}
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-lg font-semibold">{histJob.type}</div>
+                  <div className="text-xs text-slate-500">{histJob.id} · KM {fmtN(histJob.km)} · {histJob.shop || "Bengkel belum diisi"}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[11px] uppercase text-slate-400">{histJob.status === "selesai" ? "Total WO" : "Belum ditagih"}</div>
+                  <div className="text-2xl font-semibold">{histJob.status === "selesai" ? fmt(woTotal(histJob)) : "—"}</div>
                 </div>
               </div>
-              <div className="space-y-3">
-                {histJobs.length === 0 && <p className="text-sm text-slate-400">Belum ada histori.</p>}
-                {histJobs.map((m) => (
-                  <div key={m.id} className="rounded-2xl ring-1 ring-slate-200 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <div className="font-semibold">{m.type}</div>
-                        <div className="text-xs text-slate-500">{m.id} · {m.date} · KM {fmtN(m.km)} · {m.shop}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{m.status === "selesai" ? fmt(woTotal(m)) : "Belum ditagih"}</div>
-                        <Badge status={m.status} />
-                      </div>
-                    </div>
-                    <p className="mt-2 text-sm text-slate-600">{m.complaint || "—"} → {m.action || "—"}</p>
-                    {m.items.length > 0 && (
-                      <ul className="mt-2 text-xs text-slate-500">
-                        {m.items.map((it) => (
-                          <li key={it.name}>{it.name} × {it.qty} · {fmt(it.qty * it.price)}</li>
-                        ))}
-                      </ul>
-                    )}
-                    <button type="button" className="mt-2 text-xs font-semibold text-sky-700" onClick={() => { setEditor(m); setHistUnit(null); }}>
-                      Ubah WO
-                    </button>
+              <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  ["Tanggal", histJob.date],
+                  ["Status", histJob.status],
+                  ["Odometer", `${fmtN(histJob.km)} KM`],
+                  ["Bengkel", histJob.shop || "—"],
+                  ["Sparepart", fmt(histJob.items.reduce((s, it) => s + it.qty * it.price, 0))],
+                  ["Jasa", fmt(Number(histJob.jasa) || 0)],
+                  ["Health unit", `${histV.health}/100`],
+                  ["Divisi", histV.dept || "—"],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+                    <div className="text-[10px] uppercase tracking-wide text-slate-400">{k}</div>
+                    <div className="truncate text-sm font-semibold">{v}</div>
                   </div>
                 ))}
               </div>
-              <Link href={`/kendaraan/${histV.id}`} className="mt-4 inline-block text-sm text-sky-700">Buka dossier unit →</Link>
+              <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="text-[11px] uppercase text-slate-400">Keluhan</div>
+                  <p className="mt-1 text-sm text-slate-700">{histJob.complaint || "Tidak ada catatan keluhan."}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <div className="text-[11px] uppercase text-slate-400">Tindakan</div>
+                  <p className="mt-1 text-sm text-slate-700">{histJob.action || "Belum ada tindakan."}</p>
+                </div>
+              </div>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Sparepart</h4>
+              {histJob.items.length === 0 ? (
+                <p className="mb-4 text-sm text-slate-400">Tidak ada item sparepart pada WO ini.</p>
+              ) : (
+                <div className="mb-4 overflow-hidden rounded-2xl ring-1 ring-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
+                      <tr>
+                        {["Nama", "Qty", "Harga", "Subtotal"].map((h) => (
+                          <th key={h} className="px-3 py-2">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {histJob.items.map((it) => (
+                        <tr key={it.name} className="border-t">
+                          <td className="px-3 py-2">{it.name}</td>
+                          <td className="px-3 py-2">{it.qty}</td>
+                          <td className="px-3 py-2">{fmt(it.price)}</td>
+                          <td className="px-3 py-2 font-semibold">{fmt(it.qty * it.price)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">
+                <Link href={`/kendaraan/${histV.id}`} className="text-sm font-semibold text-sky-700">Dossier unit →</Link>
+                <div className="flex gap-2">
+                  <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setHistId(null)}>Tutup</button>
+                  <button
+                    type="button"
+                    className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white"
+                    onClick={() => { setEditor(histJob); setHistId(null); }}
+                  >
+                    Ubah WO
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
