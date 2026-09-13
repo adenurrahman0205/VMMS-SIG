@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge, Card, Shell } from "@/components/shell";
-import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
 
@@ -59,7 +59,7 @@ export default function Mnt() {
   const stats = useMemo(() => {
     const proses = filtered.filter((j) => j.status === "proses");
     const selesai = filtered.filter((j) => j.status === "selesai");
-    const cost = selesai.reduce((s, j) => s + j.cost, 0);
+    const cost = selesai.reduce((s, j) => s + woTotal(j), 0);
     return { n: filtered.length, proses: proses.length, selesai: selesai.length, cost };
   }, [filtered]);
 
@@ -71,8 +71,9 @@ export default function Mnt() {
   function saveEditor(e: React.FormEvent) {
     e.preventDefault();
     if (!editor) return;
-    const cost = editor.items.reduce((s, it) => s + it.qty * it.price, 0) || editor.cost;
-    const row = { ...editor, cost };
+    const parts = editor.items.reduce((s, it) => s + it.qty * it.price, 0);
+    const jasa = Number(editor.jasa) || 0;
+    const row = { ...editor, jasa, cost: parts + jasa };
     const exists = jobs.some((j) => j.id === row.id);
     persist(exists ? jobs.map((j) => (j.id === row.id ? row : j)) : [row, ...jobs]);
     setEditor(null);
@@ -111,7 +112,7 @@ export default function Mnt() {
 
   const dayJobs = jobsByDate.get(selected) ?? [];
   const dayUnits = new Set(dayJobs.map((j) => j.vehicleId)).size;
-  const dayCost = dayJobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
+  const dayCost = dayJobs.filter((j) => j.status === "selesai").reduce((s, j) => s + woTotal(j), 0);
   const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
   const selectedLabel = new Date(selected + "T00:00:00").toLocaleDateString("id-ID", {
     weekday: "long",
@@ -177,7 +178,7 @@ export default function Mnt() {
               if (!iso) return <div key={`e${i}`} className="min-h-[56px] rounded-xl bg-slate-50/50 sm:min-h-[76px]" />;
               const list = jobsByDate.get(iso) ?? [];
               const units = new Set(list.map((j) => j.vehicleId)).size;
-              const cost = list.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
+              const cost = list.filter((j) => j.status === "selesai").reduce((s, j) => s + woTotal(j), 0);
               const proses = list.some((j) => j.status === "proses");
               const isSel = iso === selected;
               const isToday = iso === today;
@@ -237,7 +238,7 @@ export default function Mnt() {
                   </div>
                   <div className="mt-1 flex justify-between text-xs">
                     <span className={j.status === "proses" ? "font-semibold text-red-700" : "text-emerald-700"}>{j.status === "proses" ? "Diservice" : "Selesai"}</span>
-                    <span className="font-semibold">{j.status === "selesai" ? fmt(j.cost) : "—"}</span>
+                    <span className="font-semibold">{j.status === "selesai" ? fmt(woTotal(j)) : "—"}</span>
                   </div>
                 </div>
               );
@@ -323,7 +324,7 @@ export default function Mnt() {
                     <td className="px-4 py-3">{m.shop || "—"}</td>
                     <td className="max-w-[180px] truncate px-4 py-3 text-slate-600">{m.complaint || "—"}</td>
                     <td className="px-4 py-3 font-semibold">
-                      {m.status === "selesai" ? fmt(m.cost) : <span className="text-slate-400">—</span>}
+                      {m.status === "selesai" ? fmt(woTotal(m)) : <span className="text-slate-400">—</span>}
                     </td>
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <select
@@ -382,7 +383,7 @@ export default function Mnt() {
                         <div className="text-xs text-slate-500">{m.id} · {m.date} · KM {fmtN(m.km)} · {m.shop}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold">{m.status === "selesai" ? fmt(m.cost) : "Belum ditagih"}</div>
+                        <div className="font-semibold">{m.status === "selesai" ? fmt(woTotal(m)) : "Belum ditagih"}</div>
                         <Badge status={m.status} />
                       </div>
                     </div>

@@ -77,6 +77,13 @@ export type Maintenance = {
   items: { name: string; qty: number; price: number }[];
 };
 
+export function woTotal(m: { cost: number; jasa?: number; items: { qty: number; price: number }[] }) {
+  const parts = m.items.reduce((s, it) => s + it.qty * it.price, 0);
+  const jasa = Number(m.jasa) || 0;
+  const sum = parts + jasa;
+  return sum > 0 ? sum : m.cost;
+}
+
 export const vehicles: Vehicle[] = [
   { id: "v1", plate: "B 1234 ABC", brand: "Toyota", model: "Innova", year: 2022, km: 85240, dept: "General Affairs", driver: "Andi Wijaya", status: "ready", color: "Silver", engine: "2TR-FE-8821", chassis: "MHFM1BA3N0123456", loc: "Kantor Pusat Bogor", health: 88, buyDate: "2022-03-15", buyPrice: 385000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1998 cc", hp: "137 HP", madeYear: 2022, bbmNo: "6088-2210-4581-0192" },
   { id: "v2", plate: "B 5678 DEF", brand: "Toyota", model: "Avanza", year: 2021, km: 102450, dept: "Operasional", driver: "Budi Santoso", status: "warning", color: "Putih", engine: "3SZ-VE-4412", chassis: "MHFM2BA2K0987654", loc: "Kantor Pusat Bogor", health: 64, buyDate: "2021-07-20", buyPrice: 235000000, owner: "PT SIG Operasional", ownerKind: "sig", address: "Jl. Raya Pajajaran No. 12, Bogor", fuel: "Bensin", cc: "1329 cc", hp: "97 HP", madeYear: 2021, bbmNo: "6088-2210-4581-0193" },

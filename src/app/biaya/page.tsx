@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
-import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
 
@@ -57,8 +57,8 @@ export default function Biaya() {
   const rows: UnitRow[] = useMemo(() => {
     const mapped = vehicles.map((v) => {
       const done = doneAll.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
-      const cost = done.reduce((s, m) => s + m.cost, 0);
-      const peakJob = done.reduce<Maintenance | undefined>((best, m) => (!best || m.cost > best.cost ? m : best), undefined);
+      const cost = done.reduce((s, m) => s + woTotal(m), 0);
+      const peakJob = done.reduce<Maintenance | undefined>((best, m) => (!best || woTotal(m) > woTotal(best) ? m : best), undefined);
       const partMap = new Map<string, { qty: number; amount: number }>();
       done.forEach((m) =>
         m.items.forEach((it) => {
@@ -77,7 +77,7 @@ export default function Biaya() {
         cost,
         jobs: done.length,
         cpk: cost / Math.max(v.km, 1),
-        peak: peakJob ? { date: peakJob.date, type: peakJob.type, cost: peakJob.cost, shop: peakJob.shop } : undefined,
+        peak: peakJob ? { date: peakJob.date, type: peakJob.type, cost: woTotal(peakJob), shop: peakJob.shop } : undefined,
         parts,
         score: 0,
         verdict: "",
@@ -312,7 +312,7 @@ export default function Biaya() {
                     {r.done.map((m) => {
                       const partsSum = m.items.reduce((s, it) => s + it.qty * it.price, 0);
                       const jasa = Number(m.jasa) || 0;
-                      const total = partsSum + jasa || m.cost;
+                      const total = typeof m.jasa === "number" ? partsSum + jasa : m.cost;
                       return (
                       <div key={m.id} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
                         <div className="flex flex-wrap justify-between gap-2">
