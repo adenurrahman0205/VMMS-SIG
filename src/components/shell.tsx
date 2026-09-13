@@ -290,9 +290,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         />
         <div
           className={cn(
-            "fab-sheet fixed inset-x-0 bottom-0 max-h-[78dvh] overflow-auto rounded-t-[28px] bg-white pb-[5.5rem] shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
+            "fab-sheet fixed inset-x-0 bottom-24 max-h-[70dvh] overflow-auto rounded-t-[28px] bg-white shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
             navOpen ? "z-30" : "z-[56]",
-            fabOpen && !navOpen ? "translate-y-0" : "translate-y-full"
+            fabOpen && !navOpen ? "translate-y-0" : "translate-y-[120%]"
           )}
         >
           <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200" />
@@ -333,7 +333,8 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
         onClick={() => setFabOpen((v) => !v)}
         className={cn(
-          "fixed bottom-5 left-1/2 z-[37] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
+          "fixed bottom-5 left-1/2 z-[70] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
+          navOpen && "pointer-events-none opacity-0",
           fabOpen ? "bg-red-500 shadow-red-500/40" : "bg-[#071526] shadow-[#071526]/40"
         )}
       >
