@@ -88,9 +88,16 @@ export default function UsersPage() {
     setIsNew(false);
   }
 
-  function archive(u: AppUser) {
-    if (!window.confirm(`Nonaktifkan / hapus akses ${u.email}? Histori tidak dihapus permanen.`)) return;
-    persist(rows.map((x) => (x.id === u.id ? { ...x, active: false } : x)));
+  function waHref(phone: string) {
+    const d = phone.replace(/\D/g, "");
+    if (!d) return "";
+    const n = d.startsWith("0") ? `62${d.slice(1)}` : d;
+    return `https://wa.me/${n}`;
+  }
+
+  function removeUser(u: AppUser) {
+    if (!window.confirm(`Hapus permanen ${u.name} (${u.email})? Data user ini hilang dari tabel.`)) return;
+    persist(rows.filter((x) => x.id !== u.id));
   }
 
   function restore(u: AppUser) {
@@ -106,7 +113,7 @@ export default function UsersPage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Access control</p>
             <h2 className="text-2xl font-semibold">Pengguna aplikasi</h2>
-            <p className="text-sm text-slate-300">{nActive} user aktif · hapus = arsip, bukan hard-delete</p>
+            <p className="text-sm text-slate-300">{nActive} user aktif · klik nomor untuk WhatsApp · Hapus = permanen</p>
           </div>
           <button
             type="button"
@@ -160,7 +167,18 @@ export default function UsersPage() {
                 <tr key={u.id} className="border-t border-slate-100">
                   <td className="px-4 py-3">
                     <div className="font-semibold">{u.name}</div>
-                    <div className="text-xs text-slate-400">{u.phone || "—"}</div>
+                    {u.phone ? (
+                      <a
+                        href={waHref(u.phone)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-emerald-700 hover:underline"
+                      >
+                        {u.phone}
+                      </a>
+                    ) : (
+                      <div className="text-xs text-slate-400">—</div>
+                    )}
                   </td>
                   <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">{u.dept || "—"}</td>
