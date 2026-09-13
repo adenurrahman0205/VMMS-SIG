@@ -58,6 +58,7 @@ export default function Biaya() {
   const [sort, setSort] = useState<"cost" | "score" | "cpk">("cost");
   const [partQ, setPartQ] = useState("");
   const [partOpen, setPartOpen] = useState<string | null>(null);
+  const [snap, setSnap] = useState<"best" | "cost">("best");
 
   useEffect(() => {
     setVehicles(loadFleet());
@@ -324,7 +325,7 @@ export default function Biaya() {
                     <div className="truncate font-semibold">{p.name}</div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="bar-in h-full rounded-full bg-gradient-to-r from-navy to-sky-400"
+                        className="bar-in h-full rounded-full bg-gradient-to-r from-slate-900 to-sky-400"
                         style={{ width: `${Math.max(6, (p.total / maxP) * 100)}%`, animationDelay: `${i * 35}ms` }}
                       />
                     </div>
