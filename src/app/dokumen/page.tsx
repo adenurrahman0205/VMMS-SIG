@@ -7,12 +7,13 @@ import {
   DOC_TYPES,
   docStatusFromExpire,
   docsForVehicle,
+  ensureCoreDocs,
   fmtN,
   vehiclePhoto,
   type Vehicle,
   type VehicleDoc,
 } from "@/lib/data";
-import { loadFleet } from "@/lib/fleet-store";
+import { loadFleet, saveFleet } from "@/lib/fleet-store";
 
 type St = "all" | "aktif" | "segera" | "expired" | "kosong";
 

@@ -1,4 +1,4 @@
-import { computeVehicleHealth, docsForVehicle, dueServiceKm, inferOwnerKind, vehicles as seed, type Maintenance, type Status, type Vehicle } from "./data";
+import { computeVehicleHealth, ensureCoreDocs, dueServiceKm, inferOwnerKind, vehicles as seed, type Maintenance, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 import { pushCloud } from "./services/sync.service";
 
@@ -35,7 +35,7 @@ export function loadFleet(): Vehicle[] {
               ownerKind: inferOwnerKind(v),
               nextServiceKm: dueServiceKm(v),
               transmission: v.transmission === "manual" ? "manual" : "matic",
-              documents: v.documents?.length ? v.documents : docsForVehicle(v),
+              documents: ensureCoreDocs(v),
               jabatan: v.jabatan ?? "",
             },
             jobs
@@ -46,7 +46,7 @@ export function loadFleet(): Vehicle[] {
   } catch {
     /* ignore */
   }
-  return seed.map((v) => withHealth(v, jobs));
+  return seed.map((v) => withHealth({ ...v, documents: ensureCoreDocs(v) }, jobs));
 }
 
 export function saveFleet(rows: Vehicle[]) {

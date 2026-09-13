@@ -63,6 +63,31 @@ export function docsForVehicle(v: { id: string; documents?: VehicleDoc[] }): Veh
     }));
 }
 
+const CORE_DOCS = ["STNK", "Pajak", "Asuransi"] as const;
+
+function isoAddMonths(base: Date, months: number) {
+  const d = new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Lengkapi STNK, Pajak, Asuransi jika belum ada di unit. */
+export function ensureCoreDocs(v: { id: string; buyDate?: string; documents?: VehicleDoc[] }): VehicleDoc[] {
+  const existing = docsForVehicle(v).map((d) => ({ ...d, status: docStatusFromExpire(d.expire) }));
+  const have = new Set(existing.map((d) => d.type.trim().toLowerCase()));
+  const hash = [...v.id].reduce((s, c) => s + c.charCodeAt(0), 0);
+  const start = v.buyDate ? new Date(`${v.buyDate}T00:00:00`) : new Date();
+  const now = new Date();
+  const origin = Number.isNaN(start.getTime()) ? now : start;
+  const extras: VehicleDoc[] = [];
+  CORE_DOCS.forEach((type, i) => {
+    if (have.has(type.toLowerCase())) return;
+    const months = 6 + ((hash + i * 5) % 18);
+    const expire = isoAddMonths(origin.getTime() > now.getTime() - 86400000 * 30 ? now : origin, months);
+    extras.push({ type, expire, status: docStatusFromExpire(expire) });
+  });
+  return [...existing, ...extras];
+}
+
 export type Maintenance = {
   id: string;
   vehicleId: string;
