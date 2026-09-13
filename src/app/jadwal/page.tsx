@@ -228,8 +228,8 @@ export default function Jadwal() {
         </Card>
       </div>
 
-      <div className="mb-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
+      <div id="tabel-pemakaian" className="mb-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-[#071526] px-5 py-4 text-white">
           <div>
             <h3 className="font-semibold">Tabel pemakaian kendaraan</h3>
             <p className="text-xs text-slate-500">Mengikuti tanggal kalender: {selectedLabel}</p>
@@ -246,11 +246,36 @@ export default function Jadwal() {
               </tr>
             </thead>
             <tbody>
-              {dayBookings.length === 0 && (
+              {dayBookings.length === 0 && dayService.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Tidak ada pemakaian pada tanggal ini. Pilih tanggal di kalender.</td>
                 </tr>
               )}
+              {dayService.map((j) => {
+                const v = fleet.find((x) => x.id === j.vehicleId);
+                return (
+                  <tr key={j.id} className="border-t border-red-100 bg-red-50/60">
+                    <td className="whitespace-nowrap px-4 py-3 font-medium">{selected}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-9 w-12 rounded-lg object-cover" />
+                        <span>
+                          <span className="block font-semibold">{v ? `${v.brand} ${v.model}` : "—"}</span>
+                          <span className="text-xs text-slate-500">{v?.plate ?? j.vehicleId}</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{j.shop || "Bengkel"}</td>
+                    <td className="px-4 py-3 text-slate-600">{v?.dept || "—"}</td>
+                    <td className="px-4 py-3 text-slate-600">—</td>
+                    <td className="max-w-[200px] px-4 py-3 text-slate-600">{j.type}{j.complaint ? ` · ${j.complaint}` : ""}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-red-600 px-2 py-1 text-[10px] font-semibold uppercase text-white">Diservice</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">WO {j.id}</td>
+                  </tr>
+                );
+              })}
               {[...dayBookings]
                 .sort((a, b) => b.id.localeCompare(a.id))
                 .map((b) => {
