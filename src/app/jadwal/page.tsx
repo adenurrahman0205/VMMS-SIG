@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, Shell } from "@/components/shell";
 import { PengajuanModal } from "@/components/pengajuan-modal";
-import { type Status, type Vehicle, vehiclePhoto } from "@/lib/data";
-import { loadFleet, saveFleet } from "@/lib/fleet-store";
-import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
+import { type Vehicle, vehiclePhoto } from "@/lib/data";
+import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, ymd, type Booking } from "@/lib/schedule-store";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -75,31 +74,6 @@ export default function Jadwal() {
 
   function removeBooking(id: string) {
     persist(bookings.filter((b) => b.id !== id));
-  }
-
-  function setVehicleStatus(id: string, status: Status) {
-    const next = fleet.map((x) => (x.id === id ? { ...x, status } : x));
-    setFleet(next);
-    saveFleet(next);
-  }
-
-  function startService(v: Vehicle) {
-    setVehicleStatus(v.id, "maintenance");
-    const jobs = loadJobs();
-    const job = blankJob(v.id);
-    job.type = "Service Berkala";
-    job.km = v.km;
-    job.complaint = "Unit masuk bengkel / sedang diservice";
-    job.status = "proses";
-    saveJobs([job, ...jobs]);
-  }
-
-  function finishService(v: Vehicle) {
-    setVehicleStatus(v.id, "ready");
-    const jobs = loadJobs().map((j) =>
-      j.vehicleId === v.id && j.status === "proses" ? { ...j, status: "selesai" as const } : j
-    );
-    saveJobs(jobs);
   }
 
   const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
