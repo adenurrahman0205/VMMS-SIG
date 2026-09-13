@@ -545,13 +545,3 @@ export default function Mnt() {
     </Shell>
   );
 }
-v className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
-              <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
-              <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan work order</button>
-            </div>
-          </form>
-        </div>
-      )}
-    </Shell>
-  );
-}
