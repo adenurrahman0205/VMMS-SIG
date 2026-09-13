@@ -34,7 +34,22 @@ export default function Dokumen() {
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
-    setFleet(loadFleet());
+    const loaded = loadFleet();
+    const dropDemoKir = typeof window !== "undefined" && !localStorage.getItem("vmms-drop-demo-kir");
+    let changed = false;
+    const next = loaded.map((v) => {
+      let documents = ensureCoreDocs(v);
+      if (dropDemoKir) documents = documents.filter((d) => d.type.toLowerCase() !== "kir");
+      if (documents.length !== (v.documents?.length ?? 0)) changed = true;
+      else if (documents.some((d) => !v.documents?.some((x) => x.type === d.type && x.expire === d.expire))) changed = true;
+      return { ...v, documents };
+    });
+    if (dropDemoKir) {
+      localStorage.setItem("vmms-drop-demo-kir", "1");
+      changed = true;
+    }
+    if (changed) saveFleet(next);
+    setFleet(next);
   }, []);
 
   const rows = useMemo(() => {
@@ -149,7 +164,7 @@ export default function Dokumen() {
         >
           Semua jenis
         </button>
-        {DOC_TYPES.map((t) => (
+        {filterTypes.map((t) => (
           <button
             key={t}
             type="button"

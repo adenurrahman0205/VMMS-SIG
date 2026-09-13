@@ -208,10 +208,11 @@ export const maintenance: Maintenance[] = [
 
 export const documents = [
   { vehicleId: "v1", type: "STNK", expire: "2027-02-15", status: "aktif" },
-  { vehicleId: "v1", type: "KIR", expire: "2026-11-10", status: "segera" },
   { vehicleId: "v1", type: "Asuransi", expire: "2026-12-31", status: "aktif" },
+  { vehicleId: "v1", type: "Pajak", expire: "2027-02-15", status: "aktif" },
   { vehicleId: "v2", type: "STNK", expire: "2026-10-05", status: "segera" },
-  { vehicleId: "v3", type: "KIR", expire: "2026-09-25", status: "segera" },
+  { vehicleId: "v2", type: "Pajak", expire: "2026-10-05", status: "segera" },
+  { vehicleId: "v2", type: "Asuransi", expire: "2026-12-01", status: "aktif" },
 ];
 
 export const workshops = [
