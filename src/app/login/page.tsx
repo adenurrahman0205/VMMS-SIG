@@ -17,7 +17,7 @@ export default function Login() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     if (q.get("idle") === "1") {
-      setMsg("Sesi berakhir karena tidak ada aktivitas selama 30 detik. Masuk kembali untuk lanjut.");
+      setMsg("Sesi berakhir karena tidak ada aktivitas selama 1 menit. Masuk kembali untuk lanjut.");
     }
   }, []);
 

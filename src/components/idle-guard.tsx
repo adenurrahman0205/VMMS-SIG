@@ -21,6 +21,12 @@ export function IdleGuard() {
     const events = ["pointerdown", "keydown", "touchstart", "scroll", "mousemove"] as const;
     events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
 
+    async function lock(reason: "idle" | "remote") {
+      await forceLogout();
+      router.replace(reason === "idle" ? "/login?idle=1" : "/login");
+      router.refresh();
+    }
+
     const vis = () => {
       if (document.hidden) hiddenAt = Date.now();
       else {
@@ -31,14 +37,9 @@ export function IdleGuard() {
     };
     document.addEventListener("visibilitychange", vis);
 
-    async function lock(reason: "idle" | "remote") {
-      await forceLogout();
-      router.replace(reason === "idle" ? "/login?idle=1" : "/login");
-      router.refresh();
-    }
-
     const off = onForcedLogout(() => void lock("remote"));
 
+    let beats = 0;
     const tick = window.setInterval(async () => {
       const idle = idleMs();
       const remain = IDLE_MS - idle;
@@ -50,12 +51,15 @@ export function IdleGuard() {
       if (remain <= WARN_MS) setLeft(Math.ceil(remain / 1000));
       else setLeft(null);
 
-      try {
-        const sb = createBrowserSupabase();
-        const { data } = await sb.auth.getUser();
-        if (!data.user) await lock("remote");
-      } catch {
-        await lock("remote");
+      beats += 1;
+      if (beats % 10 === 0) {
+        try {
+          const sb = createBrowserSupabase();
+          const { data } = await sb.auth.getUser();
+          if (!data.user) await lock("remote");
+        } catch {
+          /* jaringan putus: jangan paksa logout */
+        }
       }
     }, 1000);
 
