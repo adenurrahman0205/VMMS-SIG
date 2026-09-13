@@ -312,6 +312,15 @@ export default function Jadwal() {
                         </div>
                       </td>
                       <td className="px-4 py-3">{b.userName}</td>
+                      <td className="px-4 py-3">
+                        {phone ? (
+                          <a href={waHref(phone)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 hover:underline">
+                            {phone}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-slate-600">{b.dept || v?.dept || "—"}</td>
                       <td className="px-4 py-3 text-slate-600">{b.jabatan || v?.jabatan || "—"}</td>
                       <td className="max-w-[200px] px-4 py-3 text-slate-600">
