@@ -349,10 +349,43 @@ export default function Jadwal() {
         })}
       </div>
 
+      {rejectId && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setRejectId(null)}>
+          <div className="absolute inset-0 bg-[#071526]/70 backdrop-blur-sm" />
+          <form
+            className="anim relative z-[81] w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!rejectReason.trim()) return;
+              setStatus(rejectId, "ditolak", rejectReason.trim());
+              setRejectId(null);
+              setRejectReason("");
+            }}
+          >
+            <h3 className="text-lg font-semibold">Alasan penolakan</h3>
+            <p className="mt-1 text-sm text-slate-500">Wajib diisi sebelum status menjadi Ditolak.</p>
+            <textarea
+              className="mt-3 w-full rounded-xl border px-3 py-2.5 text-sm"
+              rows={4}
+              required
+              autoFocus
+              placeholder="Contoh: unit sedang maintenance / jadwal bentrok"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setRejectId(null)}>Batal</button>
+              <button type="submit" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold !text-white">Tolak pengajuan</button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {showAjuan && (
         <PengajuanModal
           vehicleId={ajuanVehicle}
-          date={today}
+          date={selected}
           onClose={() => setShowAjuan(false)}
           onSaved={() => setBookings(loadBookings())}
         />
