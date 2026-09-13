@@ -206,6 +206,76 @@ export default function Jadwal() {
         </Card>
       </div>
 
+      <div className="mb-6 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
+          <div>
+            <h3 className="font-semibold">Tabel pemakaian kendaraan</h3>
+            <p className="text-xs text-slate-500">Semua pengajuan & pemakaian, terbaru di atas</p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{bookings.length} baris</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[920px] text-sm">
+            <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+              <tr>
+                {["Tanggal", "Unit", "Pemohon", "Divisi", "Jabatan", "Keperluan", "Status", "Aksi"].map((h) => (
+                  <th key={h} className="px-4 py-3 font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Belum ada pemakaian. Buat pengajuan dari tombol di atas.</td>
+                </tr>
+              )}
+              {[...bookings]
+                .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+                .map((b) => {
+                  const v = fleet.find((x) => x.id === b.vehicleId);
+                  const st =
+                    b.status === "disetujui"
+                      ? "bg-emerald-50 text-emerald-800"
+                      : b.status === "ditolak"
+                        ? "bg-red-50 text-red-700"
+                        : "bg-amber-50 text-amber-800";
+                  return (
+                    <tr key={b.id} className="border-t border-slate-100 hover:bg-sky-50/60">
+                      <td className="whitespace-nowrap px-4 py-3 font-medium">{b.date}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-9 w-12 rounded-lg object-cover" />
+                          <span>
+                            <span className="block font-semibold">{v ? `${v.brand} ${v.model}` : "—"}</span>
+                            <span className="text-xs text-slate-500">{v?.plate ?? b.vehicleId}</span>
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">{b.userName}</td>
+                      <td className="px-4 py-3 text-slate-600">{b.dept || v?.dept || "—"}</td>
+                      <td className="px-4 py-3 text-slate-600">{b.jabatan || v?.jabatan || "—"}</td>
+                      <td className="max-w-[200px] truncate px-4 py-3 text-slate-600" title={b.purpose}>{b.purpose}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase ${st}`}>{b.status}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {b.status === "pengajuan" ? (
+                          <div className="flex gap-2">
+                            <button type="button" className="text-xs font-semibold text-emerald-700" onClick={() => setStatus(b.id, "disetujui")}>Setujui</button>
+                            <button type="button" className="text-xs font-semibold text-red-600" onClick={() => setStatus(b.id, "ditolak")}>Tolak</button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <h3 className="mb-3 text-sm font-semibold">Status pemakaian hari ini</h3>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {fleet.map((v) => {
