@@ -166,9 +166,9 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
       {tab === "overview" && (
         <Card>
           <p className="text-sm leading-relaxed text-slate-600">
-            {v.brand} {v.model} {v.plate} adalah unit {v.dept.toLowerCase()} dengan driver {v.driver}.
+            {v.brand} {v.model} {v.plate} adalah unit divisi {v.dept || "—"} {v.jabatan ? `(${v.jabatan})` : ""} dengan driver {v.driver}.
             Diproduksi {v.madeYear}, dibeli {v.buyDate} seharga {fmt(v.buyPrice)}. Mesin {v.cc} / {v.hp}, bahan bakar {v.fuel}.
-            Health score {v.health}/100 berdasarkan umur, KM, frekuensi servis, dan biaya.
+            Health {v.health}/100 otomatis: umur, KM, sisa KM servis, WO proses, WO & biaya 12 bulan, dokumen expired, status nonaktif.
           </p>
         </Card>
       )}

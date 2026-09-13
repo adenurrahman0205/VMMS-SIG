@@ -150,8 +150,9 @@ export function VehicleForm({
             <Field label="Tanggal pembelian">
               <input className={inputCls} type="date" value={form.buyDate} onChange={(e) => set("buyDate", e.target.value)} />
             </Field>
-            <Field label="Health 0–100">
-              <input className={inputCls} type="number" value={form.health} onChange={(e) => set("health", e.target.value)} />
+            <Field label="Vehicle health (otomatis)">
+              <input className={inputCls} type="number" value={form.health} readOnly />
+              <p className="mt-1 text-[11px] text-slate-400">Dihitung dari umur, KM, jadwal servis, WO 12 bulan, dokumen, dan status. Tidak diisi manual.</p>
             </Field>
           </div>
 

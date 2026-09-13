@@ -1,4 +1,4 @@
-import { maintenance as seed, vehicles as seedVehicles, type Maintenance, type Vehicle } from "./data";
+import { computeVehicleHealth, maintenance as seed, vehicles as seedVehicles, type Maintenance, type Vehicle } from "./data";
 import { loadFleet, saveFleet } from "./fleet-store";
 import { pushCloud } from "./services/sync.service";
 
@@ -97,9 +97,9 @@ function syncVehicleFromJobs(rows: Maintenance[]) {
   const fleet = loadFleet();
   const prosesIds = new Set(rows.filter((j) => j.status === "proses").map((j) => j.vehicleId));
   const next = fleet.map((v) => {
-    if (prosesIds.has(v.id)) return { ...v, status: "maintenance" as const };
-    if (v.status === "maintenance") return { ...v, status: "ready" as const };
-    return v;
+    const status = prosesIds.has(v.id) ? ("maintenance" as const) : v.status === "maintenance" ? ("ready" as const) : v.status;
+    const row = { ...v, status };
+    return { ...row, health: computeVehicleHealth(row, rows) };
   });
   saveFleet(next);
 }

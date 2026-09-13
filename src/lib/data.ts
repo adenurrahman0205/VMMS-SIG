@@ -80,8 +80,8 @@ export type Maintenance = {
 export function woTotal(m: { cost: number; jasa?: number; items: { qty: number; price: number }[] }) {
   const parts = m.items.reduce((s, it) => s + it.qty * it.price, 0);
   const jasa = Number(m.jasa) || 0;
-  const sum = parts + jasa;
-  return sum > 0 ? sum : m.cost;
+  if (m.jasa != null) return parts + jasa;
+  return m.cost || parts;
 }
 
 export const vehicles: Vehicle[] = [
@@ -249,6 +249,30 @@ export function dueServiceKm(v: { km: number; nextServiceKm?: number }) {
 
 export function kmToService(v: { km: number; nextServiceKm?: number }) {
   return dueServiceKm(v) - v.km;
+}
+
+/** Health 25–99 dari umur, KM, jadwal servis, WO, dokumen, status. */
+export function computeVehicleHealth(v: Vehicle, jobs: Maintenance[] = []): number {
+  let s = 100;
+  const nowY = new Date().getFullYear();
+  const age = Math.max(0, nowY - (v.year || v.madeYear || nowY));
+  s -= Math.min(20, age * 2.5);
+  s -= Math.min(25, (Math.max(0, v.km) / 10000) * 1.5);
+  const left = kmToService(v);
+  if (left <= 0) s -= 12;
+  else if (left < 1000) s -= 6;
+  const mine = jobs.filter((j) => j.vehicleId === v.id);
+  if (mine.some((j) => j.status === "proses")) s -= 10;
+  const cutoff = Date.now() - 365 * 86400000;
+  const yearDone = mine.filter((j) => j.status === "selesai" && new Date(j.date).getTime() >= cutoff);
+  s -= Math.min(15, Math.max(0, yearDone.length - 2) * 3);
+  const spend = yearDone.reduce((a, j) => a + woTotal(j), 0);
+  if (spend > 15_000_000) s -= 10;
+  else if (spend > 8_000_000) s -= 5;
+  const docs = v.documents?.length ? v.documents : [];
+  if (docs.some((d) => (d.status || docStatusFromExpire(d.expire)) === "expired")) s -= 5;
+  if (v.status === "inactive") s -= 15;
+  return Math.max(25, Math.min(99, Math.round(s)));
 }
 
 export const statusMap: Record<Status, { label: string; cls: string }> = {

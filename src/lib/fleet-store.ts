@@ -1,30 +1,52 @@
-import { docsForVehicle, dueServiceKm, inferOwnerKind, vehicles as seed, type Status, type Vehicle } from "./data";
+import { computeVehicleHealth, docsForVehicle, dueServiceKm, inferOwnerKind, vehicles as seed, type Maintenance, type Status, type Vehicle } from "./data";
 import { createBrowserSupabase } from "./supabase/client";
 import { pushCloud } from "./services/sync.service";
 
 const KEY = "vmms-armada-v3";
 
+function jobsFromStorage(): Maintenance[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("vmms-maintenance-v2") || localStorage.getItem("vmms-maintenance-v1");
+    if (!raw) return [];
+    const p = JSON.parse(raw) as Maintenance[];
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return [];
+  }
+}
+
+function withHealth(v: Vehicle, jobs: Maintenance[]): Vehicle {
+  return { ...v, health: computeVehicleHealth(v, jobs) };
+}
+
 export function loadFleet(): Vehicle[] {
-  if (typeof window === "undefined") return seed;
+  const jobs = jobsFromStorage();
+  if (typeof window === "undefined") return seed.map((v) => withHealth(v, []));
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Vehicle[];
       if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map((v) => ({
-          ...v,
-          ownerKind: inferOwnerKind(v),
-          nextServiceKm: dueServiceKm(v),
-          transmission: v.transmission === "manual" ? "manual" : "matic",
-          documents: v.documents?.length ? v.documents : docsForVehicle(v),
-          jabatan: v.jabatan ?? "",
-        }));
+        return parsed.map((v) =>
+          withHealth(
+            {
+              ...v,
+              ownerKind: inferOwnerKind(v),
+              nextServiceKm: dueServiceKm(v),
+              transmission: v.transmission === "manual" ? "manual" : "matic",
+              documents: v.documents?.length ? v.documents : docsForVehicle(v),
+              jabatan: v.jabatan ?? "",
+            },
+            jobs
+          )
+        );
       }
     }
   } catch {
     /* ignore */
   }
-  return seed;
+  return seed.map((v) => withHealth(v, jobs));
 }
 
 export function saveFleet(rows: Vehicle[]) {
