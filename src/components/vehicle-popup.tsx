@@ -31,10 +31,12 @@ export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }
     ["Nama pemilik", v.owner],
     ["Alamat", v.address],
     ["Bahan bakar", v.fuel],
+    ["Transmisi", v.transmission === "manual" ? "Manual" : "Matic"],
     ["Isi silinder", v.cc],
     ["Tenaga", v.hp],
     ["Driver", v.driver],
-    ["Departemen", v.dept],
+    ["Divisi", v.dept],
+    ["Jabatan", v.jabatan || "—"],
   ];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>

@@ -17,6 +17,7 @@ export function loadFleet(): Vehicle[] {
           nextServiceKm: dueServiceKm(v),
           transmission: v.transmission === "manual" ? "manual" : "matic",
           documents: v.documents?.length ? v.documents : docsForVehicle(v),
+          jabatan: v.jabatan ?? "",
         }));
       }
     }
@@ -40,6 +41,7 @@ export function blankVehicle(): Vehicle {
     year: new Date().getFullYear(),
     km: 0,
     dept: "",
+    jabatan: "",
     driver: "",
     status: "ready",
     color: "",

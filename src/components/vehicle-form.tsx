@@ -180,8 +180,11 @@ export function VehicleForm({
             <Field label="Driver">
               <input className={inputCls} value={form.driver} onChange={(e) => set("driver", e.target.value)} />
             </Field>
-            <Field label="Departemen">
+            <Field label="Divisi">
               <input className={inputCls} value={form.dept} onChange={(e) => set("dept", e.target.value)} />
+            </Field>
+            <Field label="Jabatan">
+              <input className={inputCls} value={form.jabatan ?? ""} onChange={(e) => set("jabatan", e.target.value)} />
             </Field>
             <Field label="Lokasi / pool">
               <input className={inputCls} value={form.loc} onChange={(e) => set("loc", e.target.value)} />

@@ -16,6 +16,7 @@ export type Vehicle = {
   year: number;
   km: number;
   dept: string;
+  jabatan?: string;
   driver: string;
   status: Status;
   color: string;

@@ -57,7 +57,8 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     ["Isi silinder", v.cc],
     ["Tenaga (HP)", v.hp],
     ["Driver", v.driver],
-    ["Departemen", v.dept],
+    ["Divisi", v.dept],
+    ["Jabatan", v.jabatan || "—"],
     ["Lokasi pool", v.loc],
   ];
 
