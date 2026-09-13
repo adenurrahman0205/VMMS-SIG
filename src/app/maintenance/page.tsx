@@ -344,6 +344,15 @@ export default function Mnt() {
                         <option value="selesai">Selesai</option>
                       </select>
                     </td>
+                    <td className="sticky right-0 bg-white px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 hover:bg-red-600 hover:!text-white"
+                        onClick={() => removeJob(m.id)}
+                      >
+                        Hapus
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
