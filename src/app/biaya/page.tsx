@@ -1,48 +1,345 @@
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, Shell } from "@/components/shell";
-import { fmt, fmtN, type Maintenance, type Vehicle } from "@/lib/data";
+import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
-import { loadJobs } from "@/lib/maintenance-store";
+import { findFleetUnit, loadJobs } from "@/lib/maintenance-store";
+
+type Peak = { date: string; type: string; cost: number; shop: string };
+
+type UnitRow = {
+  v: Vehicle;
+  done: Maintenance[];
+  cost: number;
+  jobs: number;
+  cpk: number;
+  peak?: Peak;
+  parts: { name: string; qty: number; amount: number }[];
+  score: number;
+  verdict: string;
+};
+
+function scoreOf(v: Vehicle, cost: number, jobs: number, avgCpk: number) {
+  const cpk = cost / Math.max(v.km, 1);
+  let s = v.health;
+  if (avgCpk > 0 && cpk > avgCpk * 1.4) s -= 12;
+  else if (avgCpk > 0 && cpk < avgCpk * 0.7) s += 6;
+  if (jobs > 8) s -= 6;
+  if (v.status === "maintenance") s -= 8;
+  if (v.status === "inactive") s -= 15;
+  return Math.max(0, Math.min(100, Math.round(s)));
+}
+
+function verdict(score: number, cost: number) {
+  if (score >= 85) return "Sangat ekonomis";
+  if (score >= 70) return "Masih ekonomis";
+  if (score >= 55) return "Perlu pengawasan";
+  if (cost > 0) return "Evaluasi penggantian unit";
+  return "Data terbatas";
+}
 
 export default function Biaya() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [jobs, setJobs] = useState<Maintenance[]>([]);
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState<string | null>(null);
+  const [sort, setSort] = useState<"cost" | "score" | "cpk">("cost");
+
   useEffect(() => {
     setVehicles(loadFleet());
     setJobs(loadJobs());
   }, []);
-  const rows = useMemo(
-    () =>
-      vehicles
-        .map((v) => ({ ...v, c: jobs.filter((m) => m.vehicleId === v.id && m.status === "selesai").reduce((s, m) => s + m.cost, 0) }))
-        .sort((a, b) => b.c - a.c),
-    [vehicles, jobs]
-  );
+
+  const doneAll = useMemo(() => jobs.filter((j) => j.status === "selesai"), [jobs]);
+
+  const rows: UnitRow[] = useMemo(() => {
+    const mapped = vehicles.map((v) => {
+      const done = doneAll.filter((m) => m.vehicleId === v.id).sort((a, b) => b.date.localeCompare(a.date));
+      const cost = done.reduce((s, m) => s + m.cost, 0);
+      const peakJob = done.reduce<Maintenance | undefined>((best, m) => (!best || m.cost > best.cost ? m : best), undefined);
+      const partMap = new Map<string, { qty: number; amount: number }>();
+      done.forEach((m) =>
+        m.items.forEach((it) => {
+          const cur = partMap.get(it.name) ?? { qty: 0, amount: 0 };
+          cur.qty += it.qty;
+          cur.amount += it.qty * it.price;
+          partMap.set(it.name, cur);
+        })
+      );
+      const parts = [...partMap.entries()]
+        .map(([name, x]) => ({ name, ...x }))
+        .sort((a, b) => b.amount - a.amount);
+      return {
+        v,
+        done,
+        cost,
+        jobs: done.length,
+        cpk: cost / Math.max(v.km, 1),
+        peak: peakJob ? { date: peakJob.date, type: peakJob.type, cost: peakJob.cost, shop: peakJob.shop } : undefined,
+        parts,
+        score: 0,
+        verdict: "",
+      };
+    });
+    const avgCpk = mapped.reduce((s, r) => s + r.cpk, 0) / Math.max(mapped.length, 1);
+    return mapped.map((r) => {
+      const score = scoreOf(r.v, r.cost, r.jobs, avgCpk);
+      return { ...r, score, verdict: verdict(score, r.cost) };
+    });
+  }, [vehicles, doneAll]);
+
+  const summary = useMemo(() => {
+    const total = rows.reduce((s, r) => s + r.cost, 0);
+    const km = rows.reduce((s, r) => s + r.v.km, 0);
+    const avgScore = Math.round(rows.reduce((s, r) => s + r.score, 0) / Math.max(rows.length, 1));
+    const top = [...rows].sort((a, b) => b.cost - a.cost)[0];
+    const best = [...rows].sort((a, b) => b.score - a.score)[0];
+    const peak = rows.reduce<{ plate: string; peak: Peak } | undefined>((acc, r) => {
+      if (!r.peak) return acc;
+      if (!acc || r.peak.cost > acc.peak.cost) return { plate: r.v.plate, peak: r.peak };
+      return acc;
+    }, undefined);
+    const partMap = new Map<string, number>();
+    rows.forEach((r) => r.parts.forEach((p) => partMap.set(p.name, (partMap.get(p.name) ?? 0) + p.amount)));
+    const topParts = [...partMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    return { total, km, avgScore, top, best, peak, jobs: doneAll.length, cpk: total / Math.max(km, 1), topParts, n: rows.length };
+  }, [rows, doneAll.length]);
+
+  const shown = useMemo(() => {
+    const s = q.toLowerCase();
+    const list = rows.filter((r) => `${r.v.plate} ${r.v.brand} ${r.v.model} ${r.v.driver}`.toLowerCase().includes(s));
+    list.sort((a, b) => (sort === "score" ? b.score - a.score : sort === "cpk" ? b.cpk - a.cpk : b.cost - a.cost));
+    return list;
+  }, [rows, q, sort]);
+
+  const maxCost = Math.max(...rows.map((r) => r.cost), 1);
+  const avgCost = summary.total / Math.max(rows.length, 1);
+
   return (
     <Shell title="Biaya & Analitik">
-      <Card className="p-0">
-        <div className="border-b px-4 py-3 text-sm font-semibold">Top biaya maintenance</div>
-        <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead className="text-left text-xs text-slate-500">
-            <tr>{["Kendaraan", "KM", "Health", "Total", "Catatan"].map((h) => <th key={h} className="px-4 py-2">{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {rows.map((v) => (
-              <tr key={v.id} className="border-t">
-                <td className="px-4 py-2"><Link href={`/kendaraan/${v.id}`}>{v.plate}</Link> {v.model}</td>
-                <td className="px-4 py-2">{fmtN(v.km)}</td>
-                <td className="px-4 py-2">{v.health}</td>
-                <td className="px-4 py-2">{fmt(v.c)}</td>
-                <td className="px-4 py-2">{v.health < 55 ? "Evaluasi penggantian unit" : "Masih ekonomis"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <section className="anim relative mb-6 overflow-hidden rounded-3xl">
+        <img src="/images/hero-fleet.png" alt="" className="h-40 w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/85 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-end p-5 text-white sm:p-7">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Cost intelligence</p>
+          <h2 className="text-2xl font-semibold">Rincian biaya maintenance armada</h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-300">
+            Setiap WO selesai diurai sampai sparepart. Skor unit membandingkan health, cost/KM, dan frekuensi servis terhadap rata-rata armada.
+          </p>
         </div>
-      </Card>
+      </section>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {[
+          ["Total biaya", fmt(summary.total), `${summary.jobs} WO selesai`],
+          ["Cost / KM", fmt(Math.round(summary.cpk)), `${fmtN(summary.km)} KM`],
+          ["Skor armada", String(summary.avgScore), "rata-rata 0–100"],
+          ["Unit termahal", summary.top?.v.plate ?? "—", summary.top ? fmt(summary.top.cost) : ""],
+          ["Servis terbesar", summary.peak ? fmt(summary.peak.peak.cost) : "—", summary.peak ? `${summary.peak.plate} · ${summary.peak.peak.date}` : ""],
+        ].map(([l, n, s]) => (
+          <div key={l} className="rounded-2xl bg-[#071526] p-4 text-white ring-1 ring-white/10">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">{l}</div>
+            <div className="mt-2 break-words text-xl font-semibold">{n}</div>
+            <div className="mt-1 text-[11px] text-slate-400">{s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <h3 className="mb-1 font-semibold">Perbandingan total biaya per unit</h3>
+          <p className="mb-4 text-xs text-slate-500">Garis putus = rata-rata armada {fmt(Math.round(avgCost))}</p>
+          <div className="space-y-2">
+            {shown.slice(0, 12).map((r) => (
+              <button
+                key={r.v.id}
+                type="button"
+                onClick={() => setOpen(open === r.v.id ? null : r.v.id)}
+                className="block w-full text-left"
+              >
+                <div className="mb-0.5 flex justify-between text-xs">
+                  <span className="font-semibold text-slate-700">{r.v.plate} · {r.v.model}</span>
+                  <span className="text-slate-500">{fmt(r.cost)}</span>
+                </div>
+                <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400"
+                    style={{ width: `${Math.max(4, (r.cost / maxCost) * 100)}%` }}
+                  />
+                  <div className="absolute top-0 h-full w-px bg-slate-400/70" style={{ left: `${Math.min(98, (avgCost / maxCost) * 100)}%` }} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </Card>
+        <Card className="lg:col-span-2">
+          <h3 className="mb-3 font-semibold">Summary armada</h3>
+          <ul className="space-y-2 text-sm text-slate-600">
+            <li>Unit dinilai: <b>{summary.n}</b></li>
+            <li>Skor terbaik: <b>{summary.best?.v.plate}</b> ({summary.best?.score})</li>
+            <li>Unit termahal: <b>{summary.top?.v.plate}</b></li>
+            <li>
+              Servis tunggal terbesar:{" "}
+              <b>{summary.peak ? `${summary.peak.plate} ${fmt(summary.peak.peak.cost)}` : "—"}</b>
+              {summary.peak ? <span className="text-xs text-slate-400"> · {summary.peak.peak.date} · {summary.peak.peak.type}</span> : null}
+            </li>
+          </ul>
+          <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Sparepart terbesar</h4>
+          <div className="space-y-1.5">
+            {summary.topParts.map(([name, amt]) => (
+              <div key={name} className="flex justify-between text-sm">
+                <span className="text-slate-600">{name}</span>
+                <span className="font-semibold">{fmt(amt)}</span>
+              </div>
+            ))}
+            {summary.topParts.length === 0 && <p className="text-sm text-slate-400">Belum ada item WO selesai.</p>}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <input
+          className="min-w-[200px] flex-1 rounded-xl border bg-white px-3 py-2 text-sm"
+          placeholder="Cari plat, model, driver…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        {(["cost", "score", "cpk"] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setSort(k)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${sort === k ? "bg-[#071526] !text-white" : "bg-white ring-1 ring-slate-200"}`}
+          >
+            {k === "cost" ? "Urut biaya" : k === "score" ? "Urut skor" : "Urut cost/KM"}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {shown.map((r) => {
+          const vsAvg = r.cost - avgCost;
+          const isOpen = open === r.v.id;
+          const bar = r.score >= 75 ? "from-emerald-400 to-sky-400" : r.score >= 55 ? "from-amber-400 to-orange-400" : "from-red-400 to-rose-500";
+          return (
+            <div key={r.v.id} className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+              <button type="button" className="flex w-full flex-wrap items-center gap-3 p-4 text-left" onClick={() => setOpen(isOpen ? null : r.v.id)}>
+                <img src={vehiclePhoto(r.v)} alt="" className="h-16 w-24 rounded-xl object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg font-semibold">{r.v.plate}</span>
+                    <span className="text-slate-500">{r.v.brand} {r.v.model}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${r.score >= 75 ? "bg-emerald-50 text-emerald-700" : r.score >= 55 ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-700"}`}>
+                      Skor {r.score} · {r.verdict}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {fmtN(r.v.km)} KM · {r.jobs} WO · Cost/KM {fmt(Math.round(r.cpk))} · vs rata-rata {vsAvg >= 0 ? "+" : ""}{fmt(Math.round(vsAvg))}
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full bg-gradient-to-r ${bar}`} style={{ width: `${r.score}%` }} />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-semibold">{fmt(r.cost)}</div>
+                  <div className="text-[11px] text-slate-400">{isOpen ? "Tutup rincian" : "Buka rincian"}</div>
+                </div>
+              </button>
+
+              {isOpen && (
+                <div className="border-t border-slate-100 bg-slate-50/70 p-4">
+                  <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                      <div className="text-[11px] uppercase text-slate-400">Servis termahal</div>
+                      {r.peak ? (
+                        <>
+                          <div className="font-semibold">{fmt(r.peak.cost)}</div>
+                          <div className="text-xs text-slate-500">{r.peak.date} · {r.peak.type}</div>
+                          <div className="text-xs text-slate-400">{r.peak.shop || "Bengkel"}</div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-slate-400">Belum ada WO selesai</div>
+                      )}
+                    </div>
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                      <div className="text-[11px] uppercase text-slate-400">Vs armada</div>
+                      <div className="text-sm">
+                        Biaya {vsAvg > 0 ? <b className="text-red-600">{fmt(Math.round(vsAvg))} lebih mahal</b> : <b className="text-emerald-700">{fmt(Math.round(Math.abs(vsAvg)))} lebih hemat</b>} dari rata-rata.
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500">
+                        Ranking biaya #{[...rows].sort((a, b) => b.cost - a.cost).findIndex((x) => x.v.id === r.v.id) + 1} dari {rows.length}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                      <div className="text-[11px] uppercase text-slate-400">Health & driver</div>
+                      <div className="font-semibold">{r.v.health}/100</div>
+                      <div className="text-xs text-slate-500">{r.v.driver} · {r.v.dept}</div>
+                      <Link href={`/kendaraan/${r.v.id}`} className="mt-1 inline-block text-xs font-semibold text-sky-700">Dossier unit →</Link>
+                    </div>
+                  </div>
+
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Akumulasi sparepart</h4>
+                  {r.parts.length === 0 ? (
+                    <p className="mb-4 text-sm text-slate-400">Tidak ada item sparepart pada WO selesai.</p>
+                  ) : (
+                    <div className="mb-4 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200">
+                      <table className="w-full min-w-[480px] text-sm">
+                        <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
+                          <tr>
+                            {["Nama", "Qty", "Total"].map((h) => (
+                              <th key={h} className="px-3 py-2">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {r.parts.map((p) => (
+                            <tr key={p.name} className="border-t">
+                              <td className="px-3 py-2">{p.name}</td>
+                              <td className="px-3 py-2">{p.qty}</td>
+                              <td className="px-3 py-2 font-semibold">{fmt(p.amount)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Riwayat WO (rinci)</h4>
+                  <div className="space-y-2">
+                    {r.done.length === 0 && <p className="text-sm text-slate-400">Belum ada histori selesai.</p>}
+                    {r.done.map((m) => (
+                      <div key={m.id} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                        <div className="flex flex-wrap justify-between gap-2">
+                          <div>
+                            <div className="font-semibold">{m.type}</div>
+                            <div className="text-xs text-slate-500">{m.date} · {m.id} · KM {fmtN(m.km)} · {m.shop || "—"}</div>
+                          </div>
+                          <div className="text-right font-semibold">{fmt(m.cost)}</div>
+                        </div>
+                        {(m.complaint || m.action) && (
+                          <p className="mt-1 text-sm text-slate-600">{m.complaint || "—"} → {m.action || "—"}</p>
+                        )}
+                        {m.items.length > 0 && (
+                          <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                            {m.items.map((it) => (
+                              <li key={it.name} className="flex justify-between gap-3">
+                                <span>{it.name} × {it.qty} @ {fmt(it.price)}</span>
+                                <span className="font-medium">{fmt(it.qty * it.price)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </Shell>
   );
 }
