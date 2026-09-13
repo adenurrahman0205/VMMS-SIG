@@ -163,45 +163,68 @@ export default function Page() {
         </Card>
       )}
 
-      <Card className="mb-5 p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
+      <section className="mb-5 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+        <div className="flex items-center justify-between border-b px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold">Pemakaian hari ini</h2>
-            <p className="text-xs text-slate-500">Pengguna, driver, unit, dan jabatan</p>
+            <h2 className="text-lg font-semibold">Pemakaian hari ini</h2>
+            <p className="text-xs text-slate-500">Unit yang sudah disetujui untuk tanggal hari ini</p>
           </div>
-          <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">{todayUse.length} unit</span>
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">{todayUse.length} unit</span>
         </div>
         {todayUse.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-400">Belum ada unit yang disetujui dipakai hari ini.</p>
+          <p className="px-5 py-10 text-center text-sm text-slate-400">Belum ada unit yang disetujui dipakai hari ini.</p>
         ) : (
-          <div className="max-h-64 overflow-auto">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="sticky top-0 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
-                <tr>
-                  {["Pengguna", "Jabatan", "Divisi", "Driver", "Kendaraan", "Keperluan"].map((h) => (
-                    <th key={h} className="px-4 py-2 font-semibold">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {todayUse.map(({ b, v, jabatan, divisi }) => (
-                  <tr key={b.id} className="border-t border-slate-100">
-                    <td className="px-4 py-2.5 font-medium">{b.userName}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{jabatan}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{divisi}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{v?.driver || "—"}</td>
-                    <td className="px-4 py-2.5">
-                      <div className="font-medium">{v ? `${v.brand} ${v.model}` : b.vehicleId}</div>
-                      <div className="text-[11px] text-slate-400">{v?.plate}</div>
-                    </td>
-                    <td className="px-4 py-2.5 text-slate-500">{b.purpose || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="hidden border-b bg-slate-50 px-5 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400 lg:grid lg:grid-cols-12 lg:gap-4">
+              <span className="col-span-3">Pengguna</span>
+              <span className="col-span-4">Kendaraan</span>
+              <span className="col-span-3">Keperluan</span>
+              <span className="col-span-2">Telp</span>
+            </div>
+            <div className="max-h-[420px] divide-y overflow-y-auto">
+              {todayUse.map(({ b, v, u, phone, jabatan, divisi }) => {
+                const d = (phone || "").replace(/\D/g, "");
+                const wa = d ? `https://wa.me/${d.startsWith("0") ? `62${d.slice(1)}` : d}` : "";
+                const ini = b.userName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={b.id} className="grid grid-cols-1 items-center gap-4 px-5 py-3.5 lg:grid-cols-12">
+                    <div className="flex items-center gap-3 lg:col-span-3">
+                      {u?.avatar ? (
+                        <img src={u.avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
+                      ) : (
+                        <span className="grid h-11 w-11 place-items-center rounded-full bg-[#071526] text-[11px] font-semibold text-white">{ini}</span>
+                      )}
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold">{b.userName}</div>
+                        <div className="truncate text-xs text-slate-500">{jabatan} · {divisi}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 lg:col-span-4">
+                      <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-[4.25rem] rounded-xl object-cover" />
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold">{v ? `${v.brand} ${v.model}` : b.vehicleId}</div>
+                        <div className="text-xs text-slate-500">{v?.plate} · driver {v?.driver || "—"}</div>
+                      </div>
+                    </div>
+                    <div className="lg:col-span-3">
+                      <div className="text-sm text-slate-700">{b.purpose || "—"}</div>
+                    </div>
+                    <div className="lg:col-span-2">
+                      {wa ? (
+                        <a href={wa} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-emerald-700 hover:underline">
+                          {phone}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-slate-400">—</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
-      </Card>
+      </section>
 
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="flex flex-1 items-center rounded-2xl border border-slate-200 bg-white px-3 py-2">
