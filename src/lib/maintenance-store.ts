@@ -85,6 +85,7 @@ export function blankJob(vehicleId = ""): Maintenance {
     km: 0,
     shop: "",
     cost: 0,
+    jasa: 0,
     status: "proses",
     complaint: "",
     action: "",

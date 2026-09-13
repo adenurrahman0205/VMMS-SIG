@@ -79,7 +79,8 @@ export default function Mnt() {
   }
 
   const ev = editor ? findFleetUnit(fleet, editor.vehicleId) : undefined;
-  const previewCost = editor ? editor.items.reduce((s, it) => s + it.qty * it.price, 0) || editor.cost : 0;
+  const previewParts = editor ? editor.items.reduce((s, it) => s + it.qty * it.price, 0) : 0;
+  const previewCost = editor ? previewParts + (Number(editor.jasa) || 0) : 0;
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -494,6 +495,19 @@ export default function Mnt() {
                     + Item sparepart
                   </button>
                 </div>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Jasa bengkel / lain-lain
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min={0}
+                    value={editor.jasa ?? 0}
+                    onChange={(e) => setEditor({ ...editor, jasa: Number(e.target.value) || 0 })}
+                  />
+                  <span className="mt-1 block font-normal normal-case tracking-normal text-[11px] text-slate-400">
+                    Opsional. Total WO = sparepart + jasa ini.
+                  </span>
+                </label>
               </div>
               <div className="border-t bg-slate-50 p-6 lg:border-l lg:border-t-0 lg:col-span-2">
                 <h3 className="mb-3 text-sm font-semibold">Preview unit</h3>
@@ -510,7 +524,7 @@ export default function Mnt() {
                 <div className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
                   <div className="text-[11px] uppercase text-slate-400">Perkiraan biaya</div>
                   <div className="text-xl font-semibold">{fmt(previewCost)}</div>
-                  <p className="mt-1 text-xs text-slate-500">Masuk ke Total biaya setelah status Selesai.</p>
+                  <p className="mt-1 text-xs text-slate-500">Sparepart {fmt(previewParts)} + jasa {fmt(Number(editor.jasa) || 0)}. Masuk total setelah Selesai.</p>
                 </div>
               </div>
             </div>

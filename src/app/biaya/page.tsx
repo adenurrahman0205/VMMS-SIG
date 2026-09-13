@@ -311,7 +311,8 @@ export default function Biaya() {
                     {r.done.length === 0 && <p className="text-sm text-slate-400">Belum ada histori selesai.</p>}
                     {r.done.map((m) => {
                       const partsSum = m.items.reduce((s, it) => s + it.qty * it.price, 0);
-                      const jasa = Math.max(0, m.cost - partsSum);
+                      const jasa = Number(m.jasa) || 0;
+                      const total = partsSum + jasa || m.cost;
                       return (
                       <div key={m.id} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
                         <div className="flex flex-wrap justify-between gap-2">
@@ -347,7 +348,7 @@ export default function Biaya() {
                             )}
                             <li className="flex justify-between font-semibold">
                               <span>Total WO</span>
-                              <span>{fmt(m.cost)}</span>
+                              <span>{fmt(total)}</span>
                             </li>
                           </ul>
                         )}
