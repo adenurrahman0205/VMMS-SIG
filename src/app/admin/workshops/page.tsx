@@ -378,10 +378,15 @@ export default function WorkshopsPage() {
               </button>
             </div>
             <div className="grid gap-3 p-6 sm:grid-cols-2">
-              <label className="block text-xs font-semibold uppercase text-slate-500">
+              <div className="block text-xs font-semibold uppercase text-slate-500">
                 Kode bengkel
-                <input className={inputCls} required placeholder="BKL-005" value={editor.code} onChange={(e) => setEditor({ ...editor, code: e.target.value })} />
-              </label>
+                <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 font-mono text-sm tracking-wide text-slate-700">
+                  {editor.code || "BKL-…"}
+                </div>
+                <span className="mt-1 block font-normal normal-case tracking-normal text-[11px] text-slate-400">
+                  Terisi otomatis, tidak bisa diubah
+                </span>
+              </div>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Nama bengkel
                 <input className={inputCls} required value={editor.name} onChange={(e) => setEditor({ ...editor, name: e.target.value })} />
