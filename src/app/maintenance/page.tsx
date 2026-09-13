@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Badge, Shell } from "@/components/shell";
+import { Badge, Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
 
+const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
@@ -75,6 +76,49 @@ export default function Mnt() {
   const ev = editor ? findFleetUnit(fleet, editor.vehicleId) : undefined;
   const previewCost = editor ? editor.items.reduce((s, it) => s + it.qty * it.price, 0) || editor.cost : 0;
 
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const today = selected.slice(0, 10);
+  const cells = useMemo(() => {
+    const first = new Date(year, month, 1);
+    const start = first.getDay();
+    const daysIn = new Date(year, month + 1, 0).getDate();
+    const grid: (string | null)[] = [];
+    for (let i = 0; i < start; i++) grid.push(null);
+    for (let d = 1; d <= daysIn; d++) {
+      grid.push(`${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+    }
+    while (grid.length % 7) grid.push(null);
+    return grid;
+  }, [year, month]);
+
+  const jobsByDate = useMemo(() => {
+    const m = new Map<string, Maintenance[]>();
+    jobs.forEach((j) => {
+      const arr = m.get(j.date) ?? [];
+      arr.push(j);
+      m.set(j.date, arr);
+    });
+    return m;
+  }, [jobs]);
+
+  const dayJobs = jobsByDate.get(selected) ?? [];
+  const dayUnits = new Set(dayJobs.map((j) => j.vehicleId)).size;
+  const dayCost = dayJobs.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
+  const monthLabel = cursor.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  const selectedLabel = new Date(selected + "T00:00:00").toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  function pickDate(iso: string) {
+    setSelected(iso);
+    setFrom(iso);
+    setTo(iso);
+  }
+
   return (
     <Shell title="Data Maintenance">
       <section className="anim relative mb-6 overflow-hidden rounded-3xl">
@@ -109,6 +153,90 @@ export default function Mnt() {
             <div className="text-xs text-slate-400">{s}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mb-6 grid gap-4 lg:grid-cols-5">
+        <Card className="p-5 lg:col-span-3">
+          <div className="mb-4 flex items-center justify-between">
+            <button type="button" className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month - 1, 1))}>‹</button>
+            <h3 className="text-lg font-semibold capitalize">{monthLabel}</h3>
+            <button type="button" className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month + 1, 1))}>›</button>
+          </div>
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            {DAYS.map((d) => <div key={d} className="py-1">{d}</div>)}
+          </div>
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {cells.map((iso, i) => {
+              if (!iso) return <div key={`e${i}`} className="min-h-[56px] rounded-xl bg-slate-50/50 sm:min-h-[76px]" />;
+              const list = jobsByDate.get(iso) ?? [];
+              const units = new Set(list.map((j) => j.vehicleId)).size;
+              const cost = list.filter((j) => j.status === "selesai").reduce((s, j) => s + j.cost, 0);
+              const proses = list.some((j) => j.status === "proses");
+              const isSel = iso === selected;
+              const isToday = iso === today;
+              return (
+                <button
+                  key={iso}
+                  type="button"
+                  onClick={() => pickDate(iso)}
+                  className={`min-h-[56px] rounded-xl p-1 text-left transition sm:min-h-[76px] sm:p-2 ${
+                    isSel ? "bg-[#071526] text-white shadow-lg" : "bg-white ring-1 ring-slate-200 hover:ring-sky-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={isToday && !isSel ? "font-bold text-sky-600" : ""}>{Number(iso.slice(8))}</span>
+                    {units > 0 && (
+                      <span className={`rounded-full px-1.5 text-[10px] font-bold ${isSel ? "bg-sky-400 text-white" : proses ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-800"}`}>
+                        {units}
+                      </span>
+                    )}
+                  </div>
+                  {units > 0 && (
+                    <div className={`mt-1 text-[10px] leading-tight ${isSel ? "text-slate-300" : "text-slate-500"}`}>
+                      {units} unit
+                      {cost > 0 ? ` · ${fmt(cost)}` : ""}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card className="flex flex-col p-5 lg:col-span-2">
+          <h3 className="font-semibold">{selectedLabel}</h3>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-red-50 p-3">
+              <div className="text-[11px] uppercase text-red-700">Unit diservice</div>
+              <div className="text-2xl font-semibold text-red-800">{dayUnits}</div>
+            </div>
+            <div className="rounded-2xl bg-emerald-50 p-3">
+              <div className="text-[11px] uppercase text-emerald-700">Biaya selesai</div>
+              <div className="text-lg font-semibold text-emerald-800">{fmt(dayCost)}</div>
+            </div>
+          </div>
+          <div className="mt-3 max-h-[280px] space-y-2 overflow-auto">
+            {dayJobs.length === 0 && <p className="text-sm text-slate-400">Tidak ada WO di tanggal ini.</p>}
+            {dayJobs.map((j) => {
+              const v = findFleetUnit(fleet, j.vehicleId);
+              return (
+                <div key={j.id} className="rounded-xl bg-slate-50 p-3">
+                  <div className="flex items-center gap-2">
+                    <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : j.vehicleId}</div>
+                      <div className="text-xs text-slate-500">{v?.plate} · {j.type}</div>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex justify-between text-xs">
+                    <span className={j.status === "proses" ? "font-semibold text-red-700" : "text-emerald-700"}>{j.status === "proses" ? "Diservice" : "Selesai"}</span>
+                    <span className="font-semibold">{j.status === "selesai" ? fmt(j.cost) : "—"}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
