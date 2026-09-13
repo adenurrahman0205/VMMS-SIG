@@ -277,29 +277,36 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         <main className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 sm:p-7 lg:pb-7">{ready ? children : <p className="text-sm text-slate-500">Menyinkronkan data…</p>}</main>
       </div>
 
-      <div className={cn("lg:hidden", fabOpen && !navOpen ? "pointer-events-auto" : "pointer-events-none")}>
-        <button
-          type="button"
-          aria-hidden={!fabOpen}
-          className={cn(
-            "fab-scrim fixed inset-0 bg-[#071526]/55 backdrop-blur-[2px]",
-            navOpen ? "z-30" : "z-[55]",
-            fabOpen && !navOpen ? "opacity-100" : "opacity-0"
-          )}
-          onClick={() => setFabOpen(false)}
-        />
+      <button
+        type="button"
+        aria-hidden={!fabOpen}
+        className={cn(
+          "fab-scrim fixed inset-0 z-[55] bg-[#071526]/45 backdrop-blur-[3px] lg:hidden",
+          fabOpen && !navOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        )}
+        onClick={() => setFabOpen(false)}
+      />
+
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-[70] flex flex-col items-center px-4 lg:hidden",
+          navOpen && "pointer-events-none opacity-0"
+        )}
+      >
         <div
           className={cn(
-            "fab-sheet fixed inset-x-0 bottom-24 max-h-[70dvh] overflow-auto rounded-t-[28px] bg-white shadow-[0_-12px_40px_rgba(15,23,42,0.18)]",
-            navOpen ? "z-30" : "z-[56]",
-            fabOpen && !navOpen ? "translate-y-0" : "translate-y-[120%]"
+            "fab-sheet w-full max-w-md overflow-hidden rounded-[28px] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/70",
+            fabOpen ? "mb-3 max-h-[62dvh] translate-y-0 opacity-100" : "pointer-events-none mb-0 max-h-0 translate-y-8 opacity-0"
           )}
         >
-          <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200" />
-          <p className="px-5 pb-2 pt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            {role === "USER" ? "Layanan" : "Menu"}
-          </p>
-          <nav className="grid grid-cols-3 gap-2 px-4 pb-3">
+          <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-slate-200" />
+          <div className="flex items-center justify-between px-5 pb-2 pt-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              {role === "USER" ? "Layanan" : "Menu"}
+            </p>
+            <span className="text-[11px] text-slate-400">{navItems.length} halaman</span>
+          </div>
+          <nav className="grid grid-cols-4 gap-1.5 px-3 pb-2">
             {navItems.map(([href, label]) => {
               const on = path === href || (href !== "/" && href !== "/user" && path.startsWith(href));
               return (
@@ -308,11 +315,13 @@ export function Shell({ title, children }: { title: string; children: React.Reac
                   href={href}
                   onClick={() => setFabOpen(false)}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 text-center text-[11px] font-semibold active:scale-[0.97]",
-                    on ? "bg-sky-500 !text-white shadow-md shadow-sky-500/25" : "bg-slate-50 text-slate-700"
+                    "flex flex-col items-center gap-1 rounded-2xl px-1 py-2.5 text-center text-[10px] font-semibold leading-tight active:scale-[0.97]",
+                    on ? "bg-[#071526] !text-white" : "text-slate-600"
                   )}
                 >
-                  <NavIcon href={href} />
+                  <span className={cn("grid h-9 w-9 place-items-center rounded-xl", on ? "bg-white/10" : "bg-slate-100")}>
+                    <NavIcon href={href} />
+                  </span>
                   {label}
                 </Link>
               );
@@ -321,27 +330,26 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           <button
             type="button"
             onClick={logout}
-            className="mx-4 mb-2 w-[calc(100%-2rem)] rounded-2xl bg-red-50 py-3 text-sm font-semibold text-red-700"
+            className="mx-3 mb-3 w-[calc(100%-1.5rem)] rounded-2xl py-2.5 text-sm font-semibold text-red-600"
           >
             Logout
           </button>
         </div>
-      </div>
 
-      <button
-        type="button"
-        aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
-        onClick={() => setFabOpen((v) => !v)}
-        className={cn(
-          "fixed bottom-5 left-1/2 z-[70] grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full text-white shadow-xl transition-all duration-300 active:scale-95 lg:hidden",
-          navOpen && "pointer-events-none opacity-0",
-          fabOpen ? "bg-red-500 shadow-red-500/40" : "bg-[#071526] shadow-[#071526]/40"
-        )}
-      >
-        <svg viewBox="0 0 24 24" className={cn("h-7 w-7 transition-transform duration-300", fabOpen && "rotate-45")} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </button>
+        <button
+          type="button"
+          aria-label={fabOpen ? "Tutup menu" : "Buka menu"}
+          onClick={() => setFabOpen((v) => !v)}
+          className={cn(
+            "relative mb-[max(1.1rem,env(safe-area-inset-bottom))] grid h-14 w-14 place-items-center rounded-full text-white ring-[6px] ring-[#eef2f7] transition-all duration-300 active:scale-95",
+            fabOpen ? "bg-red-500 shadow-lg shadow-red-500/30" : "bg-[#071526] shadow-lg shadow-[#071526]/30"
+          )}
+        >
+          <svg viewBox="0 0 24 24" className={cn("h-7 w-7 transition-transform duration-300", fabOpen && "rotate-45")} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
