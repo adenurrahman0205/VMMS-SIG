@@ -60,8 +60,16 @@ export default function Jadwal() {
     .filter((b) => b.status === "pengajuan" && b.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  function setStatus(id: string, status: Booking["status"]) {
-    persist(bookings.map((b) => (b.id === id ? { ...b, status } : b)));
+  function setStatus(id: string, status: Booking["status"], reason?: string) {
+    persist(
+      bookings.map((b) =>
+        b.id === id ? { ...b, status, rejectReason: status === "ditolak" ? reason || b.rejectReason : b.rejectReason } : b
+      )
+    );
+  }
+
+  function removeBooking(id: string) {
+    persist(bookings.filter((b) => b.id !== id));
   }
 
   type UsageKind = "tersedia" | "dipakai" | "maintenance";
@@ -188,6 +196,9 @@ export default function Jadwal() {
                       <div className="text-xs text-slate-500">{v?.plate} · {b.userName} {b.dept ? `· ${b.dept}` : ""}{b.jabatan ? ` · ${b.jabatan}` : ""}</div>
                       <div className="text-[11px] text-slate-400">{b.purpose}</div>
                       {b.note && <div className="mt-1 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">Note: {b.note}</div>}
+                      {b.status === "ditolak" && b.rejectReason && (
+                        <div className="mt-1 rounded-lg bg-red-50 px-2 py-1 text-[11px] text-red-700">Alasan: {b.rejectReason}</div>
+                      )}
                     </div>
                   </div>
                   <div className="mt-2 flex gap-2">
@@ -195,7 +206,7 @@ export default function Jadwal() {
                     {b.status === "pengajuan" && (
                       <>
                         <button className="text-xs font-semibold text-emerald-700" onClick={() => setStatus(b.id, "disetujui")}>Setujui</button>
-                        <button className="text-xs font-semibold text-red-600" onClick={() => setStatus(b.id, "ditolak")}>Tolak</button>
+                        <button className="text-xs font-semibold text-red-600" onClick={() => { setRejectId(b.id); setRejectReason(""); }}>Tolak</button>
                       </>
                     )}
                   </div>
@@ -210,9 +221,9 @@ export default function Jadwal() {
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
           <div>
             <h3 className="font-semibold">Tabel pemakaian kendaraan</h3>
-            <p className="text-xs text-slate-500">Semua pengajuan & pemakaian, terbaru di atas</p>
+            <p className="text-xs text-slate-500">Mengikuti tanggal kalender: {selectedLabel}</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{bookings.length} baris</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{dayBookings.length} baris</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[920px] text-sm">
@@ -224,13 +235,13 @@ export default function Jadwal() {
               </tr>
             </thead>
             <tbody>
-              {bookings.length === 0 && (
+              {dayBookings.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Belum ada pemakaian. Buat pengajuan dari tombol di atas.</td>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Tidak ada pemakaian pada tanggal ini. Pilih tanggal di kalender.</td>
                 </tr>
               )}
-              {[...bookings]
-                .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+              {[...dayBookings]
+                .sort((a, b) => b.id.localeCompare(a.id))
                 .map((b) => {
                   const v = fleet.find((x) => x.id === b.vehicleId);
                   const st =
