@@ -28,6 +28,8 @@ export default function SparePage() {
   const [isNew, setIsNew] = useState(false);
   const [detail, setDetail] = useState<SparepartRow | null>(null);
   const [shops, setShops] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const PAGE = 15;
 
   useEffect(() => {
     const f = loadFleet();
@@ -72,6 +74,14 @@ export default function SparePage() {
       return `${r.code} ${r.name} ${r.merk} ${r.vehicleKind} ${r.year} ${r.workshop}`.toLowerCase().includes(s);
     });
   }, [rows, q, shopF, kindF, yearF]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [q, shopF, kindF, yearF]);
+
+  const pageCount = Math.max(1, Math.ceil(list.length / PAGE));
+  const pageSafe = Math.min(page, pageCount);
+  const pageRows = list.slice((pageSafe - 1) * PAGE, pageSafe * PAGE);
 
   function save(e: React.FormEvent) {
     e.preventDefault();
@@ -218,6 +228,34 @@ export default function SparePage() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
+          <p className="text-xs text-slate-500">
+            {list.length === 0
+              ? "0 item"
+              : `${(pageSafe - 1) * PAGE + 1}–${Math.min(pageSafe * PAGE, list.length)} dari ${list.length} item`}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={pageSafe <= 1}
+              className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Sebelumnya
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              {pageSafe} / {pageCount}
+            </span>
+            <button
+              type="button"
+              disabled={pageSafe >= pageCount}
+              className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       </div>
 
