@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/shell";
+import { VehicleForm } from "@/components/vehicle-form";
 import {
   DOC_TYPES,
   docStatusFromExpire,
@@ -13,7 +14,7 @@ import {
   type Vehicle,
   type VehicleDoc,
 } from "@/lib/data";
-import { loadFleet, saveFleet } from "@/lib/fleet-store";
+import { loadFleet, saveFleet, syncUpdate } from "@/lib/fleet-store";
 
 type St = "all" | "aktif" | "segera" | "expired" | "kosong";
 
@@ -32,6 +33,7 @@ export default function Dokumen() {
   const [st, setSt] = useState<St>("all");
   const [kind, setKind] = useState<string>("all");
   const [open, setOpen] = useState<string | null>(null);
+  const [editor, setEditor] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     const loaded = loadFleet();
@@ -92,6 +94,17 @@ export default function Dokumen() {
   useEffect(() => {
     if (kind === "KIR" && !usedTypes.has("KIR")) setKind("all");
   }, [kind, usedTypes]);
+
+  function persist(next: Vehicle[]) {
+    saveFleet(next);
+    setFleet(next);
+  }
+
+  function saveEditor(v: Vehicle) {
+    persist(fleet.map((x) => (x.id === v.id ? v : x)));
+    syncUpdate(v).catch(() => undefined);
+    setEditor(null);
+  }
 
   const shown = useMemo(() => {
     const s = q.toLowerCase();
@@ -190,7 +203,8 @@ export default function Dokumen() {
                   : "ring-slate-200";
           return (
             <div key={r.v.id} className={`overflow-hidden rounded-3xl bg-white ring-1 ${tone}`}>
-              <button type="button" className="flex w-full flex-wrap items-center gap-4 p-4 text-left" onClick={() => setOpen(on ? null : r.v.id)}>
+              <div className="flex w-full flex-wrap items-center gap-4 p-4">
+                <button type="button" className="flex min-w-0 flex-1 flex-wrap items-center gap-4 text-left" onClick={() => setOpen(on ? null : r.v.id)}>
                 <img src={vehiclePhoto(r.v)} alt="" className="h-16 w-24 rounded-2xl object-cover" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -221,7 +235,15 @@ export default function Dokumen() {
                   </div>
                 </div>
                 <div className="text-right text-xs text-slate-400">{on ? "Tutup" : "Detail"}</div>
-              </button>
+                </button>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-xl bg-[#071526] px-4 py-2.5 text-sm font-semibold !text-white"
+                  onClick={() => setEditor(r.v)}
+                >
+                  Update
+                </button>
+              </div>
               {on && (
                 <div className="border-t bg-slate-50/80 p-4">
                   {r.docs.length === 0 ? (
@@ -277,6 +299,15 @@ export default function Dokumen() {
           );
         })}
       </div>
+
+      {editor && (
+        <VehicleForm
+          initial={editor}
+          title={`Update dokumen ${editor.plate}`}
+          onSave={saveEditor}
+          onClose={() => setEditor(null)}
+        />
+      )}
     </Shell>
   );
 }
