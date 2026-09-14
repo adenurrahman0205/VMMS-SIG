@@ -98,7 +98,7 @@ export function VehicleForm({
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
-          onSave(form);
+          onSave(sections === "docs" ? { ...initial, documents: form.documents } : form);
         }}
       >
         <div className="flex items-center justify-between border-b border-slate-100 bg-[#071526] px-6 py-4 text-white">
