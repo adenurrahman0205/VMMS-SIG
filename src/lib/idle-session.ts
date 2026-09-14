@@ -1,6 +1,6 @@
 import { createBrowserSupabase } from "@/lib/supabase/client";
 
-export const IDLE_MS = 60_000;
+export const IDLE_MS = 5 * 60_000;
 export const WARN_MS = 15_000;
 const ACT_KEY = "vmms-last-activity";
 const LOCK_KEY = "vmms-force-logout";
