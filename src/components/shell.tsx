@@ -183,13 +183,9 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           navOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
         )}
       >
-        <div className="border-b border-white/10 px-4 py-4">
+        <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-3">
-            <img
-              src="/images/logo-sig-sidebar.png"
-              alt="SIG"
-              className="h-12 w-12 shrink-0 rounded-xl bg-white object-contain p-1.5 ring-1 ring-white/20"
-            />
+            <img src="/images/logo-sig-sidebar.png" alt="SIG" className="h-10 w-auto shrink-0 object-contain" />
             <div className="min-w-0">
               <div className="text-sm font-semibold tracking-wide text-white">VMMS-SIG</div>
               <div className="text-[11px] leading-snug text-slate-400">Vehicle Maintenance Management System</div>
