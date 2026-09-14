@@ -115,6 +115,13 @@ export function VehicleForm({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Foto kendaraan</p>
           <div className="mb-6 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[220px_1fr]">
             <img src={vehiclePhoto(form)} alt="" className="h-36 w-full rounded-2xl object-cover ring-1 ring-slate-200" />
+            {sections === "docs" ? (
+              <div className="flex flex-col justify-center">
+                <p className="text-sm font-semibold text-slate-800">{form.brand} {form.model}</p>
+                <p className="mt-1 text-sm text-slate-500">{form.plate} · {form.year} · {form.color || "—"}</p>
+                <p className="mt-2 text-xs text-slate-400">Foto dan identitas hanya tampilan. Ubah di halaman Armada.</p>
+              </div>
+            ) : (
             <div className="flex flex-col justify-center">
               <p className="text-sm text-slate-600">Unggah foto unit. Jika kosong, dipakai foto default sesuai model.</p>
               <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#071526] px-4 py-2.5 text-sm font-semibold !text-white">
@@ -127,27 +134,28 @@ export function VehicleForm({
                 </button>
               )}
             </div>
+            )}
           </div>
 
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Identitas unit</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label="Nomor plat">
-              <input className={inputCls} value={form.plate} onChange={(e) => set("plate", e.target.value)} required />
+              <input className={inputCls} value={form.plate} onChange={(e) => set("plate", e.target.value)} required readOnly={sections === "docs"} />
             </Field>
             <Field label="Merk">
-              <input className={inputCls} value={form.brand} onChange={(e) => set("brand", e.target.value)} required />
+              <input className={inputCls} value={form.brand} onChange={(e) => set("brand", e.target.value)} required readOnly={sections === "docs"} />
             </Field>
             <Field label="Model">
-              <input className={inputCls} value={form.model} onChange={(e) => set("model", e.target.value)} required />
+              <input className={inputCls} value={form.model} onChange={(e) => set("model", e.target.value)} required readOnly={sections === "docs"} />
             </Field>
             <Field label="Warna">
-              <input className={inputCls} value={form.color} onChange={(e) => set("color", e.target.value)} />
+              <input className={inputCls} value={form.color} onChange={(e) => set("color", e.target.value)} readOnly={sections === "docs"} />
             </Field>
             <Field label="Tahun mobil">
-              <input className={inputCls} type="number" value={form.year} onChange={(e) => set("year", e.target.value)} />
+              <input className={inputCls} type="number" value={form.year} onChange={(e) => set("year", e.target.value)} readOnly={sections === "docs"} />
             </Field>
             <Field label="Status">
-              <select className={inputCls} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Vehicle["status"] })}>
+              <select className={inputCls} value={form.status} disabled={sections === "docs"} onChange={(e) => setForm({ ...form, status: e.target.value as Vehicle["status"] })}>
                 {statuses.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
