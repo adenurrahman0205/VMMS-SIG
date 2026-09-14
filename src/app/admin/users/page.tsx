@@ -100,9 +100,24 @@ export default function UsersPage() {
     return `https://wa.me/${n}`;
   }
 
-  function removeUser(u: AppUser) {
-    if (!window.confirm(`Hapus permanen ${u.name} (${u.email})? Data user ini hilang dari tabel.`)) return;
-    persist(rows.filter((x) => x.id !== u.id));
+  async function removeUser(u: AppUser) {
+    if (!window.confirm(`Hapus permanen ${u.name} (${u.email})? Akun login ikut dihapus dan tidak bisa masuk lagi.`)) return;
+    try {
+      const res = await fetch("/api/users/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: u.email }),
+      });
+      const json = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !json.ok) {
+        window.alert(json.error || "Gagal hapus akun di Auth.");
+        return;
+      }
+    } catch {
+      window.alert("Gagal hapus akun di server.");
+      return;
+    }
+    persist(rows.filter((x) => x.id !== u.id && x.email.toLowerCase() !== u.email.toLowerCase()));
   }
 
   function restore(u: AppUser) {

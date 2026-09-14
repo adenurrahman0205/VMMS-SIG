@@ -51,20 +51,16 @@ export function cacheUser(row: AppUser) {
 
 export async function saveProfileCloud(fields: ProfileFields) {
   const sb = createBrowserSupabase();
+  // Jangan simpan foto di JWT/cookie Auth — itu penyebab 494 REQUEST_HEADER_TOO_LARGE.
   const payload = {
     name: fields.name,
     full_name: fields.name,
     phone: fields.phone,
     dept: fields.dept,
     jabatan: fields.jabatan,
-    avatar: fields.avatar || "",
+    avatar: "",
   };
-  let { error } = await sb.auth.updateUser({ data: payload });
-  if (error && fields.avatar) {
-    const retry = await sb.auth.updateUser({ data: { ...payload, avatar: "" } });
-    if (!retry.error) return;
-    error = retry.error;
-  }
+  const { error } = await sb.auth.updateUser({ data: payload });
   if (error) throw error;
 }
 

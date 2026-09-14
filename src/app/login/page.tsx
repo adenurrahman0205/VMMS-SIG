@@ -28,21 +28,36 @@ export default function Login() {
     setBusy(true);
     try {
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      setBusy(false);
       if (error) {
+        setBusy(false);
         setMsg(error.message);
         return;
       }
+      const { data } = await sb.auth.getUser();
+      const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const av = typeof meta.avatar === "string" ? meta.avatar : "";
+      if (av.length > 80) {
+        await sb.auth.updateUser({
+          data: {
+            name: meta.name,
+            full_name: meta.full_name,
+            phone: meta.phone,
+            dept: meta.dept,
+            jabatan: meta.jabatan,
+            avatar: "",
+          },
+        });
+        await sb.auth.refreshSession();
+      }
+      setBusy(false);
+      const em = data.user?.email ?? email;
+      const u = mergeLocalUser(em, data.user?.id ?? "", meta);
+      r.push(u.role === "USER" ? "/user" : "/");
+      r.refresh();
     } catch (err) {
       setBusy(false);
       setMsg(err instanceof Error ? err.message : "Gagal terhubung ke Supabase.");
-      return;
     }
-    const { data } = await sb.auth.getUser();
-    const em = data.user?.email ?? email;
-    const u = mergeLocalUser(em, data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
-    r.push(u.role === "USER" ? "/user" : "/");
-    r.refresh();
   }
 
   return (
