@@ -185,7 +185,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       >
         <div className="border-b border-white/10 px-5 py-5">
           <div className="flex items-center gap-3">
-            <img src="/images/logo-sig-white.png" alt="SIG" className="h-10 w-auto object-contain" />
+            <img src="/images/logo-sig-sidebar.png" alt="SIG" className="h-10 w-auto object-contain" />
             <div>
               <div className="text-sm font-semibold tracking-wide text-white">VMMS-SIG</div>
               <div className="text-[11px] leading-snug text-slate-400">Vehicle Maintenance Management System</div>
