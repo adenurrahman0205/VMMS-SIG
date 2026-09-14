@@ -18,6 +18,34 @@ import {
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
 
+function compressPartPhoto(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 480;
+      const scale = Math.min(1, max / Math.max(img.width, img.height, 1));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        reject(new Error("Canvas"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.72));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Gagal baca foto"));
+    };
+    img.src = url;
+  });
+}
+
 export default function SparePage() {
   const [rows, setRows] = useState<SparepartRow[]>([]);
   const [fleet, setFleet] = useState<Vehicle[]>([]);
@@ -187,7 +215,7 @@ export default function SparePage() {
           <table className="w-full min-w-[1180px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
+                {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -206,6 +234,13 @@ export default function SparePage() {
                   className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/60"
                   onClick={() => setDetail(r)}
                 >
+                  <td className="px-4 py-3">
+                    {r.photo ? (
+                      <img src={r.photo} alt="" className="h-12 w-12 rounded-xl object-cover ring-1 ring-slate-200" />
+                    ) : (
+                      <span className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-[10px] font-semibold text-slate-400">Foto</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-sky-800">{r.code}</td>
                   <td className="px-4 py-3 font-semibold">{r.name}</td>
                   <td className="px-4 py-3 text-slate-600">{r.merk || "—"}</td>
@@ -266,19 +301,34 @@ export default function SparePage() {
       {detail && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
-          <div className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+          <div className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-t-3xl bg-white pb-8 shadow-2xl sm:rounded-3xl sm:pb-0" onClick={(e) => e.stopPropagation()}>
             <div className="bg-[#071526] px-6 py-5 text-white">
-              <p className="font-mono text-[11px] tracking-wide text-sky-300">{detail.code}</p>
-              <h2 className="text-2xl font-semibold">{detail.name}</h2>
-              <p className="text-sm text-slate-300">{detail.merk || "Merk belum diisi"} · {detail.vehicleKind || "—"} {detail.year || ""}</p>
+              <div className="flex items-start gap-4">
+                {detail.photo ? (
+                  <img src={detail.photo} alt="" className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-2 ring-white/20" />
+                ) : (
+                  <span className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-white/10 text-xs font-semibold text-slate-300">Tidak ada foto</span>
+                )}
+                <div className="min-w-0">
+                  <p className="font-mono text-[11px] tracking-wide text-sky-300">{detail.code}</p>
+                  <h2 className="text-2xl font-semibold leading-tight">{detail.name}</h2>
+                  <p className="mt-1 text-sm text-slate-300">{detail.merk || "Merk belum diisi"} · {detail.vehicleKind || "—"} {detail.year || ""}</p>
+                </div>
+              </div>
             </div>
+            {detail.photo && (
+              <img src={detail.photo} alt="" className="h-44 w-full object-cover" />
+            )}
             <div className="grid grid-cols-2 gap-3 p-6">
               {[
                 ["Merk sparepart", detail.merk || "—"],
                 ["Jenis mobil", detail.vehicleKind || "—"],
                 ["Tahun mobil", detail.year ? String(detail.year) : "—"],
+                ["QTY", String(detail.qty ?? 1)],
+                ["Unit", (detail.unit || "PCS").toUpperCase()],
                 ["Harga", fmt(detail.price)],
                 ["Bengkel", detail.workshop || "—"],
+                ["Sumber", detail.source === "wo" ? "Work order" : "Manual"],
                 ["WO terkait", detail.woId || "—"],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-2xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100">

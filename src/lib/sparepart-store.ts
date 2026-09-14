@@ -16,6 +16,7 @@ export type SparepartRow = {
   source: "manual" | "wo";
   woId?: string;
   notes: string;
+  photo?: string;
   active: boolean;
 };
 
@@ -30,6 +31,7 @@ function normalize(r: SparepartRow): SparepartRow {
     year: r.year === undefined || r.year === null ? "" : r.year,
     qty: Number(r.qty) > 0 ? Number(r.qty) : 1,
     unit: (r.unit || "PCS").toUpperCase(),
+    photo: typeof r.photo === "string" ? r.photo : "",
   };
 }
 
@@ -55,6 +57,7 @@ export function blankSpare(rows: SparepartRow[] = []): SparepartRow {
     unit: "PCS",
     workshop: "",
     notes: "",
+    photo: "",
     source: "manual",
     active: true,
   };
