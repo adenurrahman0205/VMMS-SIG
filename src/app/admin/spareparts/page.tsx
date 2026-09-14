@@ -128,6 +128,7 @@ export default function SparePage() {
       qty: Number(editor.qty) > 0 ? Number(editor.qty) : 1,
       unit: (editor.unit || "PCS").toUpperCase(),
       year,
+      photo: editor.photo || "",
     };
     persist(exists ? rows.map((r) => (r.id === row.id ? row : r)) : [row, ...rows]);
     setEditor(null);
@@ -212,7 +213,7 @@ export default function SparePage() {
 
       <div className="anim overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-sm">
+          <table className="w-full min-w-[1280px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
                 {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
@@ -360,6 +361,43 @@ export default function SparePage() {
               <button type="button" className="rounded-full bg-white/10 px-3 py-1 text-sm !text-white" onClick={() => setEditor(null)}>Tutup</button>
             </div>
             <div className="space-y-3 p-6">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase text-slate-500">Foto sparepart</p>
+                <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                  {editor.photo ? (
+                    <img src={editor.photo} alt="" className="h-20 w-20 rounded-2xl object-cover ring-1 ring-slate-200" />
+                  ) : (
+                    <span className="grid h-20 w-20 place-items-center rounded-2xl bg-white text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200">Belum ada</span>
+                  )}
+                  <div className="min-w-0">
+                    <label className="inline-flex cursor-pointer rounded-xl bg-[#071526] px-4 py-2.5 text-xs font-semibold !text-white">
+                      Unggah foto
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (!file || !editor) return;
+                          try {
+                            const photo = await compressPartPhoto(file);
+                            setEditor({ ...editor, photo });
+                          } catch {
+                            window.alert("Gagal membaca foto. Coba file JPG/PNG lain.");
+                          }
+                        }}
+                      />
+                    </label>
+                    {editor.photo && (
+                      <button type="button" className="ml-3 text-xs font-semibold text-red-600" onClick={() => setEditor({ ...editor, photo: "" })}>
+                        Hapus foto
+                      </button>
+                    )}
+                    <p className="mt-2 text-[11px] text-slate-400">JPG/PNG. Foto tampil di tabel dan popup detail.</p>
+                  </div>
+                </div>
+              </div>
               <div className="text-xs font-semibold uppercase text-slate-500">
                 Kode sparepart
                 <div className="mt-1 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 font-mono text-sm text-slate-700">{editor.code}</div>
