@@ -304,6 +304,7 @@ export default function Dokumen() {
         <VehicleForm
           initial={editor}
           title={`Update dokumen ${editor.plate}`}
+          sections="docs"
           onSave={saveEditor}
           onClose={() => setEditor(null)}
         />

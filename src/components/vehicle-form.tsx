@@ -29,11 +29,13 @@ export function VehicleForm({
   title,
   onSave,
   onClose,
+  sections = "full",
 }: {
   initial: Vehicle;
   title: string;
   onSave: (v: Vehicle) => void;
   onClose: () => void;
+  sections?: "full" | "docs";
 }) {
   const [form, setForm] = useState<Vehicle>(() => ({
     ...initial,
@@ -153,6 +155,8 @@ export function VehicleForm({
             </Field>
           </div>
 
+          {sections === "full" && (
+          <>
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Mesin & spek</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label="Kilometer">
@@ -239,6 +243,8 @@ export function VehicleForm({
               </Field>
             </div>
           </div>
+          </>
+          )}
 
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Dokumen kendaraan</p>
           <div className="mb-6 space-y-2">
@@ -299,6 +305,8 @@ export function VehicleForm({
             </button>
           </div>
 
+          {sections === "full" && (
+          <>
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Kartu BBM</p>
           <div className="grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-2">
             <BbmPreview src={form.bbmImage} size="md" />
@@ -315,6 +323,8 @@ export function VehicleForm({
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
