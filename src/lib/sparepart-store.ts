@@ -104,6 +104,8 @@ export function ingestFromJobs(jobs: Maintenance[], fleet: Vehicle[]) {
         vehicleKind: kind,
         year,
         price: Number(it.price) || 0,
+        qty: Number(it.qty) > 0 ? Number(it.qty) : 1,
+        unit: "PCS",
         workshop: shop,
         source: "wo",
         woId: j.id,
