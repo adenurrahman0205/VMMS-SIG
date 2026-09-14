@@ -11,6 +11,7 @@ import {
   ingestFromJobs,
   nextSpareCode,
   saveSpareparts,
+  SPARE_UNITS,
   type SparepartRow,
 } from "@/lib/sparepart-store";
 
@@ -96,6 +97,8 @@ export default function SparePage() {
       name: editor.name.trim(),
       merk: editor.merk.trim(),
       price: Number(editor.price) || 0,
+      qty: Number(editor.qty) > 0 ? Number(editor.qty) : 1,
+      unit: (editor.unit || "PCS").toUpperCase(),
       year,
     };
     persist(exists ? rows.map((r) => (r.id === row.id ? row : r)) : [row, ...rows]);
@@ -181,10 +184,10 @@ export default function SparePage() {
 
       <div className="anim overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-sm">
+          <table className="w-full min-w-[1180px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "Harga", "Bengkel", "Sumber", ""].map((h) => (
+                {["Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -192,7 +195,7 @@ export default function SparePage() {
             <tbody>
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={11} className="px-4 py-14 text-center text-slate-400">
                     Belum ada sparepart. Tambah manual atau buat WO berisi item sparepart.
                   </td>
                 </tr>
@@ -208,6 +211,8 @@ export default function SparePage() {
                   <td className="px-4 py-3 text-slate-600">{r.merk || "—"}</td>
                   <td className="px-4 py-3 text-slate-600">{r.vehicleKind || "—"}</td>
                   <td className="px-4 py-3 font-medium">{r.year || "—"}</td>
+                  <td className="px-4 py-3 font-semibold">{r.qty ?? 1}</td>
+                  <td className="px-4 py-3 uppercase text-slate-600">{r.unit || "PCS"}</td>
                   <td className="px-4 py-3 font-semibold">{fmt(r.price)}</td>
                   <td className="px-4 py-3">{r.workshop || "—"}</td>
                   <td className="px-4 py-3">
@@ -216,7 +221,7 @@ export default function SparePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setEditor({ ...r, merk: r.merk || "", year: r.year ?? "" }); }}>
+                    <button type="button" className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setEditor({ ...r, merk: r.merk || "", year: r.year ?? "", qty: r.qty || 1, unit: r.unit || "PCS" }); }}>
                       Ubah
                     </button>
                     <button type="button" className="text-xs font-semibold text-red-600" onClick={() => remove(r)}>
@@ -351,6 +356,23 @@ export default function SparePage() {
                     ))}
                     {editor.year && !editorYears.includes(Number(editor.year)) && (
                       <option value={String(editor.year)}>{editor.year}</option>
+                    )}
+                  </select>
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  QTY
+                  <input className={inputCls} type="number" min={1} required value={editor.qty ?? 1} onChange={(e) => setEditor({ ...editor, qty: Math.max(1, Number(e.target.value) || 1) })} />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Unit
+                  <select className={inputCls} value={editor.unit || "PCS"} onChange={(e) => setEditor({ ...editor, unit: e.target.value })}>
+                    {SPARE_UNITS.map((u) => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                    {editor.unit && !SPARE_UNITS.includes(editor.unit as (typeof SPARE_UNITS)[number]) && (
+                      <option value={editor.unit}>{editor.unit}</option>
                     )}
                   </select>
                 </label>

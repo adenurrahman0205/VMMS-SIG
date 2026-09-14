@@ -9,6 +9,8 @@ export type SparepartRow = {
   vehicleKind: string;
   year: number | "";
   price: number;
+  qty: number;
+  unit: string;
   workshop: string;
   workshopId?: string;
   source: "manual" | "wo";
@@ -17,6 +19,8 @@ export type SparepartRow = {
   active: boolean;
 };
 
+export const SPARE_UNITS = ["PCS", "SET", "PSG", "BH", "LTR", "KIT", "ROLL", "MTR", "KG"] as const;
+
 const KEY = "vmms-spareparts-v1";
 
 function normalize(r: SparepartRow): SparepartRow {
@@ -24,6 +28,8 @@ function normalize(r: SparepartRow): SparepartRow {
     ...r,
     merk: r.merk ?? "",
     year: r.year === undefined || r.year === null ? "" : r.year,
+    qty: Number(r.qty) > 0 ? Number(r.qty) : 1,
+    unit: (r.unit || "PCS").toUpperCase(),
   };
 }
 
@@ -45,6 +51,8 @@ export function blankSpare(rows: SparepartRow[] = []): SparepartRow {
     vehicleKind: "",
     year: "",
     price: 0,
+    qty: 1,
+    unit: "PCS",
     workshop: "",
     notes: "",
     source: "manual",
