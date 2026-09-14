@@ -88,7 +88,7 @@ export default function UserWo() {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setOpen(false)}>
           <div className="absolute inset-0 bg-[#071526]/75" />
           <form className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
             <h3 className="mb-4 text-lg font-semibold">Formulir work order</h3>

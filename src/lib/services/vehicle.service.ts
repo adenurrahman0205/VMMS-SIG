@@ -63,6 +63,7 @@ export const vehicleService = {
             madeYear: v.year ?? 0,
             bbmNo: "0000-0000-0000-0000",
             bbmImage: "",
+            nextServiceKm: (v.current_odometer ?? 0) + 10000,
           })),
         };
       }

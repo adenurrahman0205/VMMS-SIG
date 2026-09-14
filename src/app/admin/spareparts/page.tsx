@@ -222,7 +222,7 @@ export default function SparePage() {
       </div>
 
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
+        <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <div className="anim relative max-h-[92vh] w-full max-w-lg overflow-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="bg-[#071526] px-6 py-5 text-white">
@@ -257,7 +257,7 @@ export default function SparePage() {
       )}
 
       {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <form className="anim relative max-h-[94vh] w-full max-w-lg overflow-auto rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()} onSubmit={save}>
             <div className="flex items-center justify-between bg-[#071526] px-6 py-4 text-white">

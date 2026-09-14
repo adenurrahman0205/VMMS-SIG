@@ -106,7 +106,7 @@ export function PengajuanModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
       <div
         className="anim relative max-h-[94vh] w-full max-w-4xl overflow-auto rounded-3xl bg-white shadow-2xl"

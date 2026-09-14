@@ -218,7 +218,7 @@ export default function UsersPage() {
       </div>
 
       {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <form
             className="anim relative max-h-[94vh] w-full max-w-lg overflow-auto rounded-3xl bg-white shadow-2xl"

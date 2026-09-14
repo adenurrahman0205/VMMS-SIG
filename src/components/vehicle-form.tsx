@@ -89,7 +89,7 @@ export function VehicleForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6" onClick={onClose}>
       <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-md" />
       <form
         className="anim relative flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"

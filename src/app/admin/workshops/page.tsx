@@ -264,7 +264,7 @@ export default function WorkshopsPage() {
       )}
 
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
+        <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" onClick={() => setDetail(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <div
             className="anim relative max-h-[94vh] w-full max-w-3xl overflow-auto rounded-t-3xl bg-[#0b1628] text-slate-100 shadow-2xl ring-1 ring-white/10 sm:rounded-3xl"
@@ -361,7 +361,7 @@ export default function WorkshopsPage() {
       )}
 
       {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setEditor(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <form
             className="anim relative max-h-[94vh] w-full max-w-2xl overflow-auto rounded-3xl bg-white shadow-2xl"

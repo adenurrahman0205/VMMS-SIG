@@ -109,7 +109,7 @@ export function BookingDetailPopup({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
       <div
         className="anim relative max-h-[94vh] w-full max-w-3xl overflow-auto rounded-t-3xl bg-[#0b1628] text-slate-100 shadow-2xl ring-1 ring-white/10 sm:rounded-3xl"

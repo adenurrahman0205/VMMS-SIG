@@ -371,7 +371,7 @@ export default function Mnt() {
       </div>
 
       {histJob && histV && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setHistId(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setHistId(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <div className="anim relative max-h-[92vh] w-full max-w-3xl overflow-auto rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="relative h-44">
@@ -489,7 +489,7 @@ export default function Mnt() {
       )}
 
       {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6" onClick={() => setEditor(null)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-md" />
           <form
             className="anim relative flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
