@@ -197,11 +197,10 @@ export default function SparePage() {
                   </td>
                 </tr>
               )}
-              {list.map((r, i) => (
+              {pageRows.map((r) => (
                 <tr
                   key={r.id}
-                  className="card-hover cursor-pointer border-t border-slate-100 hover:bg-sky-50/60"
-                  style={{ animationDelay: `${i * 30}ms` }}
+                  className="cursor-pointer border-t border-slate-100 hover:bg-sky-50/60"
                   onClick={() => setDetail(r)}
                 >
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-sky-800">{r.code}</td>
