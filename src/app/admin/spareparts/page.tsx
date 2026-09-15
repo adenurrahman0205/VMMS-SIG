@@ -231,8 +231,8 @@ export default function SparePage() {
           <table className="w-full min-w-[1280px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Foto", "Kode", "Nama", "Tanggal", "Harga", "QTY", "Unit", "Merk", "Jenis mobil", "Tahun", "Bengkel", "Sumber", ""].map((h) => (
-                  <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
+                {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "Tanggal", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
+                  <th key={h || "x"} className="whitespace-nowrap px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
