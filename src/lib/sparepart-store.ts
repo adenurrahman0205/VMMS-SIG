@@ -9,6 +9,7 @@ export type SparepartRow = {
   vehicleKind: string;
   year: number | "";
   price: number;
+  buyDate: string;
   qty: number;
   unit: string;
   workshop: string;
@@ -31,6 +32,7 @@ function normalize(r: SparepartRow): SparepartRow {
     year: r.year === undefined || r.year === null ? "" : r.year,
     qty: Number(r.qty) > 0 ? Number(r.qty) : 1,
     unit: (r.unit || "PCS").toUpperCase(),
+    buyDate: typeof r.buyDate === "string" ? r.buyDate : "",
     photo: typeof r.photo === "string" ? r.photo : "",
   };
 }
@@ -107,12 +109,14 @@ export function ingestFromJobs(jobs: Maintenance[], fleet: Vehicle[]) {
         vehicleKind: kind,
         year,
         price: Number(it.price) || 0,
+        buyDate: j.date || "",
         qty: Number(it.qty) > 0 ? Number(it.qty) : 1,
         unit: "PCS",
         workshop: shop,
         source: "wo",
         woId: j.id,
         notes: `Dari work order ${j.id}`,
+        photo: "",
         active: true,
       };
       const fp = fingerprint(row);

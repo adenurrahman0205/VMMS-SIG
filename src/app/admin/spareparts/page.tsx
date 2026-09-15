@@ -101,7 +101,7 @@ export default function SparePage() {
       if (kindF !== "all" && r.vehicleKind !== kindF) return false;
       if (yearF !== "all" && String(r.year) !== yearF) return false;
       if (!s) return true;
-      return `${r.code} ${r.name} ${r.merk} ${r.vehicleKind} ${r.year} ${r.workshop}`.toLowerCase().includes(s);
+      return `${r.code} ${r.name} ${r.merk} ${r.vehicleKind} ${r.year} ${r.workshop} ${r.buyDate}`.toLowerCase().includes(s);
     });
   }, [rows, q, shopF, kindF, yearF]);
 
@@ -129,6 +129,7 @@ export default function SparePage() {
       qty: Number(editor.qty) > 0 ? Number(editor.qty) : 1,
       unit: (editor.unit || "PCS").toUpperCase(),
       year,
+      buyDate: editor.buyDate || "",
       photo: editor.photo || "",
     };
     persist(exists ? rows.map((r) => (r.id === row.id ? row : r)) : [row, ...rows]);
@@ -223,7 +224,7 @@ export default function SparePage() {
           <table className="w-full min-w-[1280px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Bengkel", "Sumber", ""].map((h) => (
+                {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Tanggal", "Bengkel", "Sumber", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -231,7 +232,7 @@ export default function SparePage() {
             <tbody>
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={13} className="px-4 py-14 text-center text-slate-400">
                     Belum ada sparepart. Tambah manual atau buat WO berisi item sparepart.
                   </td>
                 </tr>
@@ -257,6 +258,7 @@ export default function SparePage() {
                   <td className="px-4 py-3 font-semibold">{r.qty ?? 1}</td>
                   <td className="px-4 py-3 uppercase text-slate-600">{r.unit || "PCS"}</td>
                   <td className="px-4 py-3 font-semibold">{fmt(r.price)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{r.buyDate || "—"}</td>
                   <td className="px-4 py-3">{r.workshop || "—"}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${r.source === "wo" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
@@ -335,6 +337,7 @@ export default function SparePage() {
                 ["QTY", String(detail.qty ?? 1)],
                 ["Unit", (detail.unit || "PCS").toUpperCase()],
                 ["Harga", fmt(detail.price)],
+                ["Tanggal beli", detail.buyDate || "—"],
                 ["Bengkel", detail.workshop || "—"],
                 ["Sumber", detail.source === "wo" ? "Work order" : "Manual"],
                 ["WO terkait", detail.woId || "—"],
