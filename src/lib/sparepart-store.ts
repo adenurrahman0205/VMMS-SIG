@@ -90,8 +90,19 @@ export function saveSpareparts(rows: SparepartRow[]) {
 }
 
 /** Tambah baris baru dari WO. Tidak menimpa/menghapus katalog, tidak mengubah WO. */
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function ingestFromJobs(jobs: Maintenance[], fleet: Vehicle[]) {
-  const rows = loadSpareparts();
+  let rows = loadSpareparts();
+  let patched = false;
+  rows = rows.map((r) => {
+    if (r.buyDate) return r;
+    const j = r.woId ? jobs.find((x) => x.id === r.woId) : undefined;
+    patched = true;
+    return { ...r, buyDate: j?.date || todayIso() };
+  });
   const seen = new Set(rows.map((r) => fingerprint(r)));
   const extra: SparepartRow[] = [];
   jobs.forEach((j) => {
@@ -126,7 +137,10 @@ export function ingestFromJobs(jobs: Maintenance[], fleet: Vehicle[]) {
       extra.push(row);
     });
   });
-  if (!extra.length) return rows;
+  if (!extra.length) {
+    if (patched) saveSpareparts(rows);
+    return rows;
+  }
   const next = [...extra, ...rows];
   saveSpareparts(next);
   return next;

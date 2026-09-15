@@ -19,6 +19,13 @@ import {
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
 
+function fmtDate(iso?: string) {
+  if (!iso) return "—";
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 function compressPartPhoto(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -224,7 +231,7 @@ export default function SparePage() {
           <table className="w-full min-w-[1280px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Foto", "Kode", "Nama", "Merk", "Jenis mobil", "Tahun", "QTY", "Unit", "Harga", "Tanggal", "Bengkel", "Sumber", ""].map((h) => (
+                {["Foto", "Kode", "Nama", "Tanggal", "Harga", "QTY", "Unit", "Merk", "Jenis mobil", "Tahun", "Bengkel", "Sumber", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -336,8 +343,8 @@ export default function SparePage() {
                 ["Tahun mobil", detail.year ? String(detail.year) : "—"],
                 ["QTY", String(detail.qty ?? 1)],
                 ["Unit", (detail.unit || "PCS").toUpperCase()],
+                ["Tanggal beli", fmtDate(detail.buyDate)],
                 ["Harga", fmt(detail.price)],
-                ["Tanggal beli", detail.buyDate || "—"],
                 ["Bengkel", detail.workshop || "—"],
                 ["Sumber", detail.source === "wo" ? "Work order" : "Manual"],
                 ["WO terkait", detail.woId || "—"],
