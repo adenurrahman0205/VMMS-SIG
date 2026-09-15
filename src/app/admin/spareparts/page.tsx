@@ -262,10 +262,10 @@ export default function SparePage() {
                   <td className="px-4 py-3 text-slate-600">{r.merk || "—"}</td>
                   <td className="px-4 py-3 text-slate-600">{r.vehicleKind || "—"}</td>
                   <td className="px-4 py-3 font-medium">{r.year || "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium">{fmtDate(r.buyDate)}</td>
                   <td className="px-4 py-3 font-semibold">{r.qty ?? 1}</td>
                   <td className="px-4 py-3 uppercase text-slate-600">{r.unit || "PCS"}</td>
                   <td className="px-4 py-3 font-semibold">{fmt(r.price)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{r.buyDate || "—"}</td>
                   <td className="px-4 py-3">{r.workshop || "—"}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${r.source === "wo" ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}`}>
