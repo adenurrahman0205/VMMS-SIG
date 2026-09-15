@@ -38,11 +38,18 @@ export default function DataBackupPage() {
             ))}
           </div>
           <label className="text-xs text-slate-500">Format</label>
-          <select value={fmt} onChange={(e) => setFmt(e.target.value as typeof fmt)} className="mt-1 mb-4 block w-full rounded-lg border border-slate-200 px-2 py-2 text-sm">
-            <option value="xlsx">Excel (.xlsx)</option>
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option>
-          </select>
+          <div className="mb-4">
+            <SearchSelect
+              allowEmpty={false}
+              value={fmt}
+              onChange={(v) => setFmt(v as typeof fmt)}
+              options={[
+                { value: "xlsx", label: "Excel (.xlsx)" },
+                { value: "csv", label: "CSV" },
+                { value: "json", label: "JSON" },
+              ]}
+            />
+          </div>
           <button className="rounded-lg bg-[#2f80ed] px-4 py-2 text-sm font-semibold !text-white" onClick={() => downloadWorkbook(sel, fmt)}>
             EXPORT DATA
           </button>
