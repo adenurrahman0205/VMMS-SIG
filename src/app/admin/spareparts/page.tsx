@@ -471,10 +471,16 @@ export default function SparePage() {
                   />
                 </label>
               </div>
-              <label className="block text-xs font-semibold uppercase text-slate-500">
-                Harga
-                <input className={inputCls} type="number" min={0} required value={editor.price} onChange={(e) => setEditor({ ...editor, price: Number(e.target.value) || 0 })} />
-              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Harga
+                  <input className={inputCls} type="number" min={0} required value={editor.price} onChange={(e) => setEditor({ ...editor, price: Number(e.target.value) || 0 })} />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Tanggal beli
+                  <input className={inputCls} type="date" value={editor.buyDate || ""} onChange={(e) => setEditor({ ...editor, buyDate: e.target.value })} />
+                </label>
+              </div>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Bengkel
                 <SearchSelect
