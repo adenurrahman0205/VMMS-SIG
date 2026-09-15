@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchSelect } from "@/components/search-select";
 import { findWorkshop, type Workshop } from "@/lib/workshop-store";
 
 export function WorkshopSelect({
