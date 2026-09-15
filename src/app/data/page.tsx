@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
 import { backupHistory } from "@/lib/data";
 import { downloadWorkbook, sqlDump, type Dataset } from "@/lib/export";
+import { SearchSelect } from "@/components/search-select";
 
 const sets: { id: Dataset; label: string }[] = [
   { id: "maintenance", label: "Maintenance" },

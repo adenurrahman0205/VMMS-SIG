@@ -24,12 +24,12 @@ export function WorkshopSelect({
 
   return (
     <>
-      <select
+      <SearchSelect
         className={className}
         required={required}
+        placeholder="Pilih bengkel mitra"
         value={selected}
-        onChange={(e) => {
-          const id = e.target.value;
+        onChange={(id) => {
           if (!id) {
             onPick(null);
             return;
@@ -38,20 +38,14 @@ export function WorkshopSelect({
           const w = shops.find((x) => x.id === id) || null;
           onPick(w);
         }}
-      >
-        <option value="">Pilih bengkel mitra</option>
-        {extra && <option value="__legacy__">{extra} (tidak di master)</option>}
-        {active.map((w) => (
-          <option key={w.id} value={w.id}>
-            {w.code} — {w.name} · {w.city || "—"}
-          </option>
-        ))}
-        {current && !current.active && (
-          <option value={current.id}>
-            {current.code} — {current.name} (arsip)
-          </option>
-        )}
-      </select>
+        options={[
+          ...(extra ? [{ value: "__legacy__", label: `${extra} (tidak di master)` }] : []),
+          ...active.map((w) => ({ value: w.id, label: `${w.code} — ${w.name} · ${w.city || "—"}` })),
+          ...(current && !current.active
+            ? [{ value: current.id, label: `${current.code} — ${current.name} (arsip)` }]
+            : []),
+        ]}
+      />
       {current && (
         <div className="mt-2 rounded-2xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 ring-1 ring-slate-200">
           <div className="font-semibold text-slate-800">{current.name}</div>

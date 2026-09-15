@@ -5,6 +5,7 @@ import { type Vehicle, vehiclePhoto } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadBookings, saveBookings, type Booking } from "@/lib/schedule-store";
 import { loadUsers, type AppUser } from "@/lib/user-store";
+import { SearchSelect } from "@/components/search-select";
 
 export function PengajuanModal({
   onClose,
@@ -129,21 +130,15 @@ export function PengajuanModal({
             </label>
             <label className="block text-xs font-semibold uppercase text-slate-500">
               Kendaraan
-              <select
-                className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm"
+              <SearchSelect
                 required
+                placeholder="Pilih unit"
                 value={form.vehicleId}
-                onChange={(e) => {
-                  const id = e.target.value;
+                onChange={(id) => {
                   setErr("");
-                  setForm({
-                    ...form,
-                    vehicleId: id,
-                  });
+                  setForm({ ...form, vehicleId: id });
                 }}
-              >
-                <option value="">Pilih unit</option>
-                {fleet.map((x) => {
+                options={fleet.map((x) => {
                   const f = unitFlag(x.id);
                   const tag =
                     f.kind === "ok"
@@ -153,13 +148,9 @@ export function PengajuanModal({
                         : f.kind === "request"
                           ? `Ada request${f.who ? ` · ${f.who}` : ""}`
                           : "Maintenance";
-                  return (
-                    <option key={x.id} value={x.id}>
-                      {x.plate} — {x.brand} {x.model} ({tag})
-                    </option>
-                  );
+                  return { value: x.id, label: `${x.plate} — ${x.brand} ${x.model} (${tag})` };
                 })}
-              </select>
+              />
             </label>
 
             {flag && flag.kind !== "ok" && (
@@ -179,13 +170,12 @@ export function PengajuanModal({
 
             <label className="block text-xs font-semibold uppercase text-slate-500">
               Nama pemohon
-              <select
-                className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm"
+              <SearchSelect
                 required
                 disabled={!!lockUser}
+                placeholder="Pilih dari daftar User"
                 value={userId}
-                onChange={(e) => {
-                  const id = e.target.value;
+                onChange={(id) => {
                   const u = users.find((x) => x.id === id);
                   setUserId(id);
                   setForm({
@@ -196,14 +186,11 @@ export function PengajuanModal({
                     phone: u?.phone || "",
                   });
                 }}
-              >
-                <option value="">Pilih dari daftar User</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} · {u.dept || "—"} · {u.jabatan || "—"}
-                  </option>
-                ))}
-              </select>
+                options={users.map((u) => ({
+                  value: u.id,
+                  label: `${u.name} · ${u.dept || "—"} · ${u.jabatan || "—"}`,
+                }))}
+              />
             </label>
             {userId && (
               <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">

@@ -5,6 +5,7 @@ import { Badge, Shell } from "@/components/shell";
 import { blankUser, loadUsers, saveUsers, type AppRole, type AppUser } from "@/lib/user-store";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { compressAvatar } from "@/lib/services/profile.service";
+import { SearchSelect } from "@/components/search-select";
 
 function initials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
@@ -334,11 +335,16 @@ export default function UsersPage() {
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Role
-                <select className={inputCls} value={editor.role} onChange={(e) => setEditor({ ...editor, role: e.target.value as AppRole })}>
-                  <option value="USER">USER</option>
-                  <option value="FLEET_ADMIN">FLEET_ADMIN</option>
-                  <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                </select>
+                <SearchSelect
+                  allowEmpty={false}
+                  value={editor.role}
+                  onChange={(v) => setEditor({ ...editor, role: v as AppRole })}
+                  options={[
+                    { value: "USER", label: "USER" },
+                    { value: "FLEET_ADMIN", label: "FLEET_ADMIN" },
+                    { value: "SUPER_ADMIN", label: "SUPER_ADMIN" },
+                  ]}
+                />
               </label>
               {formMsg && <p className="text-sm text-amber-700">{formMsg}</p>}
               <p className="text-xs text-slate-400">

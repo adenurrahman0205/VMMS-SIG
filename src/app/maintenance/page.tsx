@@ -8,6 +8,7 @@ import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
 import { findWorkshop, loadWorkshops, type Workshop } from "@/lib/workshop-store";
 import { WorkshopCell, WorkshopSelect } from "@/components/workshop-select";
+import { SearchSelect } from "@/components/search-select";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
@@ -509,11 +510,14 @@ export default function Mnt() {
               <div className="space-y-3 p-6 lg:col-span-3">
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Kendaraan
-                  <select className={inputCls} value={editor.vehicleId} onChange={(e) => setEditor({ ...editor, vehicleId: e.target.value })}>
-                    {fleet.map((v) => (
-                      <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>
-                    ))}
-                  </select>
+                  <SearchSelect
+                    required
+                    allowEmpty={false}
+                    placeholder="Pilih unit"
+                    value={editor.vehicleId}
+                    onChange={(v) => setEditor({ ...editor, vehicleId: v })}
+                    options={fleet.map((v) => ({ value: v.id, label: `${v.plate} — ${v.brand} ${v.model}` }))}
+                  />
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block text-xs font-semibold uppercase text-slate-500">
@@ -528,16 +532,24 @@ export default function Mnt() {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block text-xs font-semibold uppercase text-slate-500">
                     Jenis
-                    <select className={inputCls} value={editor.type} onChange={(e) => setEditor({ ...editor, type: e.target.value })}>
-                      {TYPES.map((t) => <option key={t}>{t}</option>)}
-                    </select>
+                    <SearchSelect
+                      allowEmpty={false}
+                      value={editor.type}
+                      onChange={(v) => setEditor({ ...editor, type: v })}
+                      options={TYPES.map((t) => ({ value: t, label: t }))}
+                    />
                   </label>
                   <label className="block text-xs font-semibold uppercase text-slate-500">
                     Status
-                    <select className={inputCls} value={editor.status} onChange={(e) => setEditor({ ...editor, status: e.target.value as Maintenance["status"] })}>
-                      <option value="proses">Proses</option>
-                      <option value="selesai">Selesai</option>
-                    </select>
+                    <SearchSelect
+                      allowEmpty={false}
+                      value={editor.status}
+                      onChange={(v) => setEditor({ ...editor, status: v as Maintenance["status"] })}
+                      options={[
+                        { value: "proses", label: "Proses" },
+                        { value: "selesai", label: "Selesai" },
+                      ]}
+                    />
                   </label>
                 </div>
                 <label className="block text-xs font-semibold uppercase text-slate-500">

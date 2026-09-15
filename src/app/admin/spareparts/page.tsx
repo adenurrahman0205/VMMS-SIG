@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Shell } from "@/components/shell";
+import { SearchSelect } from "@/components/search-select";
 import { fmt, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadJobs } from "@/lib/maintenance-store";
@@ -189,26 +190,32 @@ export default function SparePage() {
           <span className="mr-2 text-slate-400">⌕</span>
           <input className="w-full text-sm outline-none" placeholder="Cari kode, nama, merk, jenis, tahun…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={kindF} onChange={(e) => { setKindF(e.target.value); setYearF("all"); }}>
-          <option value="all">Semua jenis mobil</option>
-          {kinds.map((k) => (
-            <option key={k}>{k}</option>
-          ))}
-        </select>
-        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={yearF} onChange={(e) => setYearF(e.target.value)}>
-          <option value="all">Semua tahun</option>
-          {Array.from(new Set(rows.map((r) => r.year).filter(Boolean)))
-            .sort((a, b) => Number(b) - Number(a))
-            .map((y) => (
-              <option key={String(y)}>{y}</option>
-            ))}
-        </select>
-        <select className="rounded-2xl border bg-white px-3 py-2 text-sm" value={shopF} onChange={(e) => setShopF(e.target.value)}>
-          <option value="all">Semua bengkel</option>
-          {shops.map((k) => (
-            <option key={k}>{k}</option>
-          ))}
-        </select>
+        <div className="min-w-[180px] lg:w-52">
+          <SearchSelect
+            value={kindF === "all" ? "" : kindF}
+            placeholder="Semua jenis mobil"
+            onChange={(v) => { setKindF(v || "all"); setYearF("all"); }}
+            options={kinds.map((k) => ({ value: k, label: k }))}
+          />
+        </div>
+        <div className="min-w-[140px] lg:w-40">
+          <SearchSelect
+            value={yearF === "all" ? "" : yearF}
+            placeholder="Semua tahun"
+            onChange={(v) => setYearF(v || "all")}
+            options={Array.from(new Set(rows.map((r) => r.year).filter(Boolean)))
+              .sort((a, b) => Number(b) - Number(a))
+              .map((y) => ({ value: String(y), label: String(y) }))}
+          />
+        </div>
+        <div className="min-w-[180px] lg:w-52">
+          <SearchSelect
+            value={shopF === "all" ? "" : shopF}
+            placeholder="Semua bengkel"
+            onChange={(v) => setShopF(v || "all")}
+            options={shops.map((k) => ({ value: k, label: k }))}
+          />
+        </div>
       </div>
 
       <div className="anim overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -414,38 +421,31 @@ export default function SparePage() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Jenis mobil
-                  <select
-                    className={inputCls}
+                  <SearchSelect
                     required
+                    placeholder="Pilih dari armada"
                     value={editor.vehicleKind}
-                    onChange={(e) => {
-                      const kind = e.target.value;
+                    onChange={(kind) => {
                       const ys = yearsForKind.get(kind) ?? [];
                       setEditor({ ...editor, vehicleKind: kind, year: ys[0] ?? "" });
                     }}
-                  >
-                    <option value="">Pilih dari armada</option>
-                    {kinds.map((k) => (
-                      <option key={k} value={k}>{k}</option>
-                    ))}
-                  </select>
+                    options={kinds.map((k) => ({ value: k, label: k }))}
+                  />
                 </label>
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Tahun mobil
-                  <select
-                    className={inputCls}
+                  <SearchSelect
                     required
+                    placeholder="Pilih tahun"
                     value={editor.year === "" ? "" : String(editor.year)}
-                    onChange={(e) => setEditor({ ...editor, year: e.target.value ? Number(e.target.value) : "" })}
-                  >
-                    <option value="">Pilih tahun</option>
-                    {editorYears.map((y) => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                    {editor.year && !editorYears.includes(Number(editor.year)) && (
-                      <option value={String(editor.year)}>{editor.year}</option>
-                    )}
-                  </select>
+                    onChange={(v) => setEditor({ ...editor, year: v ? Number(v) : "" })}
+                    options={[
+                      ...editorYears.map((y) => ({ value: String(y), label: String(y) })),
+                      ...(editor.year && !editorYears.includes(Number(editor.year))
+                        ? [{ value: String(editor.year), label: String(editor.year) }]
+                        : []),
+                    ]}
+                  />
                 </label>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -455,14 +455,17 @@ export default function SparePage() {
                 </label>
                 <label className="block text-xs font-semibold uppercase text-slate-500">
                   Unit
-                  <select className={inputCls} value={editor.unit || "PCS"} onChange={(e) => setEditor({ ...editor, unit: e.target.value })}>
-                    {SPARE_UNITS.map((u) => (
-                      <option key={u} value={u}>{u}</option>
-                    ))}
-                    {editor.unit && !SPARE_UNITS.includes(editor.unit as (typeof SPARE_UNITS)[number]) && (
-                      <option value={editor.unit}>{editor.unit}</option>
-                    )}
-                  </select>
+                  <SearchSelect
+                    allowEmpty={false}
+                    value={editor.unit || "PCS"}
+                    onChange={(v) => setEditor({ ...editor, unit: v })}
+                    options={[
+                      ...SPARE_UNITS.map((u) => ({ value: u, label: u })),
+                      ...(editor.unit && !SPARE_UNITS.includes(editor.unit as (typeof SPARE_UNITS)[number])
+                        ? [{ value: editor.unit, label: editor.unit }]
+                        : []),
+                    ]}
+                  />
                 </label>
               </div>
               <label className="block text-xs font-semibold uppercase text-slate-500">
@@ -471,12 +474,12 @@ export default function SparePage() {
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Bengkel
-                <select className={inputCls} value={editor.workshop} onChange={(e) => setEditor({ ...editor, workshop: e.target.value })}>
-                  <option value="">Pilih bengkel</option>
-                  {shops.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
+                <SearchSelect
+                  placeholder="Pilih bengkel"
+                  value={editor.workshop}
+                  onChange={(v) => setEditor({ ...editor, workshop: v })}
+                  options={shops.map((k) => ({ value: k, label: k }))}
+                />
               </label>
               <label className="block text-xs font-semibold uppercase text-slate-500">
                 Catatan

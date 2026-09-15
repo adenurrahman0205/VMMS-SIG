@@ -5,6 +5,7 @@ import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
 import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle, vehiclePhoto } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
+import { SearchSelect } from "@/components/search-select";
 
 function Field({
   label,
@@ -155,11 +156,14 @@ export function VehicleForm({
               <input className={inputCls} type="number" value={form.year} onChange={(e) => set("year", e.target.value)} readOnly={sections === "docs"} />
             </Field>
             <Field label="Status">
-              <select className={inputCls} value={form.status} disabled={sections === "docs"} onChange={(e) => setForm({ ...form, status: e.target.value as Vehicle["status"] })}>
-                {statuses.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              <SearchSelect
+                disabled={sections === "docs"}
+                allowEmpty={false}
+                placeholder="Pilih status"
+                value={form.status}
+                onChange={(v) => setForm({ ...form, status: v as Vehicle["status"] })}
+                options={statuses.map((s) => ({ value: s, label: s }))}
+              />
             </Field>
           </div>
 
@@ -178,14 +182,15 @@ export function VehicleForm({
               <input className={inputCls} value={form.fuel} onChange={(e) => set("fuel", e.target.value)} />
             </Field>
             <Field label="Transmisi">
-              <select
-                className={inputCls}
+              <SearchSelect
+                allowEmpty={false}
                 value={form.transmission ?? "matic"}
-                onChange={(e) => setForm({ ...form, transmission: e.target.value as Vehicle["transmission"] })}
-              >
-                <option value="matic">Matic</option>
-                <option value="manual">Manual</option>
-              </select>
+                onChange={(v) => setForm({ ...form, transmission: v as Vehicle["transmission"] })}
+                options={[
+                  { value: "matic", label: "Matic" },
+                  { value: "manual", label: "Manual" },
+                ]}
+              />
             </Field>
             <Field label="Isi silinder">
               <input className={inputCls} value={form.cc} onChange={(e) => set("cc", e.target.value)} />
@@ -214,21 +219,22 @@ export function VehicleForm({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Pemilik & penugasan</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Kategori pemilik">
-              <select
-                className={inputCls}
+              <SearchSelect
+                allowEmpty={false}
                 value={form.ownerKind ?? "sig"}
-                onChange={(e) => {
-                  const ownerKind = e.target.value as OwnerKind;
+                onChange={(v) => {
+                  const ownerKind = v as OwnerKind;
                   setForm({
                     ...form,
                     ownerKind,
                     owner: ownerKind === "sig" && !form.owner.toLowerCase().includes("sig") ? "PT SIG Operasional" : form.owner,
                   });
                 }}
-              >
-                <option value="sig">PT SIG (milik sendiri)</option>
-                <option value="vendor">Vendor / Rental</option>
-              </select>
+                options={[
+                  { value: "sig", label: "PT SIG (milik sendiri)" },
+                  { value: "vendor", label: "Vendor / Rental" },
+                ]}
+              />
             </Field>
             <Field label={form.ownerKind === "vendor" ? "Nama vendor / rental" : "Nama pemilik"}>
               <input className={inputCls} value={form.owner} onChange={(e) => set("owner", e.target.value)} />
@@ -259,20 +265,19 @@ export function VehicleForm({
             {(form.documents ?? []).map((d, i) => (
               <div key={i} className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-12">
                 <div className="sm:col-span-4">
-                  <select
-                    className={inputCls}
+                  <SearchSelect
+                    allowEmpty={false}
                     value={d.type}
-                    onChange={(e) => {
+                    onChange={(type) => {
                       const documents = [...(form.documents ?? [])];
-                      documents[i] = { ...d, type: e.target.value };
+                      documents[i] = { ...d, type };
                       setForm({ ...form, documents });
                     }}
-                  >
-                    {DOC_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                    {!DOC_TYPES.includes(d.type as (typeof DOC_TYPES)[number]) && <option value={d.type}>{d.type}</option>}
-                  </select>
+                    options={[
+                      ...DOC_TYPES.map((t) => ({ value: t, label: t })),
+                      ...(!DOC_TYPES.includes(d.type as (typeof DOC_TYPES)[number]) ? [{ value: d.type, label: d.type }] : []),
+                    ]}
+                  />
                 </div>
                 <div className="sm:col-span-4">
                   <input

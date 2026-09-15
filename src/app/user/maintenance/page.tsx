@@ -8,6 +8,7 @@ import { blankJob, loadJobs, saveJobs } from "@/lib/maintenance-store";
 import { loadFleet } from "@/lib/fleet-store";
 import { loadWorkshops, type Workshop } from "@/lib/workshop-store";
 import { WorkshopSelect } from "@/components/workshop-select";
+import { SearchSelect } from "@/components/search-select";
 import { fmt, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import type { AppUser } from "@/lib/user-store";
 
@@ -94,12 +95,13 @@ export default function UserWo() {
             <h3 className="mb-4 text-lg font-semibold">Formulir work order</h3>
             <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
               Unit
-              <select className={inputCls} required value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
-                <option value="">Pilih</option>
-                {fleet.map((v) => (
-                  <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>
-                ))}
-              </select>
+              <SearchSelect
+                required
+                placeholder="Pilih unit"
+                value={form.vehicleId}
+                onChange={(v) => setForm({ ...form, vehicleId: v })}
+                options={fleet.map((v) => ({ value: v.id, label: `${v.plate} — ${v.brand} ${v.model}` }))}
+              />
             </label>
             <div className="mb-3 grid grid-cols-2 gap-3">
               <label className="text-xs font-semibold uppercase text-slate-500">
@@ -113,11 +115,12 @@ export default function UserWo() {
             </div>
             <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
               Jenis
-              <select className={inputCls} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                {TYPES.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
+              <SearchSelect
+                allowEmpty={false}
+                value={form.type}
+                onChange={(v) => setForm({ ...form, type: v })}
+                options={TYPES.map((t) => ({ value: t, label: t }))}
+              />
             </label>
             <label className="mb-3 block text-xs font-semibold uppercase text-slate-500">
               Bengkel mitra
