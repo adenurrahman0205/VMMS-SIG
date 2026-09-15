@@ -55,6 +55,7 @@ export function blankSpare(rows: SparepartRow[] = []): SparepartRow {
     vehicleKind: "",
     year: "",
     price: 0,
+    buyDate: new Date().toISOString().slice(0, 10),
     qty: 1,
     unit: "PCS",
     workshop: "",
