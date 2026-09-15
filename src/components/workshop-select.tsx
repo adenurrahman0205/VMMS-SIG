@@ -29,7 +29,7 @@ export function WorkshopSelect({
         required={required}
         placeholder="Pilih bengkel mitra"
         value={selected}
-        onChange={(id) => {
+        onChange={(id: string) => {
           if (!id) {
             onPick(null);
             return;
