@@ -473,7 +473,7 @@ export default function Mnt() {
                   <td colSpan={9} className="px-4 py-12 text-center text-slate-400">Tidak ada work order pada rentang tanggal ini.</td>
                 </tr>
               )}
-              {filtered.map((m) => {
+              {woRows.map((m) => {
                 const v = fleet.find((x) => x.id === m.vehicleId);
                 return (
                   <tr
@@ -503,32 +503,67 @@ export default function Mnt() {
                     <td className="px-4 py-3 font-semibold">
                       {m.status === "selesai" ? fmt(woTotal(m)) : <span className="text-slate-400">—</span>}
                     </td>
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <select
-                        value={m.status}
-                        onChange={(e) => setJobStatus(m.id, e.target.value as Maintenance["status"])}
-                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase ${
                           m.status === "proses" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"
                         }`}
                       >
-                        <option value="proses">Proses</option>
-                        <option value="selesai">Selesai</option>
-                      </select>
+                        {m.status === "proses" ? "Proses" : "Selesai"}
+                      </span>
                     </td>
                     <td className="sticky right-0 bg-white px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 hover:bg-red-600 hover:!text-white"
-                        onClick={() => removeJob(m.id)}
-                      >
-                        Hapus
-                      </button>
+                      {m.status === "proses" ? (
+                        <button
+                          type="button"
+                          className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                          onClick={() => setJobStatus(m.id, "selesai")}
+                        >
+                          Selesai
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
+                          onClick={() => removeJob(m.id)}
+                        >
+                          Hapus
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
+          <p className="text-xs text-slate-500">
+            {filtered.length === 0
+              ? "0 work order"
+              : `${(woPageSafe - 1) * WO_PAGE + 1}–${Math.min(woPageSafe * WO_PAGE, filtered.length)} dari ${filtered.length} work order`}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={woPageSafe <= 1}
+              className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+              onClick={() => setWoPage((p) => Math.max(1, p - 1))}
+            >
+              Sebelumnya
+            </button>
+            <span className="text-xs font-semibold text-slate-600">
+              {woPageSafe} / {woPageCount}
+            </span>
+            <button
+              type="button"
+              disabled={woPageSafe >= woPageCount}
+              className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+              onClick={() => setWoPage((p) => Math.min(woPageCount, p + 1))}
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       </div>
 
