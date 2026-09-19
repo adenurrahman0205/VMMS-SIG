@@ -17,6 +17,7 @@ import {
 import { findWorkshop, loadWorkshops, type Workshop } from "@/lib/workshop-store";
 import { WorkshopCell, WorkshopSelect } from "@/components/workshop-select";
 import { SearchSelect } from "@/components/search-select";
+import { openSpkPdf } from "@/lib/print-spk";
 
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const TYPES = ["Service Berkala", "Ganti Oli", "Ganti Rem", "Service AC", "Ganti Ban", "Perbaikan Lain"];
@@ -628,6 +629,20 @@ export default function Mnt() {
                 <div>
                   <div className="text-lg font-semibold">{histJob.type}</div>
                   <div className="text-xs text-slate-500">{histJob.id} · KM {fmtN(histJob.km)} · {findWorkshop(shops, histJob.shop, histJob.workshopId)?.name || histJob.shop || "Bengkel belum diisi"}</div>
+                  <button
+                    type="button"
+                    className="mt-2 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800 ring-1 ring-sky-200"
+                    onClick={() =>
+                      openSpkPdf({
+                        job: histJob,
+                        jobs,
+                        vehicle: histV,
+                        workshop: findWorkshop(shops, histJob.shop, histJob.workshopId),
+                      })
+                    }
+                  >
+                    PDF SPK
+                  </button>
                 </div>
                 <div className="text-right">
                   <div className="text-[11px] uppercase text-slate-400">{histJob.status === "selesai" ? "Total WO" : "Belum ditagih"}</div>
