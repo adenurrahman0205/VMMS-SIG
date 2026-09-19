@@ -45,7 +45,15 @@ export default function Dokumen() {
       let documents = ensureCoreDocs(v);
       if (dropDemoKir) documents = documents.filter((d) => d.type.toLowerCase() !== "kir");
       if (documents.length !== (v.documents?.length ?? 0)) changed = true;
-      else if (documents.some((d) => !v.documents?.some((x) => x.type === d.type && x.expire === d.expire))) changed = true;
+      else if (
+        documents.some(
+          (d) =>
+            !v.documents?.some(
+              (x) => x.type === d.type && x.expire === d.expire && (x.amount ?? 0) === (d.amount ?? 0)
+            )
+        )
+      )
+        changed = true;
       return { ...v, documents };
     });
     if (dropDemoKir) {

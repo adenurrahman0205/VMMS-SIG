@@ -28,7 +28,7 @@ export function loadFleet(): Vehicle[] {
     if (raw) {
       const parsed = JSON.parse(raw) as Vehicle[];
       if (Array.isArray(parsed) && parsed.length) {
-        return parsed.map((v) =>
+        const next = parsed.map((v) =>
           withHealth(
             {
               ...v,
@@ -41,6 +41,11 @@ export function loadFleet(): Vehicle[] {
             jobs
           )
         );
+        const needPajak = parsed.some((v) =>
+          !(v.documents ?? []).some((d) => d.type.trim().toLowerCase() === "pajak" && Number(d.amount) > 0)
+        );
+        if (needPajak) saveFleet(next);
+        return next;
       }
     }
   } catch {

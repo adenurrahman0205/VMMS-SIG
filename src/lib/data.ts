@@ -14,6 +14,23 @@ export function isPajakDoc(type: string) {
   return type.trim().toLowerCase() === "pajak";
 }
 
+/** Estimasi PKB tahunan jika nominal belum diisi. */
+export function pajakNominalFor(v: { buyPrice?: number; model?: string }) {
+  const m = (v.model || "").toLowerCase();
+  if (m.includes("pajero")) return 7_250_000;
+  if (m.includes("hiace")) return 5_850_000;
+  if (m.includes("elf")) return 5_400_000;
+  if (m.includes("hr-v") || m.includes("hrv")) return 3_650_000;
+  if (m.includes("innova")) return 3_850_000;
+  if (m.includes("xpander")) return 2_950_000;
+  if (m.includes("luxio")) return 2_450_000;
+  if (m.includes("calya")) return 1_650_000;
+  if (m.includes("avanza")) return 2_150_000;
+  if (m.includes("carry") || m.includes("gran")) return 1_550_000;
+  const price = Number(v.buyPrice) || 250_000_000;
+  return Math.max(1_200_000, Math.round((price * 0.012) / 50_000) * 50_000);
+}
+
 export type Vehicle = {
   id: string;
   plate: string;
@@ -78,7 +95,7 @@ function isoAddMonths(base: Date, months: number) {
 }
 
 /** Lengkapi STNK, Pajak, Asuransi jika belum ada di unit. */
-export function ensureCoreDocs(v: { id: string; buyDate?: string; documents?: VehicleDoc[] }): VehicleDoc[] {
+export function ensureCoreDocs(v: { id: string; buyDate?: string; buyPrice?: number; model?: string; documents?: VehicleDoc[] }): VehicleDoc[] {
   const existing = docsForVehicle(v).map((d) => ({ ...d, status: docStatusFromExpire(d.expire) }));
   const have = new Set(existing.map((d) => d.type.trim().toLowerCase()));
   const hash = [...v.id].reduce((s, c) => s + c.charCodeAt(0), 0);
@@ -90,9 +107,17 @@ export function ensureCoreDocs(v: { id: string; buyDate?: string; documents?: Ve
     if (have.has(type.toLowerCase())) return;
     const months = 6 + ((hash + i * 5) % 18);
     const expire = isoAddMonths(origin.getTime() > now.getTime() - 86400000 * 30 ? now : origin, months);
-    extras.push({ type, expire, status: docStatusFromExpire(expire) });
+    extras.push({
+      type,
+      expire,
+      status: docStatusFromExpire(expire),
+      amount: isPajakDoc(type) ? pajakNominalFor(v) : undefined,
+    });
   });
-  return [...existing, ...extras];
+  const pajak = pajakNominalFor(v);
+  return [...existing, ...extras].map((d) =>
+    isPajakDoc(d.type) && !(Number(d.amount) > 0) ? { ...d, amount: pajak } : d
+  );
 }
 
 export type Maintenance = {
@@ -216,9 +241,9 @@ export const maintenance: Maintenance[] = [
 export const documents = [
   { vehicleId: "v1", type: "STNK", expire: "2027-02-15", status: "aktif" },
   { vehicleId: "v1", type: "Asuransi", expire: "2026-12-31", status: "aktif" },
-  { vehicleId: "v1", type: "Pajak", expire: "2027-02-15", status: "aktif" },
+  { vehicleId: "v1", type: "Pajak", expire: "2027-02-15", status: "aktif", amount: 3_850_000 },
   { vehicleId: "v2", type: "STNK", expire: "2026-10-05", status: "segera" },
-  { vehicleId: "v2", type: "Pajak", expire: "2026-10-05", status: "segera" },
+  { vehicleId: "v2", type: "Pajak", expire: "2026-10-05", status: "segera", amount: 2_150_000 },
   { vehicleId: "v2", type: "Asuransi", expire: "2026-12-01", status: "aktif" },
 ];
 
