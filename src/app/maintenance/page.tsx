@@ -537,23 +537,39 @@ export default function Mnt() {
                       </span>
                     </td>
                     <td className="sticky right-0 bg-white px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      {m.status === "proses" ? (
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <button
                           type="button"
-                          className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
-                          onClick={() => setJobStatus(m.id, "selesai")}
+                          className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold !text-white"
+                          onClick={() =>
+                            openSpkPdf({
+                              job: m,
+                              jobs,
+                              vehicle: v,
+                              workshop: findWorkshop(shops, m.shop, m.workshopId),
+                            })
+                          }
                         >
-                          Selesai
+                          PDF
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
-                          onClick={() => removeJob(m.id)}
-                        >
-                          Hapus
-                        </button>
-                      )}
+                        {m.status === "proses" ? (
+                          <button
+                            type="button"
+                            className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                            onClick={() => setJobStatus(m.id, "selesai")}
+                          >
+                            Selesai
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
+                            onClick={() => removeJob(m.id)}
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
