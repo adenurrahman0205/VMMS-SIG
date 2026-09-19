@@ -755,6 +755,12 @@ export default function Mnt() {
             <p className="text-[11px] uppercase tracking-wide text-slate-400">{estView.id}</p>
             <h3 className="text-lg font-semibold">{estView.type}</h3>
             <p className="text-sm text-slate-500">{findFleetUnit(fleet, estView.vehicleId)?.plate} · {estView.date}</p>
+            <div className="mt-3 rounded-2xl bg-slate-50 px-3 py-2 ring-1 ring-slate-100">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400">Bengkel</div>
+              <div className="text-sm font-semibold text-slate-800">
+                {findWorkshop(shops, estView.shop, estView.workshopId)?.name || estView.shop || "Bengkel belum diisi"}
+              </div>
+            </div>
             <div className="mt-4 rounded-2xl bg-[#071526] p-4 text-white">
               <div className="text-[11px] uppercase text-sky-300">Estimasi biaya</div>
               <div className="text-2xl font-semibold">{fmt(estimateTotal(estView))}</div>
