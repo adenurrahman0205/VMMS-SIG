@@ -6,6 +6,14 @@ import { Badge, Card, Shell } from "@/components/shell";
 import { fmt, fmtN, vehiclePhoto, woTotal, type Maintenance, type Vehicle } from "@/lib/data";
 import { loadFleet } from "@/lib/fleet-store";
 import { blankJob, findFleetUnit, loadJobs, saveJobs } from "@/lib/maintenance-store";
+import {
+  blankEstimate,
+  estimateTotal,
+  loadEstimates,
+  saveEstimates,
+  suggestFor,
+  type ServiceEstimate,
+} from "@/lib/estimate-store";
 import { findWorkshop, loadWorkshops, type Workshop } from "@/lib/workshop-store";
 import { WorkshopCell, WorkshopSelect } from "@/components/workshop-select";
 import { SearchSelect } from "@/components/search-select";
@@ -25,6 +33,10 @@ export default function Mnt() {
   const [to, setTo] = useState("");
   const [histId, setHistId] = useState<string | null>(null);
   const [editor, setEditor] = useState<Maintenance | null>(null);
+  const [estimates, setEstimates] = useState<ServiceEstimate[]>([]);
+  const [estEditor, setEstEditor] = useState<ServiceEstimate | null>(null);
+  const [estView, setEstView] = useState<ServiceEstimate | null>(null);
+  const [tab, setTab] = useState<"wo" | "estimasi">("wo");
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => {
     const d = new Date();
@@ -35,12 +47,48 @@ export default function Mnt() {
     setFleet(loadFleet());
     setJobs(loadJobs());
     setShops(loadWorkshops());
+    setEstimates(loadEstimates());
   }, []);
 
   function persist(next: Maintenance[]) {
     saveJobs(next);
     setJobs(next);
     setFleet(loadFleet());
+  }
+
+  function persistEst(next: ServiceEstimate[]) {
+    saveEstimates(next);
+    setEstimates(next);
+  }
+
+  function saveEstForm(e: React.FormEvent) {
+    e.preventDefault();
+    if (!estEditor) return;
+    const row = { ...estEditor, jasa: Number(estEditor.jasa) || 0, status: estEditor.status || "arsip" };
+    const exists = estimates.some((x) => x.id === row.id);
+    persistEst(exists ? estimates.map((x) => (x.id === row.id ? row : x)) : [row, ...estimates]);
+    setEstEditor(null);
+  }
+
+  function convertEstToWo(est: ServiceEstimate) {
+    const job = {
+      ...blankJob(est.vehicleId),
+      date: est.date,
+      type: est.type,
+      km: est.km || findFleetUnit(fleet, est.vehicleId)?.km || 0,
+      shop: est.shop,
+      workshopId: est.workshopId,
+      complaint: est.complaint,
+      items: est.items.map((it) => ({ ...it })),
+      jasa: Number(est.jasa) || 0,
+      cost: estimateTotal(est),
+      status: "proses" as const,
+    };
+    persist([job, ...jobs]);
+    persistEst(estimates.map((x) => (x.id === est.id ? { ...x, status: "wo" as const, woId: job.id } : x)));
+    setEstView(null);
+    setTab("wo");
+    setEditor(job);
   }
 
   function setJobStatus(id: string, status: Maintenance["status"]) {
@@ -151,13 +199,30 @@ export default function Mnt() {
             <h2 className="text-2xl font-semibold">Histori servis & work order</h2>
             <p className="text-sm text-slate-300">Klik baris tabel untuk histori unit. Total biaya hanya WO selesai.</p>
           </div>
-          <button
-            type="button"
-            className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
-            onClick={() => setEditor(blankJob(fleet[0]?.id ?? ""))}
-          >
-            + Work order
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold !text-white ring-1 ring-white/20"
+              onClick={() => {
+                setTab("estimasi");
+                const b = blankEstimate(fleet[0]?.id ?? "");
+                const s = suggestFor(b.type, b.vehicleId, jobs, fleet);
+                setEstEditor({ ...b, items: s.items, jasa: s.jasa, km: fleet[0]?.km ?? 0 });
+              }}
+            >
+              + Estimasi biaya
+            </button>
+            <button
+              type="button"
+              className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
+              onClick={() => {
+                setTab("wo");
+                setEditor(blankJob(fleet[0]?.id ?? ""));
+              }}
+            >
+              + Work order
+            </button>
+          </div>
         </div>
       </section>
 
@@ -370,6 +435,8 @@ export default function Mnt() {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {histJob && histV && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setHistId(null)}>
@@ -632,6 +699,144 @@ export default function Mnt() {
             <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
               <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEditor(null)}>Batal</button>
               <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan work order</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {estView && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setEstView(null)}>
+          <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
+          <div className="anim relative max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <p className="text-[11px] uppercase tracking-wide text-slate-400">{estView.id}</p>
+            <h3 className="text-lg font-semibold">{estView.type}</h3>
+            <p className="text-sm text-slate-500">{findFleetUnit(fleet, estView.vehicleId)?.plate} · {estView.date}</p>
+            <div className="mt-4 rounded-2xl bg-[#071526] p-4 text-white">
+              <div className="text-[11px] uppercase text-sky-300">Estimasi biaya</div>
+              <div className="text-2xl font-semibold">{fmt(estimateTotal(estView))}</div>
+              <p className="mt-1 text-xs text-slate-300">Sparepart {fmt(estView.items.reduce((s, it) => s + it.qty * it.price, 0))} + jasa {fmt(Number(estView.jasa) || 0)}</p>
+            </div>
+            <ul className="mt-3 space-y-1 text-sm">
+              {estView.items.map((it, i) => (
+                <li key={i} className="flex justify-between">
+                  <span>{it.name} × {it.qty}</span>
+                  <span className="font-semibold">{fmt(it.qty * it.price)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm text-slate-600">{estView.complaint || estView.notes || "Tidak ada catatan."}</p>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setEstView(null)}>Tutup</button>
+              {estView.status !== "wo" && (
+                <button type="button" className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => convertEstToWo(estView)}>
+                  Lanjut work order
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {estEditor && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6" onClick={() => setEstEditor(null)}>
+          <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-md" />
+          <form
+            className="anim relative flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={saveEstForm}
+          >
+            <div className="flex items-center justify-between bg-[#071526] px-6 py-4 text-white">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300">Sebelum work order</p>
+                <h2 className="text-lg font-semibold">Estimasi biaya service</h2>
+              </div>
+              <button type="button" onClick={() => setEstEditor(null)} className="rounded-full bg-white/10 px-3 py-1 text-sm !text-white">Tutup</button>
+            </div>
+            <div className="space-y-3 overflow-auto p-6">
+              <label className="block text-xs font-semibold uppercase text-slate-500">
+                Kendaraan
+                <SearchSelect
+                  required
+                  allowEmpty={false}
+                  placeholder="Pilih unit"
+                  value={estEditor.vehicleId}
+                  onChange={(id) => {
+                    const s = suggestFor(estEditor.type, id, jobs, fleet);
+                    const v = findFleetUnit(fleet, id);
+                    setEstEditor({ ...estEditor, vehicleId: id, km: v?.km ?? estEditor.km, items: s.items, jasa: s.jasa });
+                  }}
+                  options={fleet.map((v) => ({ value: v.id, label: `${v.plate} — ${v.brand} ${v.model}` }))}
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Tanggal
+                  <input className={inputCls} type="date" value={estEditor.date} onChange={(e) => setEstEditor({ ...estEditor, date: e.target.value })} />
+                </label>
+                <label className="block text-xs font-semibold uppercase text-slate-500">
+                  Jenis
+                  <SearchSelect
+                    allowEmpty={false}
+                    value={estEditor.type}
+                    onChange={(type) => {
+                      const s = suggestFor(type, estEditor.vehicleId, jobs, fleet);
+                      setEstEditor({ ...estEditor, type, items: s.items, jasa: s.jasa });
+                    }}
+                    options={TYPES.map((t) => ({ value: t, label: t }))}
+                  />
+                </label>
+              </div>
+              <label className="block text-xs font-semibold uppercase text-slate-500">
+                Bengkel (opsional)
+                <WorkshopSelect
+                  shops={shops}
+                  value={estEditor.shop}
+                  workshopId={estEditor.workshopId}
+                  className={inputCls}
+                  onPick={(w) => setEstEditor({ ...estEditor, shop: w?.name || "", workshopId: w?.id })}
+                />
+              </label>
+              <label className="block text-xs font-semibold uppercase text-slate-500">
+                Catatan / keluhan
+                <textarea className={inputCls} rows={2} value={estEditor.complaint} onChange={(e) => setEstEditor({ ...estEditor, complaint: e.target.value })} />
+              </label>
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase text-slate-500">Item estimasi</div>
+                {estEditor.items.map((it, i) => (
+                  <div key={i} className="mb-2 grid grid-cols-7 gap-2">
+                    <input className="col-span-3 rounded-xl border px-2 py-2 text-sm" placeholder="Nama" value={it.name} onChange={(e) => {
+                      const items = [...estEditor.items];
+                      items[i] = { ...it, name: e.target.value };
+                      setEstEditor({ ...estEditor, items });
+                    }} />
+                    <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" value={it.qty} onChange={(e) => {
+                      const items = [...estEditor.items];
+                      items[i] = { ...it, qty: Number(e.target.value) || 0 };
+                      setEstEditor({ ...estEditor, items });
+                    }} />
+                    <input className="col-span-2 rounded-xl border px-2 py-2 text-sm" type="number" value={it.price} onChange={(e) => {
+                      const items = [...estEditor.items];
+                      items[i] = { ...it, price: Number(e.target.value) || 0 };
+                      setEstEditor({ ...estEditor, items });
+                    }} />
+                  </div>
+                ))}
+                <button type="button" className="text-xs font-semibold text-sky-700" onClick={() => setEstEditor({ ...estEditor, items: [...estEditor.items, { name: "", qty: 1, price: 0 }] })}>
+                  + Item
+                </button>
+              </div>
+              <label className="block text-xs font-semibold uppercase text-slate-500">
+                Jasa
+                <input className={inputCls} type="number" min={0} value={estEditor.jasa} onChange={(e) => setEstEditor({ ...estEditor, jasa: Number(e.target.value) || 0 })} />
+              </label>
+              <div className="rounded-2xl bg-[#071526] p-4 text-white">
+                <div className="text-[11px] uppercase text-sky-300">Total estimasi</div>
+                <div className="text-2xl font-semibold">{fmt(estimateTotal(estEditor))}</div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
+              <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setEstEditor(null)}>Batal</button>
+              <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan ke arsip</button>
             </div>
           </form>
         </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 
-const KEYS = ["fleet", "bookings", "users", "jobs"] as const;
+const KEYS = ["fleet", "bookings", "users", "jobs", "workshops", "spareparts", "estimates"] as const;
 
 export async function GET() {
   const sb = createAdminSupabase();
