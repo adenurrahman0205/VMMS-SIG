@@ -172,8 +172,8 @@ export default function Mnt() {
         const blob = `${j.id} ${j.type} ${j.shop} ${shop?.code ?? ""} ${shop?.city ?? ""} ${j.complaint} ${v?.plate} ${v?.model}`.toLowerCase();
         const okQ = blob.includes(q.toLowerCase());
         const okS = st === "all" || j.status === st;
-        const okFrom = !from || j.date >= from;
-        const okTo = !to || j.date <= to;
+        const okFrom = j.status === "proses" || !from || j.date >= from;
+        const okTo = j.status === "proses" || !to || j.date <= to;
         return okQ && okS && okFrom && okTo;
       })
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
@@ -302,6 +302,34 @@ export default function Mnt() {
         ))}
       </div>
 
+      {jobs.filter((j) => j.status === "proses").length > 0 && (
+        <div className="mb-4 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200 lg:hidden">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+            Sedang proses · {jobs.filter((j) => j.status === "proses").length} unit
+          </p>
+          <div className="space-y-2">
+            {jobs.filter((j) => j.status === "proses").map((j) => {
+              const v = findFleetUnit(fleet, j.vehicleId);
+              return (
+                <button
+                  key={j.id}
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-xl bg-white p-2 text-left ring-1 ring-amber-100"
+                  onClick={() => setHistId(j.id)}
+                >
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-11 w-14 rounded-lg object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold">{v?.plate ?? j.vehicleId}</div>
+                    <div className="truncate text-xs text-slate-500">{j.type} · {j.date}</div>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">Proses</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-[#071526] px-4 py-3 text-white">
           <div>
@@ -324,7 +352,7 @@ export default function Mnt() {
           <p className="px-4 py-8 text-center text-sm text-slate-400">Belum ada estimasi. Buat dulu sebelum membuka work order.</p>
         ) : (
           <>
-          <div className="md:hidden divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 lg:hidden">
             {estRows.map((e) => {
               const v = findFleetUnit(fleet, e.vehicleId);
               const shop = findWorkshop(shops, e.shop, e.workshopId);
@@ -355,7 +383,7 @@ export default function Mnt() {
               );
             })}
           </div>
-          <div className="hidden overflow-x-auto md:block">
+          <div className="hidden overflow-x-auto lg:block">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
                 <tr>
@@ -557,7 +585,7 @@ export default function Mnt() {
       </div>
 
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-3xl">
-        <div className="divide-y divide-slate-100 md:hidden">
+        <div className="divide-y divide-slate-100 lg:hidden">
           {filtered.length === 0 && (
             <p className="px-4 py-10 text-center text-sm text-slate-400">Tidak ada work order pada rentang tanggal ini.</p>
           )}
@@ -612,7 +640,7 @@ export default function Mnt() {
             );
           })}
         </div>
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full min-w-[1080px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
