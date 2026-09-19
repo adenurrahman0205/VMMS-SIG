@@ -44,6 +44,8 @@ export default function Mnt() {
   const [tab, setTab] = useState<"wo" | "estimasi">("wo");
   const [woPage, setWoPage] = useState(1);
   const WO_PAGE = 10;
+  const [estPage, setEstPage] = useState(1);
+  const EST_PAGE = 10;
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => {
     const d = new Date();
@@ -157,6 +159,9 @@ export default function Mnt() {
   const woPageCount = Math.max(1, Math.ceil(filtered.length / WO_PAGE));
   const woPageSafe = Math.min(woPage, woPageCount);
   const woRows = filtered.slice((woPageSafe - 1) * WO_PAGE, woPageSafe * WO_PAGE);
+  const estPageCount = Math.max(1, Math.ceil(estimates.length / EST_PAGE));
+  const estPageSafe = Math.min(estPage, estPageCount);
+  const estRows = estimates.slice((estPageSafe - 1) * EST_PAGE, estPageSafe * EST_PAGE);
 
   const stats = useMemo(() => {
     const proses = filtered.filter((j) => j.status === "proses");
@@ -305,8 +310,9 @@ export default function Mnt() {
         {estimates.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-slate-400">Belum ada estimasi. Buat dulu sebelum membuka work order.</p>
         ) : (
-          <ul className="max-h-72 divide-y divide-slate-100 overflow-auto">
-            {estimates.map((e) => {
+          <>
+          <ul className="divide-y divide-slate-100">
+            {estRows.map((e) => {
               const v = findFleetUnit(fleet, e.vehicleId);
               const shop = findWorkshop(shops, e.shop, e.workshopId);
               const shopName = shop?.name || e.shop || "Bengkel belum diisi";
@@ -334,6 +340,33 @@ export default function Mnt() {
               );
             })}
           </ul>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="text-xs text-slate-500">
+              {(estPageSafe - 1) * EST_PAGE + 1}–{Math.min(estPageSafe * EST_PAGE, estimates.length)} dari {estimates.length} estimasi
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={estPageSafe <= 1}
+                className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                onClick={() => setEstPage((p) => Math.max(1, p - 1))}
+              >
+                Sebelumnya
+              </button>
+              <span className="text-xs font-semibold text-slate-600">
+                {estPageSafe} / {estPageCount}
+              </span>
+              <button
+                type="button"
+                disabled={estPageSafe >= estPageCount}
+                className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                onClick={() => setEstPage((p) => Math.min(estPageCount, p + 1))}
+              >
+                Berikutnya
+              </button>
+            </div>
+          </div>
+          </>
         )}
       </div>
 
