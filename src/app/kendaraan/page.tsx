@@ -217,7 +217,7 @@ export default function KendaraanPage() {
                 </div>
                 <div className="rounded-xl bg-slate-50 py-2">
                   <div className="truncate px-1 text-sm font-semibold text-slate-800">{v.driver.split(" ")[0]}</div>
-                  <div className="text-[10px] uppercase text-slate-400">Driver</div>
+                  <div className="text-[10px] uppercase text-slate-400">User</div>
                 </div>
                 <div className="rounded-xl bg-slate-50 py-2">
                   <div className="truncate px-1 text-sm font-semibold text-slate-800">{v.dept.split(" ")[0]}</div>

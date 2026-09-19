@@ -236,13 +236,13 @@ export function VehicleForm({
             <Field label={form.ownerKind === "vendor" ? "Nama vendor / rental" : "Nama pemilik"}>
               <input className={inputCls} value={form.owner} onChange={(e) => set("owner", e.target.value)} />
             </Field>
-            <Field label="Driver">
+            <Field label="User">
               <input className={inputCls} value={form.driver} onChange={(e) => set("driver", e.target.value)} />
             </Field>
-            <Field label="Divisi">
+            <Field label="Departemen">
               <input className={inputCls} value={form.dept} onChange={(e) => set("dept", e.target.value)} />
             </Field>
-            <Field label="Jabatan">
+            <Field label="Divisi">
               <input className={inputCls} value={form.jabatan ?? ""} onChange={(e) => set("jabatan", e.target.value)} />
             </Field>
             <Field label="Lokasi / pool">

@@ -34,9 +34,9 @@ export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }
     ["Transmisi", v.transmission === "manual" ? "Manual" : "Matic"],
     ["Isi silinder", v.cc],
     ["Tenaga", v.hp],
-    ["Driver", v.driver],
-    ["Divisi", v.dept],
-    ["Jabatan", v.jabatan || "—"],
+    ["User", v.driver],
+    ["Departemen", v.dept],
+    ["Divisi", v.jabatan || "—"],
   ];
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={onClose}>
