@@ -239,43 +239,41 @@ export default function Mnt() {
 
   return (
     <Shell title="Data Maintenance">
-      <section className="anim relative mb-6 overflow-hidden rounded-3xl">
-        <img src="/images/hero-fleet.png" alt="" className="h-36 w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071526] via-[#071526]/80 to-transparent" />
-        <div className="absolute inset-0 flex items-end justify-between p-6 text-white">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Workshop control</p>
-            <h2 className="text-2xl font-semibold">Histori servis & work order</h2>
-            <p className="text-sm text-slate-300">Klik baris tabel untuk histori unit. Total biaya hanya WO selesai.</p>
+      <section className="anim relative mb-4 overflow-hidden rounded-2xl sm:mb-6 sm:rounded-3xl">
+        <img src="/images/hero-fleet.png" alt="" className="h-28 w-full object-cover sm:h-36" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/75 to-[#071526]/25 sm:bg-gradient-to-r sm:from-[#071526] sm:via-[#071526]/80 sm:to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-end gap-3 p-4 text-white sm:flex-row sm:items-end sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300 sm:text-[11px]">Workshop control</p>
+            <h2 className="text-lg font-semibold leading-tight sm:text-2xl">Histori servis & work order</h2>
+            <p className="mt-0.5 hidden text-sm text-slate-300 sm:block">Klik baris tabel untuk histori unit. Total biaya hanya WO selesai.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold !text-white ring-1 ring-white/20"
-              onClick={() => {
-                setTab("estimasi");
-                const b = blankEstimate(fleet[0]?.id ?? "");
-                const s = suggestFor(b.type, b.vehicleId, jobs, fleet);
-                setEstEditor({ ...b, items: s.items, jasa: s.jasa, km: fleet[0]?.km ?? 0 });
-              }}
-            >
-              + Estimasi biaya
-            </button>
-          </div>
+          <button
+            type="button"
+            className="w-fit shrink-0 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold !text-white ring-1 ring-white/20"
+            onClick={() => {
+              setTab("estimasi");
+              const b = blankEstimate(fleet[0]?.id ?? "");
+              const s = suggestFor(b.type, b.vehicleId, jobs, fleet);
+              setEstEditor({ ...b, items: s.items, jasa: s.jasa, km: fleet[0]?.km ?? 0 });
+            }}
+          >
+            + Estimasi biaya
+          </button>
         </div>
       </section>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:mb-5 sm:gap-3 lg:grid-cols-4">
         {[
           ["Semua WO", String(stats.n), "sesuai filter"],
           ["Sedang proses", String(stats.proses), "belum dihitung biaya"],
           ["Selesai", String(stats.selesai), "histori tertutup"],
           ["Total biaya", fmt(stats.cost), "akumulasi WO selesai"],
         ].map(([l, n, s]) => (
-          <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
-            <div className="mt-1 break-words text-2xl font-semibold tracking-tight">{n}</div>
-            <div className="text-xs text-slate-400">{s}</div>
+          <div key={l} className="rounded-2xl bg-white p-3 ring-1 ring-slate-200 sm:p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-[11px]">{l}</div>
+            <div className="mt-1 break-words text-lg font-semibold tracking-tight sm:text-2xl">{n}</div>
+            <div className="hidden text-xs text-slate-400 sm:block">{s}</div>
           </div>
         ))}
       </div>
@@ -308,15 +306,21 @@ export default function Mnt() {
               const shop = findWorkshop(shops, e.shop, e.workshopId);
               const shopName = shop?.name || e.shop || "Bengkel belum diisi";
               return (
-                <li key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                <li key={e.id} className="px-3 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:px-4">
+                  <div className="flex min-w-0 items-start gap-3">
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold">{v?.plate ?? e.vehicleId} · {e.type}</div>
-                    <div className="text-xs text-slate-500">{e.id} · {e.date} · {e.status === "wo" ? "Sudah WO" : "Arsip"}</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 font-semibold leading-tight">{v?.plate ?? e.vehicleId} · {e.type}</div>
+                      <div className="shrink-0 text-sm font-semibold sm:hidden">{fmt(estimateTotal(e))}</div>
+                    </div>
+                    <div className="text-xs text-slate-500">{e.date} · {e.status === "wo" ? "Sudah WO" : "Arsip"}</div>
                     <div className="mt-0.5 truncate text-xs font-semibold text-slate-700">{shopName}</div>
                   </div>
-                  <div className="text-sm font-semibold">{fmt(estimateTotal(e))}</div>
-                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                  </div>
+                  <div className="hidden text-sm font-semibold sm:block">{fmt(estimateTotal(e))}</div>
+                  <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-0">
+                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
                   {e.status === "wo" && (
                   <button
                     type="button"
@@ -354,6 +358,7 @@ export default function Mnt() {
                   >
                     Hapus
                   </button>
+                  </div>
                 </li>
               );
             })}
@@ -389,18 +394,18 @@ export default function Mnt() {
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-5">
-        <Card className="p-5 lg:col-span-3">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="p-3 sm:p-5 lg:col-span-3">
+          <div className="mb-3 flex items-center justify-between sm:mb-4">
             <button type="button" className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month - 1, 1))}>‹</button>
-            <h3 className="text-lg font-semibold capitalize">{monthLabel}</h3>
+            <h3 className="text-base font-semibold capitalize sm:text-lg">{monthLabel}</h3>
             <button type="button" className="rounded-full border px-3 py-1 text-sm" onClick={() => setCursor(new Date(year, month + 1, 1))}>›</button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:gap-1 sm:text-[11px]">
             {DAYS.map((d) => <div key={d} className="py-1">{d}</div>)}
           </div>
-          <div className="mt-1 grid grid-cols-7 gap-1">
+          <div className="mt-1 grid grid-cols-7 gap-0.5 sm:gap-1">
             {cells.map((iso, i) => {
-              if (!iso) return <div key={`e${i}`} className="min-h-[56px] rounded-xl bg-slate-50/50 sm:min-h-[76px]" />;
+              if (!iso) return <div key={`e${i}`} className="min-h-[40px] rounded-lg bg-slate-50/50 sm:min-h-[76px] sm:rounded-xl" />;
               const list = jobsByDate.get(iso) ?? [];
               const units = new Set(list.map((j) => j.vehicleId)).size;
               const cost = list.filter((j) => j.status === "selesai").reduce((s, j) => s + woTotal(j), 0);
@@ -412,20 +417,20 @@ export default function Mnt() {
                   key={iso}
                   type="button"
                   onClick={() => pickDate(iso)}
-                  className={`min-h-[56px] rounded-xl p-1 text-left transition sm:min-h-[76px] sm:p-2 ${
+                  className={`min-h-[40px] rounded-lg p-1 text-left transition sm:min-h-[76px] sm:rounded-xl sm:p-2 ${
                     isSel ? "bg-[#071526] text-white shadow-lg" : "bg-white ring-1 ring-slate-200 hover:ring-sky-300"
                   }`}
                 >
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-[11px] sm:text-xs">
                     <span className={isToday && !isSel ? "font-bold text-sky-600" : ""}>{Number(iso.slice(8))}</span>
                     {units > 0 && (
-                      <span className={`rounded-full px-1.5 text-[10px] font-bold ${isSel ? "bg-sky-400 text-white" : proses ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-800"}`}>
+                      <span className={`rounded-full px-1 text-[9px] font-bold sm:px-1.5 sm:text-[10px] ${isSel ? "bg-sky-400 text-white" : proses ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-800"}`}>
                         {units}
                       </span>
                     )}
                   </div>
                   {units > 0 && (
-                    <div className={`mt-1 text-[10px] leading-tight ${isSel ? "text-slate-300" : "text-slate-500"}`}>
+                    <div className={`mt-1 hidden text-[10px] leading-tight sm:block ${isSel ? "text-slate-300" : "text-slate-500"}`}>
                       {units} unit
                       {cost > 0 ? ` · ${fmt(cost)}` : ""}
                     </div>
@@ -507,8 +512,63 @@ export default function Mnt() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
-        <div className="overflow-x-auto">
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-3xl">
+        <div className="divide-y divide-slate-100 md:hidden">
+          {filtered.length === 0 && (
+            <p className="px-4 py-10 text-center text-sm text-slate-400">Tidak ada work order pada rentang tanggal ini.</p>
+          )}
+          {woRows.map((m) => {
+            const v = fleet.find((x) => x.id === m.vehicleId);
+            return (
+              <div key={m.id} className="px-3 py-3" onClick={() => setHistId(m.id)}>
+                <div className="flex items-start gap-3">
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold">{v?.plate ?? m.vehicleId}</div>
+                        <div className="truncate text-xs text-slate-500">{v ? `${v.brand} ${v.model}` : ""} · {m.type}</div>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                          m.status === "proses" ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"
+                        }`}
+                      >
+                        {m.status === "proses" ? "Proses" : "Selesai"}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-slate-500">{m.date} · KM {fmtN(m.km)}</div>
+                    <div className="truncate text-xs font-semibold text-slate-700">
+                      <WorkshopCell shops={shops} shop={m.shop} workshopId={m.workshopId} />
+                    </div>
+                    {m.complaint ? <p className="mt-1 line-clamp-2 text-xs text-slate-600">{m.complaint}</p> : null}
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-sm font-semibold">{m.status === "selesai" ? fmt(woTotal(m)) : <span className="text-slate-400">—</span>}</span>
+                  {m.status === "proses" ? (
+                    <button
+                      type="button"
+                      className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                      onClick={() => setJobStatus(m.id, "selesai")}
+                    >
+                      Selesai
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
+                      onClick={() => removeJob(m.id)}
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[1080px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
