@@ -819,11 +819,7 @@ export default function Mnt() {
               <button
                 type="button"
                 className="rounded-xl bg-red-50 px-4 py-2 text-sm font-semibold text-red-700"
-                onClick={() => {
-                  if (!window.confirm(`Hapus estimasi ${estView.id}? Data tidak bisa dikembalikan.`)) return;
-                  persistEst(estimates.filter((x) => x.id !== estView.id));
-                  setEstView(null);
-                }}
+                onClick={() => askRemoveEst(estView)}
               >
                 Hapus
               </button>
