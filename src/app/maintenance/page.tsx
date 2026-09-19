@@ -265,6 +265,17 @@ export default function Mnt() {
                   {e.status !== "wo" && (
                     <button type="button" className="rounded-full bg-[#071526] px-3 py-1 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
                   )}
+                  <button
+                    type="button"
+                    className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200"
+                    onClick={() => {
+                      if (!window.confirm(`Hapus estimasi ${e.id}? Data tidak bisa dikembalikan.`)) return;
+                      persistEst(estimates.filter((x) => x.id !== e.id));
+                      if (estView?.id === e.id) setEstView(null);
+                    }}
+                  >
+                    Hapus
+                  </button>
                 </li>
               );
             })}
@@ -776,6 +787,17 @@ export default function Mnt() {
             </ul>
             <p className="mt-3 text-sm text-slate-600">{estView.complaint || estView.notes || "Tidak ada catatan."}</p>
             <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-xl bg-red-50 px-4 py-2 text-sm font-semibold text-red-700"
+                onClick={() => {
+                  if (!window.confirm(`Hapus estimasi ${estView.id}? Data tidak bisa dikembalikan.`)) return;
+                  persistEst(estimates.filter((x) => x.id !== estView.id));
+                  setEstView(null);
+                }}
+              >
+                Hapus
+              </button>
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setEstView(null)}>Tutup</button>
               {estView.status !== "wo" && (
                 <button type="button" className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => convertEstToWo(estView)}>
