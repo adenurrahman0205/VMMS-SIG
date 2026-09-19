@@ -212,6 +212,29 @@ export default function Dokumen() {
     setEditor(null);
   }
 
+  const dueDocs = useMemo(() => {
+    type Item = { v: Vehicle; d: VehicleDoc; left: number | null };
+    const pajak: Item[] = [];
+    const asuransi: Item[] = [];
+    rows.forEach((r) => {
+      r.docs.forEach((d) => {
+        if (d.status !== "segera" && d.status !== "expired") return;
+        const item = { v: r.v, d, left: daysLeft(d.expire) };
+        if (isPajakDoc(d.type)) pajak.push(item);
+        else if (isAsuransiDoc(d.type)) asuransi.push(item);
+      });
+    });
+    const byUrgency = (a: Item, b: Item) => (a.left ?? 9999) - (b.left ?? 9999);
+    pajak.sort(byUrgency);
+    asuransi.sort(byUrgency);
+    return {
+      pajak,
+      asuransi,
+      pajakSum: pajak.reduce((s, x) => s + (Number(x.d.amount) || 0), 0),
+      asuransiSum: asuransi.reduce((s, x) => s + (Number(x.d.amount) || 0), 0),
+    };
+  }, [rows]);
+
   const shown = useMemo(() => {
     const s = q.toLowerCase();
     return rows.filter((r) => {
