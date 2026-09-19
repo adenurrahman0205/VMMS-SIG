@@ -4,7 +4,6 @@ import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
 import { DOC_TYPES, SERVICE_INTERVAL_KM, docHasNominal, docStatusFromExpire, docsForVehicle, fmt, isAsuransiDoc, isStnkDoc, vehiclePhoto } from "@/lib/data";
-import { statuses } from "@/lib/fleet-store";
 import { SearchSelect } from "@/components/search-select";
 
 function Field({
@@ -99,7 +98,11 @@ export function VehicleForm({
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
-          onSave(sections === "docs" ? { ...initial, documents: form.documents } : form);
+          onSave(
+            sections === "docs"
+              ? { ...initial, documents: form.documents }
+              : { ...form, status: initial.status || "ready" }
+          );
         }}
       >
         <div className="flex items-center justify-between border-b border-slate-100 bg-[#071526] px-6 py-4 text-white">
@@ -155,16 +158,7 @@ export function VehicleForm({
             <Field label="Tahun mobil">
               <input className={inputCls} type="number" value={form.year} onChange={(e) => set("year", e.target.value)} readOnly={sections === "docs"} />
             </Field>
-            <Field label="Status">
-              <SearchSelect
-                disabled={sections === "docs"}
-                allowEmpty={false}
-                placeholder="Pilih status"
-                value={form.status}
-                onChange={(v) => setForm({ ...form, status: v as Vehicle["status"] })}
-                options={statuses.map((s) => ({ value: s, label: s }))}
-              />
-            </Field>
+
           </div>
 
           {sections === "full" && (

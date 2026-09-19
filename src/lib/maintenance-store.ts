@@ -94,7 +94,7 @@ export function blankJob(vehicleId = ""): Maintenance {
   };
 }
 
-function syncVehicleFromJobs(rows: Maintenance[]) {
+export function syncVehicleFromJobs(rows: Maintenance[] = loadJobs()) {
   const fleet = loadFleet();
   const prosesIds = new Set(rows.filter((j) => j.status === "proses").map((j) => j.vehicleId));
   const next = fleet.map((v) => {

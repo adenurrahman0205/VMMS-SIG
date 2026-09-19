@@ -6,6 +6,7 @@ import { Badge, Shell } from "@/components/shell";
 import { VehicleForm } from "@/components/vehicle-form";
 import { dueServiceKm, fmtN, inferOwnerKind, ownerKindLabel, type OwnerKind, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { blankVehicle, loadFleet, saveFleet, syncArchive, syncCreate, syncUpdate } from "@/lib/fleet-store";
+import { loadJobs, syncVehicleFromJobs } from "@/lib/maintenance-store";
 
 export default function KendaraanPage() {
   const [q, setQ] = useState("");
@@ -17,6 +18,7 @@ export default function KendaraanPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
+    syncVehicleFromJobs(loadJobs());
     setVehicles(loadFleet());
   }, []);
 
