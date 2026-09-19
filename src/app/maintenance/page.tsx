@@ -233,8 +233,6 @@ export default function Mnt() {
 
   function pickDate(iso: string) {
     setSelected(iso);
-    setFrom(iso);
-    setTo(iso);
   }
 
   return (
@@ -441,7 +439,7 @@ export default function Mnt() {
           </div>
         </Card>
 
-        <Card className="flex flex-col p-5 lg:col-span-2">
+        <Card className="flex flex-col p-3 sm:p-5 lg:col-span-2">
           <h3 className="font-semibold">{selectedLabel}</h3>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-red-50 p-3">
@@ -1149,6 +1147,16 @@ export default function Mnt() {
                 Batal
               </button>
               <button type="button" className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white" onClick={confirmPendingDel}>
+                {pendingDel.kind === "est" ? "Hapus estimasi" : "Hapus work order"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Shell>
+  );
+}
+n type="button" className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white" onClick={confirmPendingDel}>
                 {pendingDel.kind === "est" ? "Hapus estimasi" : "Hapus work order"}
               </button>
             </div>
