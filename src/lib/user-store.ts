@@ -1,6 +1,10 @@
 import { pushCloud } from "./services/sync.service";
 
-export type AppRole = "SUPER_ADMIN" | "FLEET_ADMIN" | "USER";
+export type AppRole = "SUPER_ADMIN" | "USER";
+
+export function normalizeRole(role: string | undefined | null): AppRole {
+  return role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "USER";
+}
 
 export type AppUser = {
   id: string;
@@ -37,7 +41,9 @@ export function loadUsers(): AppUser[] {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as AppUser[];
-      if (Array.isArray(p) && p.length) return p;
+      if (Array.isArray(p) && p.length) {
+        return p.map((u) => ({ ...u, role: normalizeRole(u.role) }));
+      }
     }
   } catch {
     /* ignore */
@@ -47,8 +53,9 @@ export function loadUsers(): AppUser[] {
 }
 
 export function saveUsers(rows: AppUser[]) {
-  localStorage.setItem(KEY, JSON.stringify(rows));
-  void pushCloud("users", rows);
+  const next = rows.map((u) => ({ ...u, role: normalizeRole(u.role) }));
+  localStorage.setItem(KEY, JSON.stringify(next));
+  void pushCloud("users", next);
 }
 
 export function blankUser(): AppUser {

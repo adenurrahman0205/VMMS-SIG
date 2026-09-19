@@ -2,7 +2,6 @@
 
 insert into public.roles (name, description) values
   ('SUPER_ADMIN', 'Full access'),
-  ('FLEET_ADMIN', 'Operasional armada'),
   ('SUPERVISOR', 'View + approval'),
   ('MANAGEMENT', 'Dashboard & laporan'),
   ('DRIVER', 'Unit yang ditugaskan')
@@ -27,16 +26,6 @@ select r.id, p.id
 from public.roles r
 cross join public.permissions p
 where r.name = 'SUPER_ADMIN'
-on conflict do nothing;
-
-insert into public.role_permissions (role_id, permission_id)
-select r.id, p.id
-from public.roles r
-join public.permissions p on p.code in (
-  'vehicle.read','vehicle.write','maintenance.read','maintenance.write',
-  'odometer.write','report.read','export.run','audit.read'
-)
-where r.name = 'FLEET_ADMIN'
 on conflict do nothing;
 
 insert into public.role_permissions (role_id, permission_id)

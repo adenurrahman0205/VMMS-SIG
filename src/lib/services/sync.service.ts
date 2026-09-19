@@ -52,7 +52,14 @@ export async function hydrateCloud(): Promise<boolean> {
       for (const key of Object.keys(STORAGE) as KvKey[]) {
         const cloud = state[key];
         if (Array.isArray(cloud)) {
-          localStorage.setItem(STORAGE[key], JSON.stringify(cloud));
+          const rows =
+            key === "users"
+              ? cloud.map((u) => {
+                  const row = u as { role?: string };
+                  return { ...row, role: row.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "USER" };
+                })
+              : cloud;
+          localStorage.setItem(STORAGE[key], JSON.stringify(rows));
           continue;
         }
         const raw = localStorage.getItem(STORAGE[key]);

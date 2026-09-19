@@ -1,4 +1,4 @@
-export type RoleName = "SUPER_ADMIN" | "FLEET_ADMIN" | "SUPERVISOR" | "MANAGEMENT" | "DRIVER";
+export type RoleName = "SUPER_ADMIN" | "SUPERVISOR" | "MANAGEMENT" | "DRIVER";
 
 export type Profile = {
   id: string;

@@ -147,7 +147,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
       setDisplayName(u.name);
       setAvatar(u.avatar || "");
       setRole(u.role);
-      const admin = u.role === "SUPER_ADMIN" || u.role === "FLEET_ADMIN";
+      const admin = u.role === "SUPER_ADMIN";
       const userOk =
         path === "/" ||
         path === "/profil" ||

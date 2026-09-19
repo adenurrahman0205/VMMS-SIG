@@ -5,7 +5,7 @@ import type { AppUser } from "@/lib/user-store";
 
 async function isAdminEmail(email: string, users: AppUser[]) {
   const row = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  return row?.role === "SUPER_ADMIN" || row?.role === "FLEET_ADMIN";
+  return row?.role === "SUPER_ADMIN";
 }
 
 export async function POST(req: Request) {

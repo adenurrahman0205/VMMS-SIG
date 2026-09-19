@@ -57,7 +57,7 @@ export default function DriversPage() {
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td className="px-4 py-6 text-slate-500" colSpan={3}>Belum ada data (login SUPER_ADMIN / FLEET_ADMIN untuk menulis).</td></tr>
+              <tr><td className="px-4 py-6 text-slate-500" colSpan={3}>Belum ada data (login SUPER_ADMIN untuk menulis).</td></tr>
             )}
           </tbody>
         </table>

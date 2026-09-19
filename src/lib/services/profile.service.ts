@@ -31,7 +31,7 @@ export function mergeLocalUser(email: string, authId: string, meta: Record<strin
     phone: found?.phone || cloud.phone || "",
     dept: found?.dept || cloud.dept || "",
     jabatan: found?.jabatan || cloud.jabatan || "",
-    role: found?.role ?? "USER",
+    role: found?.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "USER",
     active: found?.active ?? true,
     createdAt: found?.createdAt ?? new Date().toISOString().slice(0, 10),
     avatar: found?.avatar || cloud.avatar || "",

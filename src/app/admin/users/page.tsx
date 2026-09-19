@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Shell } from "@/components/shell";
 import { blankUser, loadUsers, saveUsers, type AppRole, type AppUser } from "@/lib/user-store";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { compressAvatar } from "@/lib/services/profile.service";
+import { compressAvatar, mergeLocalUser } from "@/lib/services/profile.service";
+import { hydrateCloud } from "@/lib/services/sync.service";
 import { SearchSelect } from "@/components/search-select";
 
 function initials(name: string) {
@@ -24,9 +25,18 @@ export default function UsersPage() {
   const [confirmPw, setConfirmPw] = useState("");
   const [formMsg, setFormMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isSuper, setIsSuper] = useState(false);
 
   useEffect(() => {
-    setRows(loadUsers());
+    (async () => {
+      await hydrateCloud();
+      setRows(loadUsers());
+      const sb = createBrowserSupabase();
+      const { data } = await sb.auth.getUser();
+      const em = data.user?.email ?? "";
+      const me = mergeLocalUser(em, data.user?.id ?? "", data.user?.user_metadata as Record<string, unknown> | undefined);
+      setIsSuper(me.role === "SUPER_ADMIN");
+    })();
   }, []);
 
   function persist(next: AppUser[]) {
@@ -46,6 +56,10 @@ export default function UsersPage() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!editor) return;
+    if (!isSuper) {
+      setFormMsg("Hanya SUPER_ADMIN yang boleh mengubah akun.");
+      return;
+    }
     setFormMsg("");
     if (isNew || password || confirmPw) {
       if (password.length < 6) {
@@ -102,6 +116,10 @@ export default function UsersPage() {
   }
 
   async function removeUser(u: AppUser) {
+    if (!isSuper) {
+      window.alert("Hanya SUPER_ADMIN yang boleh menghapus akun.");
+      return;
+    }
     if (!window.confirm(`Hapus permanen ${u.name} (${u.email})? Akun login ikut dihapus dan tidak bisa masuk lagi.`)) return;
     try {
       const res = await fetch("/api/users/delete", {
@@ -122,6 +140,7 @@ export default function UsersPage() {
   }
 
   function restore(u: AppUser) {
+    if (!isSuper) return;
     persist(rows.map((x) => (x.id === u.id ? { ...x, active: true } : x)));
   }
 
@@ -134,8 +153,11 @@ export default function UsersPage() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.2em] text-sky-300">Access control</p>
             <h2 className="text-2xl font-semibold">Pengguna aplikasi</h2>
-            <p className="text-sm text-slate-300">{nActive} user aktif · klik nomor untuk WhatsApp · Hapus = permanen</p>
+            <p className="text-sm text-slate-300">
+              {nActive} user aktif · {isSuper ? "Ubah/Hapus hanya SUPER_ADMIN" : "lihat saja"}
+            </p>
           </div>
+          {isSuper && (
           <button
             type="button"
             className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
@@ -149,6 +171,7 @@ export default function UsersPage() {
           >
             + User baru
           </button>
+          )}
         </div>
       </section>
 
@@ -220,11 +243,17 @@ export default function UsersPage() {
                     <Badge status={u.active ? "aktif" : "inactive"} />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setFormMsg(""); setEditor(u); }}>Ubah</button>
-                    {!u.active && (
-                      <button className="mr-3 text-xs font-semibold text-emerald-700" onClick={() => restore(u)}>Pulihkan</button>
+                    {isSuper ? (
+                      <>
+                        <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setFormMsg(""); setEditor(u); }}>Ubah</button>
+                        {!u.active && (
+                          <button className="mr-3 text-xs font-semibold text-emerald-700" onClick={() => restore(u)}>Pulihkan</button>
+                        )}
+                        <button className="text-xs font-semibold text-red-600" onClick={() => removeUser(u)}>Hapus</button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
                     )}
-                    <button className="text-xs font-semibold text-red-600" onClick={() => removeUser(u)}>Hapus</button>
                   </td>
                 </tr>
               ))}
@@ -341,7 +370,6 @@ export default function UsersPage() {
                   onChange={(v) => setEditor({ ...editor, role: v as AppRole })}
                   options={[
                     { value: "USER", label: "USER" },
-                    { value: "FLEET_ADMIN", label: "FLEET_ADMIN" },
                     { value: "SUPER_ADMIN", label: "SUPER_ADMIN" },
                   ]}
                 />
