@@ -77,7 +77,7 @@ export default function KendaraanPage() {
             <p className="text-[11px] uppercase tracking-[0.22em] text-sky-300">Fleet gallery</p>
             <h2 className="text-2xl font-semibold tracking-tight">Semua unit operasional SIG</h2>
             <p className="mt-1 text-sm text-slate-300">
-              {counts.all} kendaraan · milik PT SIG atau vendor/rental
+              {counts.all} kendaraan · milik PT Saraswanti Indo Genetech atau vendor/rental
             </p>
           </div>
           <button
@@ -98,7 +98,7 @@ export default function KendaraanPage() {
           onClick={() => setOwn(own === "sig" ? "all" : "sig")}
           className="rounded-3xl bg-[#071526] p-6 text-left text-white shadow-lg ring-1 ring-white/10"
         >
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Milik pribadi · PT SIG</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Milik pribadi · PT Saraswanti Indo Genetech</div>
           <div className="mt-2 text-5xl font-semibold tracking-tight">{counts.sig}</div>
           <p className="mt-2 text-sm text-slate-300">unit aset sendiri</p>
         </button>
@@ -139,7 +139,7 @@ export default function KendaraanPage() {
         {(
           [
             ["all", "Semua pemilik"],
-            ["sig", "PT SIG"],
+            ["sig", "PT Saraswanti Indo Genetech"],
             ["vendor", "Vendor / Rental"],
           ] as const
         ).map(([k, l]) => (

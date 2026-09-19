@@ -372,7 +372,7 @@ export default function Dokumen() {
                     <span className="text-lg font-semibold">{r.v.plate}</span>
                     <span className="text-slate-500">{r.v.brand} {r.v.model}</span>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">
-                      {r.v.ownerKind === "vendor" ? "Vendor" : "PT SIG"}
+                      {r.v.ownerKind === "vendor" ? "Vendor" : "PT Saraswanti Indo Genetech"}
                     </span>
                   </div>
                   <div className="mt-1 text-xs text-slate-500">

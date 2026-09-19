@@ -221,11 +221,14 @@ export function VehicleForm({
                   setForm({
                     ...form,
                     ownerKind,
-                    owner: ownerKind === "sig" && !form.owner.toLowerCase().includes("sig") ? "PT SIG Operasional" : form.owner,
+                    owner:
+                      ownerKind === "sig" && !form.owner.toLowerCase().includes("saraswanti")
+                        ? "PT Saraswanti Indo Genetech"
+                        : form.owner,
                   });
                 }}
                 options={[
-                  { value: "sig", label: "PT SIG (milik sendiri)" },
+                  { value: "sig", label: "PT Saraswanti Indo Genetech" },
                   { value: "vendor", label: "Vendor / Rental" },
                 ]}
               />

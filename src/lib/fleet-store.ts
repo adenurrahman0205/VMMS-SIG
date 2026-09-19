@@ -81,7 +81,7 @@ export function blankVehicle(): Vehicle {
     health: 80,
     buyDate: "",
     buyPrice: 0,
-    owner: "PT SIG Operasional",
+    owner: "PT Saraswanti Indo Genetech",
     ownerKind: "sig",
     address: "",
     fuel: "Bensin",

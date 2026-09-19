@@ -348,7 +348,7 @@ export function inferOwnerKind(v: { ownerKind?: OwnerKind; owner?: string }): Ow
 }
 
 export function ownerKindLabel(k: OwnerKind) {
-  return k === "vendor" ? "Vendor / Rental" : "PT SIG";
+  return k === "vendor" ? "Vendor / Rental" : "PT Saraswanti Indo Genetech";
 }
 
 export const SERVICE_INTERVAL_KM = 10000;

@@ -283,7 +283,7 @@ export default function Page() {
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${chip}`}>{label}</span>
                     </div>
                     <div className="truncate text-xs text-slate-500">{v.brand} {v.model} · {v.year}</div>
-                    <div className="text-[11px] text-slate-400">{v.color} · {v.ownerKind === "vendor" ? "Vendor" : "PT SIG"}</div>
+                    <div className="text-[11px] text-slate-400">{v.color} · {v.ownerKind === "vendor" ? "Vendor" : "PT Saraswanti Indo Genetech"}</div>
                   </div>
                 </div>
                 <div className="lg:col-span-2">
