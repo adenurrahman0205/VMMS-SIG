@@ -282,62 +282,106 @@ export default function Dokumen() {
                 </button>
               </div>
               {on && (
-                <div className="border-t bg-slate-50/80 p-4">
+                <div className="anim border-t border-slate-100 bg-gradient-to-b from-slate-50 to-white p-4 sm:p-5">
                   {r.docs.length === 0 ? (
-                    <p className="text-sm text-slate-500">Unit ini belum punya STNK/asuransi/pajak di form Armada.</p>
+                    <p className="rounded-2xl bg-white px-4 py-8 text-center text-sm text-slate-500 ring-1 ring-slate-200">
+                      Unit ini belum punya STNK / asuransi / pajak. Isi lewat tombol Update.
+                    </p>
                   ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {r.docs.map((d) => {
                         const left = daysLeft(d.expire);
-                        const cls =
-                          d.status === "expired"
-                            ? "border-red-200 bg-red-50/50"
-                            : d.status === "segera"
-                              ? "border-amber-200 bg-amber-50/40"
-                              : "border-slate-200 bg-white";
+                        const expired = d.status === "expired";
+                        const soon = d.status === "segera";
+                        const pct =
+                          left == null
+                            ? 0
+                            : left < 0
+                              ? 0
+                              : Math.max(6, Math.min(100, Math.round((left / 365) * 100)));
+                        const tone = expired
+                          ? "from-red-500/90 to-red-700"
+                          : soon
+                            ? "from-amber-400 to-orange-500"
+                            : "from-sky-500 to-emerald-500";
+                        const chip = expired
+                          ? "bg-red-50 text-red-700"
+                          : soon
+                            ? "bg-amber-50 text-amber-800"
+                            : "bg-emerald-50 text-emerald-700";
+                        const leftLabel =
+                          left == null
+                            ? "Tanggal belum diisi"
+                            : left < 0
+                              ? `Kadaluarsa ${Math.abs(left)} hari lalu`
+                              : left === 0
+                                ? "Habis hari ini"
+                                : `${fmtN(left)} hari lagi`;
                         return (
-                          <div key={d.type + d.expire} className={`rounded-2xl border p-4 ${cls}`}>
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="text-sm font-semibold">{d.type}</div>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                                  d.status === "expired"
-                                    ? "bg-red-100 text-red-700"
-                                    : d.status === "segera"
-                                      ? "bg-amber-100 text-amber-800"
-                                      : "bg-emerald-100 text-emerald-700"
-                                }`}
-                              >
-                                {d.status}
-                              </span>
+                          <article
+                            key={d.type + d.expire}
+                            className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
+                          >
+                            <div className={`h-1.5 bg-gradient-to-r ${tone}`} />
+                            <div className="p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <span className={`grid h-11 w-11 place-items-center rounded-2xl ${chip}`}>
+                                    <DocGlyph type={d.type} />
+                                  </span>
+                                  <div>
+                                    <div className="text-base font-semibold text-slate-900">{d.type}</div>
+                                    <div className="text-[11px] uppercase tracking-wide text-slate-400">Dokumen unit</div>
+                                  </div>
+                                </div>
+                                <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase ${chip}`}>
+                                  {d.status}
+                                </span>
+                              </div>
+
+                              {isPajakDoc(d.type) && (
+                                <div className="mt-4 rounded-2xl bg-[#071526] px-4 py-3 text-white">
+                                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Nominal pajak</div>
+                                  <div className="mt-1 text-xl font-semibold tracking-tight">{d.amount ? fmt(d.amount) : "Belum diisi"}</div>
+                                </div>
+                              )}
+
+                              <div className="mt-4 grid grid-cols-2 gap-3">
+                                <div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Berlaku sampai</div>
+                                  <div className="mt-0.5 text-sm font-semibold text-slate-800">{fmtDocDate(d.expire)}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Sisa waktu</div>
+                                  <div className={`mt-0.5 text-sm font-semibold ${expired ? "text-red-600" : soon ? "text-amber-700" : "text-emerald-700"}`}>
+                                    {leftLabel}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                <div className={`h-full rounded-full bg-gradient-to-r ${tone}`} style={{ width: `${pct}%` }} />
+                              </div>
                             </div>
-                            {isPajakDoc(d.type) && (
-                              <>
-                                <div className="mt-3 text-[11px] uppercase tracking-wide text-slate-400">Nominal pajak</div>
-                                <div className="text-lg font-semibold">{d.amount ? fmt(d.amount) : "—"}</div>
-                              </>
-                            )}
-                            <div className="mt-3 text-[11px] uppercase tracking-wide text-slate-400">Berlaku sampai</div>
-                            <div className="text-lg font-semibold">{d.expire || "—"}</div>
-                            <div className="mt-1 text-xs text-slate-500">
-                              {left == null
-                                ? "Tanggal belum diisi"
-                                : left < 0
-                                  ? `Kadaluarsa ${Math.abs(left)} hari lalu`
-                                  : left === 0
-                                    ? "Habis hari ini"
-                                    : `${left} hari lagi`}
-                            </div>
-                          </div>
+                          </article>
                         );
                       })}
                     </div>
                   )}
-                  <Link href={`/kendaraan/${r.v.id}`} className="mt-4 inline-block text-sm font-semibold text-sky-700">
-                    Buka dossier unit →
-                  </Link>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                    <Link href={`/kendaraan/${r.v.id}`} className="text-sm font-semibold text-sky-700 hover:underline">
+                      Buka dossier unit →
+                    </Link>
+                    <button
+                      type="button"
+                      className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white"
+                      onClick={() => setEditor(r.v)}
+                    >
+                      Update dokumen
+                    </button>
+                  </div>
                 </div>
               )}
+
             </div>
           );
         })}
