@@ -29,6 +29,32 @@ function liveDoc(d: VehicleDoc): VehicleDoc {
   return { ...d, status: docStatusFromExpire(d.expire) };
 }
 
+function fmtDocDate(iso: string) {
+  if (!iso) return "—";
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function DocGlyph({ type }: { type: string }) {
+  const t = type.toLowerCase();
+  const d =
+    t.includes("stnk")
+      ? "M7 3h8l5 5v13H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM15 3v5h5"
+      : t.includes("bpkb")
+        ? "M4 6h16v12H4zM8 10h8M8 14h5"
+        : t.includes("pajak")
+          ? "M12 3v18M8 7h8M7 11h10M9 15h6M10 19h4"
+          : t.includes("asuransi")
+            ? "M12 3 4 7v5c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V7l-8-4Z"
+            : "M7 3h8l5 5v13H7V3Z";
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  );
+}
+
 export default function Dokumen() {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [q, setQ] = useState("");
