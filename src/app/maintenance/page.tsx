@@ -260,16 +260,6 @@ export default function Mnt() {
             >
               + Estimasi biaya
             </button>
-            <button
-              type="button"
-              className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
-              onClick={() => {
-                setTab("wo");
-                setEditor(blankJob(fleet[0]?.id ?? ""));
-              }}
-            >
-              + Work order
-            </button>
           </div>
         </div>
       </section>
