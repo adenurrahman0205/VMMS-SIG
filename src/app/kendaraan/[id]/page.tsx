@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { docsForVehicle, fmt, fmtN, inferOwnerKind, isPajakDoc, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
+import { docHasNominal, docsForVehicle, fmt, fmtN, inferOwnerKind, isAsuransiDoc, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";
@@ -246,7 +246,11 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
           {docs.map((d) => (
             <div key={d.type} className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
               <b>{d.type}</b>
-              {isPajakDoc(d.type) ? <span className="font-semibold text-slate-700">{d.amount ? fmt(d.amount) : "Nominal —"}</span> : null}
+              {docHasNominal(d.type) ? (
+                <span className="font-semibold text-slate-700">
+                  {d.amount ? fmt(d.amount) : isAsuransiDoc(d.type) ? "Premi —" : "Nominal —"}
+                </span>
+              ) : null}
               <span>s.d. {d.expire}</span>
               <Badge status={d.status} />
             </div>

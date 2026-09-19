@@ -6,12 +6,30 @@ export type VehicleDoc = {
   type: string;
   expire: string;
   status: "aktif" | "segera" | "expired";
-  /** Nominal pajak (hanya untuk jenis Pajak). */
+  /** Nominal pajak atau premi asuransi. */
   amount?: number;
 };
 
 export function isPajakDoc(type: string) {
   return type.trim().toLowerCase() === "pajak";
+}
+
+export function isAsuransiDoc(type: string) {
+  return type.trim().toLowerCase() === "asuransi";
+}
+
+export function docHasNominal(type: string) {
+  return isPajakDoc(type) || isAsuransiDoc(type);
+}
+
+const DOC_ORDER = ["stnk", "pajak", "asuransi"];
+
+export function sortVehicleDocs(docs: VehicleDoc[]) {
+  return [...docs].sort((a, b) => {
+    const ia = DOC_ORDER.indexOf(a.type.trim().toLowerCase());
+    const ib = DOC_ORDER.indexOf(b.type.trim().toLowerCase());
+    return (ia === -1 ? 50 : ia) - (ib === -1 ? 50 : ib);
+  });
 }
 
 /** Estimasi PKB tahunan jika nominal belum diisi. */
@@ -29,6 +47,23 @@ export function pajakNominalFor(v: { buyPrice?: number; model?: string }) {
   if (m.includes("carry") || m.includes("gran")) return 1_550_000;
   const price = Number(v.buyPrice) || 250_000_000;
   return Math.max(1_200_000, Math.round((price * 0.012) / 50_000) * 50_000);
+}
+
+/** Estimasi premi asuransi comprehensive jika belum diisi. */
+export function asuransiNominalFor(v: { buyPrice?: number; model?: string }) {
+  const m = (v.model || "").toLowerCase();
+  if (m.includes("pajero")) return 12_400_000;
+  if (m.includes("hiace")) return 9_850_000;
+  if (m.includes("elf")) return 8_900_000;
+  if (m.includes("hr-v") || m.includes("hrv")) return 7_350_000;
+  if (m.includes("innova")) return 7_800_000;
+  if (m.includes("xpander")) return 5_450_000;
+  if (m.includes("luxio")) return 4_650_000;
+  if (m.includes("calya")) return 3_150_000;
+  if (m.includes("avanza")) return 4_250_000;
+  if (m.includes("carry") || m.includes("gran")) return 2_950_000;
+  const price = Number(v.buyPrice) || 250_000_000;
+  return Math.max(2_400_000, Math.round((price * 0.022) / 50_000) * 50_000);
 }
 
 export type Vehicle = {
@@ -64,7 +99,7 @@ export type Vehicle = {
   documents?: VehicleDoc[];
 };
 
-export const DOC_TYPES = ["STNK", "BPKB", "KIR", "Asuransi", "Pajak"] as const;
+export const DOC_TYPES = ["STNK", "Pajak", "Asuransi", "BPKB", "KIR"] as const;
 
 export function docStatusFromExpire(expire: string): VehicleDoc["status"] {
   if (!expire) return "segera";
@@ -76,15 +111,17 @@ export function docStatusFromExpire(expire: string): VehicleDoc["status"] {
 }
 
 export function docsForVehicle(v: { id: string; documents?: VehicleDoc[] }): VehicleDoc[] {
-  if (v.documents && v.documents.length) return v.documents;
-  return documents
-    .filter((d) => d.vehicleId === v.id)
-    .map((d) => ({
-      type: d.type,
-      expire: d.expire,
-      status: (d.status as VehicleDoc["status"]) || docStatusFromExpire(d.expire),
-      amount: "amount" in d ? Number((d as { amount?: number }).amount) || undefined : undefined,
-    }));
+  if (v.documents && v.documents.length) return sortVehicleDocs(v.documents);
+  return sortVehicleDocs(
+    documents
+      .filter((d) => d.vehicleId === v.id)
+      .map((d) => ({
+        type: d.type,
+        expire: d.expire,
+        status: (d.status as VehicleDoc["status"]) || docStatusFromExpire(d.expire),
+        amount: "amount" in d ? Number((d as { amount?: number }).amount) || undefined : undefined,
+      }))
+  );
 }
 
 const CORE_DOCS = ["STNK", "Pajak", "Asuransi"] as const;
@@ -111,12 +148,17 @@ export function ensureCoreDocs(v: { id: string; buyDate?: string; buyPrice?: num
       type,
       expire,
       status: docStatusFromExpire(expire),
-      amount: isPajakDoc(type) ? pajakNominalFor(v) : undefined,
+      amount: isPajakDoc(type) ? pajakNominalFor(v) : isAsuransiDoc(type) ? asuransiNominalFor(v) : undefined,
     });
   });
   const pajak = pajakNominalFor(v);
-  return [...existing, ...extras].map((d) =>
-    isPajakDoc(d.type) && !(Number(d.amount) > 0) ? { ...d, amount: pajak } : d
+  const premi = asuransiNominalFor(v);
+  return sortVehicleDocs(
+    [...existing, ...extras].map((d) => {
+      if (isPajakDoc(d.type) && !(Number(d.amount) > 0)) return { ...d, amount: pajak };
+      if (isAsuransiDoc(d.type) && !(Number(d.amount) > 0)) return { ...d, amount: premi };
+      return d;
+    })
   );
 }
 

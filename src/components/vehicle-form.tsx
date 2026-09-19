@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
-import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle, fmt, isPajakDoc, vehiclePhoto } from "@/lib/data";
+import { DOC_TYPES, SERVICE_INTERVAL_KM, docHasNominal, docStatusFromExpire, docsForVehicle, fmt, isAsuransiDoc, vehiclePhoto } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 import { SearchSelect } from "@/components/search-select";
 
@@ -264,14 +264,14 @@ export function VehicleForm({
           <div className="mb-6 space-y-2">
             {(form.documents ?? []).map((d, i) => (
               <div key={i} className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-12">
-                <div className={isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
+                <div className={docHasNominal(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jenis</p>
                   <SearchSelect
                     allowEmpty={false}
                     value={d.type}
                     onChange={(type) => {
                       const documents = [...(form.documents ?? [])];
-                      documents[i] = isPajakDoc(type) ? { ...d, type } : { ...d, type, amount: undefined };
+                      documents[i] = docHasNominal(type) ? { ...d, type } : { ...d, type, amount: undefined };
                       setForm({ ...form, documents });
                     }}
                     options={[
@@ -280,7 +280,7 @@ export function VehicleForm({
                     ]}
                   />
                 </div>
-                <div className={isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
+                <div className={docHasNominal(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Berlaku sampai</p>
                   <input
                     className={inputCls}
@@ -294,9 +294,11 @@ export function VehicleForm({
                     }}
                   />
                 </div>
-                {isPajakDoc(d.type) && (
+                {docHasNominal(d.type) && (
                   <div className="sm:col-span-3">
-                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Nominal pajak</p>
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                      {isAsuransiDoc(d.type) ? "Nominal asuransi" : "Nominal pajak"}
+                    </p>
                     <input
                       className={inputCls}
                       type="number"
@@ -313,7 +315,7 @@ export function VehicleForm({
                     {d.amount ? <p className="mt-1 text-[11px] text-slate-400">{fmt(d.amount)}</p> : null}
                   </div>
                 )}
-                <div className={`flex items-end gap-2 ${isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}`}>
+                <div className={`flex items-end gap-2 ${docHasNominal(d.type) ? "sm:col-span-3" : "sm:col-span-4"}`}>
                   <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold uppercase text-slate-500 ring-1 ring-slate-200">{d.status}</span>
                   <button
                     type="button"

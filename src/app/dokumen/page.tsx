@@ -11,7 +11,8 @@ import {
   ensureCoreDocs,
   fmt,
   fmtN,
-  isPajakDoc,
+  docHasNominal,
+  isAsuransiDoc,
   vehiclePhoto,
   type Vehicle,
   type VehicleDoc,
@@ -265,7 +266,7 @@ export default function Dokumen() {
                       return (
                         <span key={d.type + d.expire} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${cls}`}>
                           {d.type} · {d.status}
-                          {isPajakDoc(d.type) && d.amount ? ` · ${fmt(d.amount)}` : ""}
+                          {docHasNominal(d.type) && d.amount ? ` · ${fmt(d.amount)}` : ""}
                         </span>
                       );
                     })}
@@ -339,9 +340,11 @@ export default function Dokumen() {
                                 </span>
                               </div>
 
-                              {isPajakDoc(d.type) && (
+                              {docHasNominal(d.type) && (
                                 <div className="mt-4 rounded-2xl bg-[#071526] px-4 py-3 text-white">
-                                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Nominal pajak</div>
+                                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
+                                    {isAsuransiDoc(d.type) ? "Nominal asuransi" : "Nominal pajak"}
+                                  </div>
                                   <div className="mt-1 text-xl font-semibold tracking-tight">{d.amount ? fmt(d.amount) : "Belum diisi"}</div>
                                 </div>
                               )}

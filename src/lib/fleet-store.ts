@@ -41,10 +41,13 @@ export function loadFleet(): Vehicle[] {
             jobs
           )
         );
-        const needPajak = parsed.some((v) =>
-          !(v.documents ?? []).some((d) => d.type.trim().toLowerCase() === "pajak" && Number(d.amount) > 0)
-        );
-        if (needPajak) saveFleet(next);
+        const needNominal = parsed.some((v) => {
+          const docs = v.documents ?? [];
+          const pajakOk = docs.some((d) => d.type.trim().toLowerCase() === "pajak" && Number(d.amount) > 0);
+          const asuOk = docs.some((d) => d.type.trim().toLowerCase() === "asuransi" && Number(d.amount) > 0);
+          return !pajakOk || !asuOk;
+        });
+        if (needNominal) saveFleet(next);
         return next;
       }
     }
