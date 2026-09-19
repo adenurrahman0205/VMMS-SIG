@@ -952,6 +952,7 @@ export default function Mnt() {
               >
                 PDF
               </button>
+              )}
               {estView.status !== "wo" && (
                 <button type="button" className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => convertEstToWo(estView)}>
                   Lanjut work order
