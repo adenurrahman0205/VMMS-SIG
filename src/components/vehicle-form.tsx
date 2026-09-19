@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
-import { DOC_TYPES, SERVICE_INTERVAL_KM, docHasNominal, docStatusFromExpire, docsForVehicle, fmt, isAsuransiDoc, vehiclePhoto } from "@/lib/data";
+import { DOC_TYPES, SERVICE_INTERVAL_KM, docHasNominal, docStatusFromExpire, docsForVehicle, fmt, isAsuransiDoc, isStnkDoc, vehiclePhoto } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 import { SearchSelect } from "@/components/search-select";
 
@@ -263,7 +263,8 @@ export function VehicleForm({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Dokumen kendaraan</p>
           <div className="mb-6 space-y-2">
             {(form.documents ?? []).map((d, i) => (
-              <div key={i} className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-12">
+              <div key={i} className="space-y-2 rounded-2xl bg-slate-50 p-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-12">
                 <div className={docHasNominal(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jenis</p>
                   <SearchSelect
@@ -271,7 +272,12 @@ export function VehicleForm({
                     value={d.type}
                     onChange={(type) => {
                       const documents = [...(form.documents ?? [])];
-                      documents[i] = docHasNominal(type) ? { ...d, type } : { ...d, type, amount: undefined };
+                      documents[i] = {
+                        ...d,
+                        type,
+                        amount: docHasNominal(type) ? d.amount : undefined,
+                        photo: isStnkDoc(type) ? d.photo : undefined,
+                      };
                       setForm({ ...form, documents });
                     }}
                     options={[
@@ -325,6 +331,54 @@ export function VehicleForm({
                     Hapus
                   </button>
                 </div>
+              </div>
+              {isStnkDoc(d.type) && (
+                <div className="flex flex-wrap items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-200">
+                  {d.photo ? (
+                    <img src={d.photo} alt="STNK" className="h-20 w-32 rounded-lg object-cover ring-1 ring-slate-200" />
+                  ) : (
+                    <span className="grid h-20 w-32 place-items-center rounded-lg bg-slate-100 text-[11px] font-semibold text-slate-400">
+                      Belum ada foto
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700">Foto STNK (bukti dokumen)</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">Unggah foto/scan STNK agar tercatat sebagai bukti.</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <label className="inline-flex cursor-pointer rounded-lg bg-[#071526] px-3 py-1.5 text-xs font-semibold !text-white">
+                        {d.photo ? "Ganti foto" : "Unggah foto"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            readImage(file, 960, (data) => {
+                              const documents = [...(form.documents ?? [])];
+                              documents[i] = { ...d, photo: data };
+                              setForm({ ...form, documents });
+                            });
+                          }}
+                        />
+                      </label>
+                      {d.photo ? (
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-red-600"
+                          onClick={() => {
+                            const documents = [...(form.documents ?? [])];
+                            documents[i] = { ...d, photo: "" };
+                            setForm({ ...form, documents });
+                          }}
+                        >
+                          Hapus foto
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              )}
               </div>
             ))}
             <button

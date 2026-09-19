@@ -13,6 +13,7 @@ import {
   fmtN,
   docHasNominal,
   isAsuransiDoc,
+  isStnkDoc,
   vehiclePhoto,
   type Vehicle,
   type VehicleDoc,
@@ -63,6 +64,7 @@ export default function Dokumen() {
   const [kind, setKind] = useState<string>("all");
   const [open, setOpen] = useState<string | null>(null);
   const [editor, setEditor] = useState<Vehicle | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const loaded = loadFleet();
@@ -340,6 +342,22 @@ export default function Dokumen() {
                                 </span>
                               </div>
 
+                              {isStnkDoc(d.type) && (
+                                <button
+                                  type="button"
+                                  className="mt-4 w-full overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200"
+                                  onClick={() => d.photo && setPreview(d.photo)}
+                                >
+                                  {d.photo ? (
+                                    <img src={d.photo} alt="STNK" className="h-36 w-full object-cover" />
+                                  ) : (
+                                    <div className="grid h-28 place-items-center text-xs font-semibold text-slate-400">
+                                      Foto STNK belum diunggah
+                                    </div>
+                                  )}
+                                </button>
+                              )}
+
                               {docHasNominal(d.type) && (
                                 <div className="mt-4 rounded-2xl bg-[#071526] px-4 py-3 text-white">
                                   <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
@@ -389,6 +407,21 @@ export default function Dokumen() {
           );
         })}
       </div>
+
+      {preview && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setPreview(null)}>
+          <div className="absolute inset-0 bg-[#071526]/80 backdrop-blur-sm" />
+          <div className="anim relative max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between bg-[#071526] px-5 py-3 text-white">
+              <p className="text-sm font-semibold">Foto STNK</p>
+              <button type="button" className="rounded-full bg-white/10 px-3 py-1 text-sm !text-white" onClick={() => setPreview(null)}>
+                Tutup
+              </button>
+            </div>
+            <img src={preview} alt="STNK" className="max-h-[80vh] w-full object-contain bg-slate-100" />
+          </div>
+        </div>
+      )}
 
       {editor && (
         <VehicleForm

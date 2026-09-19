@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { Badge, Card, Shell } from "@/components/shell";
-import { docHasNominal, docsForVehicle, fmt, fmtN, inferOwnerKind, isAsuransiDoc, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
+import { docHasNominal, docsForVehicle, fmt, fmtN, inferOwnerKind, isAsuransiDoc, isStnkDoc, ownerKindLabel, vehiclePhoto, vehicles, type Maintenance, type Vehicle } from "@/lib/data";
 import { statsFor } from "@/lib/analytics";
 import { BbmPreview } from "@/components/bbm-preview";
 import { loadFleet } from "@/lib/fleet-store";

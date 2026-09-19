@@ -8,7 +8,13 @@ export type VehicleDoc = {
   status: "aktif" | "segera" | "expired";
   /** Nominal pajak atau premi asuransi. */
   amount?: number;
+  /** Foto bukti (STNK). */
+  photo?: string;
 };
+
+export function isStnkDoc(type: string) {
+  return type.trim().toLowerCase() === "stnk";
+}
 
 export function isPajakDoc(type: string) {
   return type.trim().toLowerCase() === "pajak";
@@ -120,6 +126,7 @@ export function docsForVehicle(v: { id: string; documents?: VehicleDoc[] }): Veh
         expire: d.expire,
         status: (d.status as VehicleDoc["status"]) || docStatusFromExpire(d.expire),
         amount: "amount" in d ? Number((d as { amount?: number }).amount) || undefined : undefined,
+        photo: "photo" in d && typeof (d as { photo?: string }).photo === "string" ? (d as { photo?: string }).photo : undefined,
       }))
   );
 }
