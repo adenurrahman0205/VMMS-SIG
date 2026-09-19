@@ -36,6 +36,11 @@ export default function Mnt() {
   const [estimates, setEstimates] = useState<ServiceEstimate[]>([]);
   const [estEditor, setEstEditor] = useState<ServiceEstimate | null>(null);
   const [estView, setEstView] = useState<ServiceEstimate | null>(null);
+  const [pendingDel, setPendingDel] = useState<
+    | { kind: "est"; id: string; title: string; sub: string }
+    | { kind: "wo"; id: string; title: string; sub: string }
+    | null
+  >(null);
   const [tab, setTab] = useState<"wo" | "estimasi">("wo");
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => {
@@ -96,8 +101,36 @@ export default function Mnt() {
   }
 
   function removeJob(id: string) {
-    if (!window.confirm("Hapus work order ini? Data tidak bisa dikembalikan.")) return;
-    persist(jobs.filter((j) => j.id !== id));
+    const j = jobs.find((x) => x.id === id);
+    const v = findFleetUnit(fleet, j?.vehicleId ?? "");
+    setPendingDel({
+      kind: "wo",
+      id,
+      title: j?.id ?? id,
+      sub: `${v?.plate ?? j?.vehicleId ?? "—"} · ${j?.type ?? "Work order"}`,
+    });
+  }
+
+  function askRemoveEst(e: ServiceEstimate) {
+    const v = findFleetUnit(fleet, e.vehicleId);
+    setPendingDel({
+      kind: "est",
+      id: e.id,
+      title: e.id,
+      sub: `${v?.plate ?? e.vehicleId} · ${e.type}`,
+    });
+  }
+
+  function confirmPendingDel() {
+    if (!pendingDel) return;
+    if (pendingDel.kind === "est") {
+      persistEst(estimates.filter((x) => x.id !== pendingDel.id));
+      if (estView?.id === pendingDel.id) setEstView(null);
+    } else {
+      persist(jobs.filter((j) => j.id !== pendingDel.id));
+      if (histId === pendingDel.id) setHistId(null);
+    }
+    setPendingDel(null);
   }
 
   const filtered = useMemo(() => {
@@ -268,11 +301,7 @@ export default function Mnt() {
                   <button
                     type="button"
                     className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200"
-                    onClick={() => {
-                      if (!window.confirm(`Hapus estimasi ${e.id}? Data tidak bisa dikembalikan.`)) return;
-                      persistEst(estimates.filter((x) => x.id !== e.id));
-                      if (estView?.id === e.id) setEstView(null);
-                    }}
+                    onClick={() => askRemoveEst(e)}
                   >
                     Hapus
                   </button>
@@ -911,6 +940,34 @@ export default function Mnt() {
               <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan ke arsip</button>
             </div>
           </form>
+        </div>
+      )}
+      {pendingDel && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setPendingDel(null)}>
+          <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
+          <div className="anim relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#071526] px-6 py-4 text-white">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300">VMMS-SIG</p>
+              <h2 className="text-lg font-semibold">{pendingDel.kind === "est" ? "Hapus estimasi?" : "Hapus work order?"}</h2>
+            </div>
+            <div className="space-y-4 p-6">
+              <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                <p className="font-mono text-xs text-slate-400">{pendingDel.title}</p>
+                <p className="font-semibold text-slate-800">{pendingDel.sub}</p>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-600">
+                Data akan dihapus permanen dan tidak bisa dikembalikan.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
+              <button type="button" className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setPendingDel(null)}>
+                Batal
+              </button>
+              <button type="button" className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white" onClick={confirmPendingDel}>
+                {pendingDel.kind === "est" ? "Hapus estimasi" : "Hapus work order"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </Shell>
