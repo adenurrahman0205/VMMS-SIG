@@ -13,6 +13,7 @@ import {
   fmtN,
   docHasNominal,
   isAsuransiDoc,
+  isPajakDoc,
   isStnkDoc,
   vehiclePhoto,
   type Vehicle,
@@ -54,6 +55,72 @@ function DocGlyph({ type }: { type: string }) {
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d={d} />
     </svg>
+  );
+}
+
+function leftText(left: number | null) {
+  if (left == null) return "Tanggal belum diisi";
+  if (left < 0) return `Kadaluarsa ${Math.abs(left)} hari`;
+  if (left === 0) return "Habis hari ini";
+  return `${fmtN(left)} hari lagi`;
+}
+
+function DueList({
+  title,
+  empty,
+  items,
+  onUpdate,
+}: {
+  title: string;
+  empty: string;
+  items: { v: Vehicle; d: VehicleDoc; left: number | null }[];
+  onUpdate: (v: Vehicle) => void;
+}) {
+  return (
+    <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+          {items.length} unit
+        </span>
+      </div>
+      {items.length === 0 ? (
+        <p className="px-4 py-8 text-center text-sm text-slate-400">{empty}</p>
+      ) : (
+        <ul className="max-h-[28rem] divide-y divide-slate-100 overflow-auto">
+          {items.map(({ v, d, left }) => {
+            const expired = d.status === "expired";
+            return (
+              <li key={v.id + d.type} className="flex items-center gap-3 px-3 py-3">
+                <img src={vehiclePhoto(v)} alt="" className="h-12 w-16 shrink-0 rounded-xl object-cover" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold text-slate-900">{v.plate}</span>
+                    <span className="truncate text-xs text-slate-500">
+                      {v.brand} {v.model}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="font-semibold text-slate-800">{d.amount ? fmt(d.amount) : "Nominal —"}</span>
+                    <span className={expired ? "font-semibold text-red-600" : "font-semibold text-amber-700"}>
+                      {leftText(left)}
+                    </span>
+                    <span className="text-slate-400">s.d. {fmtDocDate(d.expire)}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-xl bg-[#071526] px-3 py-2 text-xs font-semibold !text-white"
+                  onClick={() => onUpdate(v)}
+                >
+                  Update
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -188,6 +255,38 @@ export default function Dokumen() {
             <div className="mt-1 text-[11px] text-slate-400">{s}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mb-6 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-3xl bg-[#071526] p-5 text-white ring-1 ring-white/10">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">Pajak jatuh tempo</p>
+          <p className="mt-2 text-3xl font-semibold tracking-tight">{fmt(dueDocs.pajakSum)}</p>
+          <p className="mt-1 text-sm text-slate-400">
+            {dueDocs.pajak.length} unit · expired atau ≤ 60 hari
+          </p>
+        </div>
+        <div className="rounded-3xl bg-[#0b2a4a] p-5 text-white ring-1 ring-white/10">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">Asuransi jatuh tempo</p>
+          <p className="mt-2 text-3xl font-semibold tracking-tight">{fmt(dueDocs.asuransiSum)}</p>
+          <p className="mt-1 text-sm text-slate-400">
+            {dueDocs.asuransi.length} unit · expired atau ≤ 60 hari
+          </p>
+        </div>
+      </div>
+
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        <DueList
+          title="Daftar Pajak"
+          empty="Tidak ada pajak yang hampir atau sudah jatuh tempo."
+          items={dueDocs.pajak}
+          onUpdate={setEditor}
+        />
+        <DueList
+          title="Daftar Asuransi"
+          empty="Tidak ada asuransi yang hampir atau sudah jatuh tempo."
+          items={dueDocs.asuransi}
+          onUpdate={setEditor}
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
