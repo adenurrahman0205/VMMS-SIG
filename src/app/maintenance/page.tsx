@@ -226,6 +226,49 @@ export default function Mnt() {
         </div>
       </section>
 
+      <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-[#071526] px-4 py-3 text-white">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Sebelum work order</p>
+            <h3 className="text-sm font-semibold">Arsip estimasi biaya service</h3>
+          </div>
+          <button
+            type="button"
+            className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold !text-white"
+            onClick={() => {
+              const b = blankEstimate(fleet[0]?.id ?? "");
+              const s = suggestFor(b.type, b.vehicleId, jobs, fleet);
+              setEstEditor({ ...b, items: s.items, jasa: s.jasa, km: fleet[0]?.km ?? 0 });
+            }}
+          >
+            + Estimasi baru
+          </button>
+        </div>
+        {estimates.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-slate-400">Belum ada estimasi. Buat dulu sebelum membuka work order.</p>
+        ) : (
+          <ul className="max-h-72 divide-y divide-slate-100 overflow-auto">
+            {estimates.map((e) => {
+              const v = findFleetUnit(fleet, e.vehicleId);
+              return (
+                <li key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold">{v?.plate ?? e.vehicleId} · {e.type}</div>
+                    <div className="text-xs text-slate-500">{e.id} · {e.date} · {e.status === "wo" ? "Sudah WO" : "Arsip"}</div>
+                  </div>
+                  <div className="text-sm font-semibold">{fmt(estimateTotal(e))}</div>
+                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                  {e.status !== "wo" && (
+                    <button type="button" className="rounded-full bg-[#071526] px-3 py-1 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           ["Semua WO", String(stats.n), "sesuai filter"],
@@ -435,8 +478,6 @@ export default function Mnt() {
           </table>
         </div>
       </div>
-      </>
-      )}
 
       {histJob && histV && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setHistId(null)}>
