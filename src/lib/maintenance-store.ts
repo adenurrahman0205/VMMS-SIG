@@ -46,10 +46,12 @@ function matchToFleet(vehicleId: string, fleet: Vehicle[]): string {
 }
 
 function alignJobs(rows: Maintenance[], fleet: Vehicle[]): Maintenance[] {
-  if (!fleet.length) return rows;
-  return rows
-    .map((j) => ({ ...j, vehicleId: matchToFleet(j.vehicleId, fleet) }))
-    .filter((j) => fleet.some((v) => v.id === j.vehicleId));
+  const mapped = rows.map((j) => ({
+    ...j,
+    vehicleId: fleet.length ? matchToFleet(j.vehicleId, fleet) : j.vehicleId,
+    status: String(j.status).toLowerCase() === "selesai" ? ("selesai" as const) : ("proses" as const),
+  }));
+  return mapped;
 }
 
 export function loadJobs(): Maintenance[] {

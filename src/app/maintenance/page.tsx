@@ -263,6 +263,33 @@ export default function Mnt() {
 
   return (
     <Shell title="Data Maintenance">
+      {jobs.filter((j) => j.status === "proses").length > 0 && (
+        <div className="mb-4 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+            Sedang proses · {jobs.filter((j) => j.status === "proses").length} unit
+          </p>
+          <div className="space-y-2">
+            {jobs.filter((j) => j.status === "proses").map((j) => {
+              const v = findFleetUnit(fleet, j.vehicleId);
+              return (
+                <button
+                  key={j.id}
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-xl bg-white p-2 text-left ring-1 ring-amber-100"
+                  onClick={() => setHistId(j.id)}
+                >
+                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-11 w-14 rounded-lg object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold">{v?.plate ?? j.vehicleId}</div>
+                    <div className="truncate text-xs text-slate-500">{j.type} · {j.date}</div>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">Proses</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <section className="anim relative mb-4 overflow-hidden rounded-2xl sm:mb-6 sm:rounded-3xl">
         <img src="/images/hero-fleet.png" alt="" className="h-28 w-full object-cover sm:h-36" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/75 to-[#071526]/25 sm:bg-gradient-to-r sm:from-[#071526] sm:via-[#071526]/80 sm:to-transparent" />
@@ -302,35 +329,7 @@ export default function Mnt() {
         ))}
       </div>
 
-      {jobs.filter((j) => j.status === "proses").length > 0 && (
-        <div className="mb-4 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200 lg:hidden">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-            Sedang proses · {jobs.filter((j) => j.status === "proses").length} unit
-          </p>
-          <div className="space-y-2">
-            {jobs.filter((j) => j.status === "proses").map((j) => {
-              const v = findFleetUnit(fleet, j.vehicleId);
-              return (
-                <button
-                  key={j.id}
-                  type="button"
-                  className="flex w-full items-center gap-3 rounded-xl bg-white p-2 text-left ring-1 ring-amber-100"
-                  onClick={() => setHistId(j.id)}
-                >
-                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-11 w-14 rounded-lg object-cover" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-semibold">{v?.plate ?? j.vehicleId}</div>
-                    <div className="truncate text-xs text-slate-500">{j.type} · {j.date}</div>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">Proses</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
+            <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-[#071526] px-4 py-3 text-white">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Sebelum work order</p>
