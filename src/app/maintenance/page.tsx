@@ -453,7 +453,8 @@ export default function Mnt() {
             {dayJobs.map((j) => {
               const v = findFleetUnit(fleet, j.vehicleId);
               return (
-                <div key={j.id} className="roundetems-center gap-2">
+                <div key={j.id} className="rounded-2xl bg-slate-50 p-3">
+                  <div className="flex items-center gap-2">
                     <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
                     <div className="min-w-0">
                       <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : j.vehicleId}</div>
