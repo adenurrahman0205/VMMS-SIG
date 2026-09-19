@@ -35,17 +35,44 @@ export async function POST(req: Request) {
   await admin.from("app_kv").upsert({ key: "users", value: next }, { onConflict: "key" });
 
   let page = 1;
+  let authId: string | undefined;
   for (;;) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     const hit = data.users.find((u) => u.email?.toLowerCase() === email);
     if (hit) {
-      const del = await admin.auth.admin.deleteUser(hit.id);
-      if (del.error) return NextResponse.json({ ok: false, error: del.error.message }, { status: 500 });
+      authId = hit.id;
       break;
     }
     if (!data.users.length || data.users.length < 200) break;
     page += 1;
+  }
+
+  if (authId) {
+    const id = authId;
+    await admin.from("user_roles").delete().eq("user_id", id);
+    await admin.from("notifications").delete().eq("user_id", id);
+
+    const nullCols: { table: string; col: string }[] = [
+      { table: "vehicle_assignments", col: "created_by" },
+      { table: "vehicle_status_logs", col: "created_by" },
+      { table: "odometer_logs", col: "created_by" },
+      { table: "maintenance", col: "created_by" },
+      { table: "expenses", col: "created_by" },
+      { table: "vehicle_documents", col: "created_by" },
+      { table: "attachments", col: "uploaded_by" },
+      { table: "audit_logs", col: "user_id" },
+      { table: "export_logs", col: "user_id" },
+      { table: "backup_logs", col: "created_by" },
+    ];
+    for (const { table, col } of nullCols) {
+      await admin.from(table).update({ [col]: null }).eq(col, id);
+    }
+
+    await admin.from("profiles").delete().eq("id", id);
+
+    const del = await admin.auth.admin.deleteUser(id);
+    if (del.error) return NextResponse.json({ ok: false, error: del.error.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
