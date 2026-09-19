@@ -317,6 +317,7 @@ export default function Mnt() {
                   </div>
                   <div className="text-sm font-semibold">{fmt(estimateTotal(e))}</div>
                   <button type="button" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                  {e.status === "wo" && (
                   <button
                     type="button"
                     className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold !text-white"
@@ -342,6 +343,7 @@ export default function Mnt() {
                   >
                     PDF
                   </button>
+                  )}
                   {e.status !== "wo" && (
                     <button type="button" className="rounded-full bg-[#071526] px-3 py-1 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
                   )}
@@ -375,7 +377,7 @@ export default function Mnt() {
               <button
                 type="button"
                 disabled={estPageSafe >= estPageCount}
-                className="rounded-xl border bg-white px-3 py-1.5 te           className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
                 onClick={() => setEstPage((p) => Math.min(estPageCount, p + 1))}
               >
                 Berikutnya
