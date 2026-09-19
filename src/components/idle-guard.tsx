@@ -12,6 +12,7 @@ export function IdleGuard() {
   useEffect(() => {
     touchActivity();
     let hiddenAt = 0;
+    let locking = false;
 
     const bump = () => {
       touchActivity();
@@ -22,6 +23,8 @@ export function IdleGuard() {
     events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
 
     async function lock(reason: "idle" | "remote") {
+      if (locking) return;
+      locking = true;
       await forceLogout();
       router.replace(reason === "idle" ? "/login?idle=1" : "/login");
       router.refresh();
@@ -39,35 +42,29 @@ export function IdleGuard() {
 
     const off = onForcedLogout(() => void lock("remote"));
 
-    let beats = 0;
-    const tick = window.setInterval(async () => {
-      const idle = idleMs();
-      const remain = IDLE_MS - idle;
+    const tick = window.setInterval(() => {
+      const remain = IDLE_MS - idleMs();
       if (remain <= 0) {
         window.clearInterval(tick);
-        await lock("idle");
+        void lock("idle");
         return;
       }
       if (remain <= WARN_MS) setLeft(Math.ceil(remain / 1000));
       else setLeft(null);
-
-      beats += 1;
-      if (beats % 10 === 0) {
-        try {
-          const sb = createBrowserSupabase();
-          const { data } = await sb.auth.getUser();
-          if (!data.user) await lock("remote");
-        } catch {
-          /* jaringan putus: jangan paksa logout */
-        }
-      }
     }, 1000);
+
+    const sb = createBrowserSupabase();
+    const { data: sub } = sb.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT" && !locking) void lock("remote");
+      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") bump();
+    });
 
     return () => {
       events.forEach((e) => window.removeEventListener(e, bump));
       document.removeEventListener("visibilitychange", vis);
       off();
       window.clearInterval(tick);
+      sub.subscription.unsubscribe();
     };
   }, [router]);
 

@@ -5,23 +5,42 @@ export const WARN_MS = 15_000;
 const ACT_KEY = "vmms-last-activity";
 const LOCK_KEY = "vmms-force-logout";
 
-export function touchActivity() {
-  if (typeof window === "undefined") return;
+let memAt = Date.now();
+
+function writeAt(n: number) {
+  memAt = n;
+  const s = String(n);
   try {
-    localStorage.setItem(ACT_KEY, String(Date.now()));
+    sessionStorage.setItem(ACT_KEY, s);
   } catch {
     /* ignore */
   }
+  try {
+    localStorage.setItem(ACT_KEY, s);
+  } catch {
+    /* kuota penuh (foto data URL) — tetap pakai memori */
+  }
+}
+
+export function touchActivity() {
+  if (typeof window === "undefined") return;
+  writeAt(Date.now());
 }
 
 export function lastActivity(): number {
   if (typeof window === "undefined") return Date.now();
+  let stored = 0;
   try {
-    const n = Number(localStorage.getItem(ACT_KEY) || 0);
-    return n || Date.now();
+    stored = Math.max(stored, Number(sessionStorage.getItem(ACT_KEY) || 0) || 0);
   } catch {
-    return Date.now();
+    /* ignore */
   }
+  try {
+    stored = Math.max(stored, Number(localStorage.getItem(ACT_KEY) || 0) || 0);
+  } catch {
+    /* ignore */
+  }
+  return Math.max(memAt, stored) || Date.now();
 }
 
 export function idleMs() {
