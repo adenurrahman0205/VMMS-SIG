@@ -33,7 +33,6 @@ export function VehiclePopup({ v, onClose }: { v: Vehicle; onClose: () => void }
     ["Bahan bakar", v.fuel],
     ["Transmisi", v.transmission === "manual" ? "Manual" : "Matic"],
     ["Isi silinder", v.cc],
-    ["Tenaga", v.hp],
     ["User", v.driver],
     ["Departemen", v.dept],
     ["Divisi", v.jabatan || "—"],

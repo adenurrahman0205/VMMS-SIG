@@ -55,7 +55,6 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
     ["Bahan bakar", v.fuel],
     ["Transmisi", v.transmission === "manual" ? "Manual" : "Matic"],
     ["Isi silinder", v.cc],
-    ["Tenaga (HP)", v.hp],
     ["User", v.driver],
     ["Departemen", v.dept],
     ["Divisi", v.jabatan || "—"],
@@ -167,7 +166,7 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
         <Card>
           <p className="text-sm leading-relaxed text-slate-600">
             {v.brand} {v.model} {v.plate} adalah unit divisi {v.dept || "—"} {v.jabatan ? `(${v.jabatan})` : ""} dengan driver {v.driver}.
-            Diproduksi {v.madeYear}, dibeli {v.buyDate} seharga {fmt(v.buyPrice)}. Mesin {v.cc} / {v.hp}, bahan bakar {v.fuel}.
+            Diproduksi {v.madeYear}, dibeli {v.buyDate} seharga {fmt(v.buyPrice)}. Mesin {v.cc}, bahan bakar {v.fuel}.
             Health {v.health}/100 otomatis: umur, KM, sisa KM servis, WO proses, WO & biaya 12 bulan, dokumen expired, status nonaktif.
           </p>
         </Card>

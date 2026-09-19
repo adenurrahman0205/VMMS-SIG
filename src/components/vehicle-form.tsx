@@ -189,9 +189,6 @@ export function VehicleForm({
             <Field label="Isi silinder">
               <input className={inputCls} value={form.cc} onChange={(e) => set("cc", e.target.value)} />
             </Field>
-            <Field label="Tenaga (HP)">
-              <input className={inputCls} value={form.hp} onChange={(e) => set("hp", e.target.value)} />
-            </Field>
             <Field label="No. mesin">
               <input className={inputCls} value={form.engine} onChange={(e) => set("engine", e.target.value)} />
             </Field>
