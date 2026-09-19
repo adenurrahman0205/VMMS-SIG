@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BbmPreview } from "@/components/bbm-preview";
 import type { OwnerKind, Vehicle, VehicleDoc } from "@/lib/data";
-import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle, vehiclePhoto } from "@/lib/data";
+import { DOC_TYPES, SERVICE_INTERVAL_KM, docStatusFromExpire, docsForVehicle, fmt, isPajakDoc, vehiclePhoto } from "@/lib/data";
 import { statuses } from "@/lib/fleet-store";
 import { SearchSelect } from "@/components/search-select";
 
