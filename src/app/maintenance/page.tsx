@@ -42,6 +42,8 @@ export default function Mnt() {
     | null
   >(null);
   const [tab, setTab] = useState<"wo" | "estimasi">("wo");
+  const [woPage, setWoPage] = useState(1);
+  const WO_PAGE = 10;
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => {
     const d = new Date();
@@ -147,6 +149,14 @@ export default function Mnt() {
       })
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   }, [jobs, fleet, shops, q, st, from, to]);
+
+  useEffect(() => {
+    setWoPage(1);
+  }, [q, st, from, to]);
+
+  const woPageCount = Math.max(1, Math.ceil(filtered.length / WO_PAGE));
+  const woPageSafe = Math.min(woPage, woPageCount);
+  const woRows = filtered.slice((woPageSafe - 1) * WO_PAGE, woPageSafe * WO_PAGE);
 
   const stats = useMemo(() => {
     const proses = filtered.filter((j) => j.status === "proses");
