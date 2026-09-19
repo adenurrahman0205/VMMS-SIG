@@ -273,7 +273,55 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {editor && (
+      {pendingDel && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => !delBusy && setPendingDel(null)}>
+          <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
+          <div
+            className="anim relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-[#071526] px-6 py-4 text-white">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-sky-300">VMMS-SIG</p>
+              <h2 className="text-lg font-semibold">Hapus akun?</h2>
+            </div>
+            <div className="space-y-4 p-6">
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                {pendingDel.avatar ? (
+                  <img src={pendingDel.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-[#071526] text-xs font-semibold text-white">
+                    {initials(pendingDel.name)}
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-800">{pendingDel.name}</p>
+                  <p className="truncate text-sm text-slate-500">{pendingDel.email}</p>
+                  <p className="text-[11px] font-semibold uppercase text-slate-400">{pendingDel.role}</p>
+                </div>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-600">
+                Akun ini akan dihapus permanen dari daftar pengguna. Login ikut dihapus dan tidak bisa masuk lagi.
+              </p>
+              {delMsg && <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{delMsg}</p>}
+            </div>
+            <div className="flex justify-end gap-2 border-t bg-slate-50 px-6 py-4">
+              <button type="button" disabled={delBusy} className="rounded-xl border bg-white px-4 py-2 text-sm" onClick={() => setPendingDel(null)}>
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={delBusy}
+                className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white disabled:opacity-60"
+                onClick={() => void confirmRemove()}
+              >
+                {delBusy ? "Menghapus…" : "Hapus akun"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editor && isSuper && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" onClick={() => setEditor(null)}>
           <div className="absolute inset-0 bg-[#071526]/75 backdrop-blur-sm" />
           <form
