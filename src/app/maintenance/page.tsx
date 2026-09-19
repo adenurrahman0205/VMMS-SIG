@@ -428,9 +428,9 @@ export default function Mnt() {
                     )}
                   </div>
                   {units > 0 && (
-                    <div className={`mt-1 hidden text-[10px] leading-tight sm:block ${isSel ? "text-slate-300" : "text-slate-500"}`}>
-                      {units} unit
-                      {cost > 0 ? ` · ${fmt(cost)}` : ""}
+                    <div className={`mt-0.5 truncate text-[9px] leading-tight sm:mt-1 sm:text-[10px] ${isSel ? "text-slate-300" : "text-slate-500"}`}>
+                      {proses ? "Proses" : `${units} unit`}
+                      <span className="hidden sm:inline">{cost > 0 ? ` · ${fmt(cost)}` : ""}</span>
                     </div>
                   )}
                 </button>
@@ -1147,16 +1147,6 @@ export default function Mnt() {
                 Batal
               </button>
               <button type="button" className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white" onClick={confirmPendingDel}>
-                {pendingDel.kind === "est" ? "Hapus estimasi" : "Hapus work order"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </Shell>
-  );
-}
-n type="button" className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold !text-white" onClick={confirmPendingDel}>
                 {pendingDel.kind === "est" ? "Hapus estimasi" : "Hapus work order"}
               </button>
             </div>
