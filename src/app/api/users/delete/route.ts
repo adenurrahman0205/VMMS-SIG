@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
-import type { AppUser } from "@/lib/user-store";
+import { normalizeRole, type AppUser } from "@/lib/user-store";
 
 function isSuper(email: string, users: AppUser[]) {
   const row = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  return row?.role === "SUPER_ADMIN";
+  return normalizeRole(row?.role) === "SUPER_ADMIN";
 }
 
 export async function POST(req: Request) {

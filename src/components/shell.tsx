@@ -13,7 +13,6 @@ import type { AppRole } from "@/lib/user-store";
 const adminItems: [string, string][] = [
   ["/", "Dashboard"],
   ["/kendaraan", "Armada"],
-  ["/jadwal", "Jadwal"],
   ["/maintenance", "Maintenance"],
   ["/biaya", "Biaya & Analitik"],
   ["/dokumen", "Dokumen"],
@@ -27,7 +26,6 @@ const adminItems: [string, string][] = [
 const userItems: [string, string][] = [
   ["/", "Dashboard"],
   ["/kendaraan", "Armada"],
-  ["/jadwal", "Jadwal"],
   ["/maintenance", "Maintenance"],
   ["/dokumen", "Dokumen"],
   ["/profil", "Profil"],
@@ -51,13 +49,6 @@ function NavIcon({ href }: { href: string }) {
         <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 13h18l-1.5-5.5A2 2 0 0 0 17.6 6H6.4a2 2 0 0 0-1.9 1.5L3 13Z" />
           <path d="M5 17h.01M19 17h.01M5 13v4a1 1 0 0 0 1 1h1a2 2 0 1 1 4 0h2a2 2 0 1 1 4 0h1a1 1 0 0 0 1-1v-4" />
-        </svg>
-      );
-    case "/jadwal":
-      return (
-        <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="5" width="18" height="16" rx="2" />
-          <path d="M3 10h18M8 3v4M16 3v4" />
         </svg>
       );
     case "/maintenance":
@@ -153,7 +144,6 @@ export function Shell({ title, children }: { title: string; children: React.Reac
         path === "/profil" ||
         path === "/kendaraan" ||
         path.startsWith("/kendaraan/") ||
-        path === "/jadwal" ||
         path === "/maintenance" ||
         path === "/dokumen";
       if (!admin && !userOk) router.replace("/");
