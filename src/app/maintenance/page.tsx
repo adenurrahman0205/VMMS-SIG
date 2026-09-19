@@ -317,6 +317,31 @@ export default function Mnt() {
                   </div>
                   <div className="text-sm font-semibold">{fmt(estimateTotal(e))}</div>
                   <button type="button" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                  <button
+                    type="button"
+                    className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold !text-white"
+                    onClick={() => {
+                      const linked = e.woId ? jobs.find((j) => j.id === e.woId) : undefined;
+                      const job: Maintenance = linked ?? {
+                        id: e.id,
+                        vehicleId: e.vehicleId,
+                        date: e.date,
+                        type: e.type,
+                        km: e.km,
+                        shop: e.shop,
+                        workshopId: e.workshopId,
+                        cost: estimateTotal(e),
+                        jasa: e.jasa,
+                        status: "proses",
+                        complaint: e.complaint,
+                        action: e.notes || "",
+                        items: e.items.map((it) => ({ ...it })),
+                      };
+                      openSpkPdf({ job, jobs: linked ? jobs : [job, ...jobs], vehicle: v, workshop: shop });
+                    }}
+                  >
+                    PDF
+                  </button>
                   {e.status !== "wo" && (
                     <button type="button" className="rounded-full bg-[#071526] px-3 py-1 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
                   )}
@@ -537,39 +562,23 @@ export default function Mnt() {
                       </span>
                     </td>
                     <td className="sticky right-0 bg-white px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      {m.status === "proses" ? (
                         <button
                           type="button"
-                          className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold !text-white"
-                          onClick={() =>
-                            openSpkPdf({
-                              job: m,
-                              jobs,
-                              vehicle: v,
-                              workshop: findWorkshop(shops, m.shop, m.workshopId),
-                            })
-                          }
+                          className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                          onClick={() => setJobStatus(m.id, "selesai")}
                         >
-                          PDF
+                          Selesai
                         </button>
-                        {m.status === "proses" ? (
-                          <button
-                            type="button"
-                            className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200"
-                            onClick={() => setJobStatus(m.id, "selesai")}
-                          >
-                            Selesai
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
-                            onClick={() => removeJob(m.id)}
-                          >
-                            Hapus
-                          </button>
-                        )}
-                      </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200"
+                          onClick={() => removeJob(m.id)}
+                        >
+                          Hapus
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -645,20 +654,6 @@ export default function Mnt() {
                 <div>
                   <div className="text-lg font-semibold">{histJob.type}</div>
                   <div className="text-xs text-slate-500">{histJob.id} · KM {fmtN(histJob.km)} · {findWorkshop(shops, histJob.shop, histJob.workshopId)?.name || histJob.shop || "Bengkel belum diisi"}</div>
-                  <button
-                    type="button"
-                    className="mt-2 rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800 ring-1 ring-sky-200"
-                    onClick={() =>
-                      openSpkPdf({
-                        job: histJob,
-                        jobs,
-                        vehicle: histV,
-                        workshop: findWorkshop(shops, histJob.shop, histJob.workshopId),
-                      })
-                    }
-                  >
-                    PDF SPK
-                  </button>
                 </div>
                 <div className="text-right">
                   <div className="text-[11px] uppercase text-slate-400">{histJob.status === "selesai" ? "Total WO" : "Belum ditagih"}</div>
@@ -923,6 +918,37 @@ export default function Mnt() {
                 Hapus
               </button>
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setEstView(null)}>Tutup</button>
+              <button
+                type="button"
+                className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
+                onClick={() => {
+                  const e = estView;
+                  const linked = e.woId ? jobs.find((j) => j.id === e.woId) : undefined;
+                  const job: Maintenance = linked ?? {
+                    id: e.id,
+                    vehicleId: e.vehicleId,
+                    date: e.date,
+                    type: e.type,
+                    km: e.km,
+                    shop: e.shop,
+                    workshopId: e.workshopId,
+                    cost: estimateTotal(e),
+                    jasa: e.jasa,
+                    status: "proses",
+                    complaint: e.complaint,
+                    action: e.notes || "",
+                    items: e.items.map((it) => ({ ...it })),
+                  };
+                  openSpkPdf({
+                    job,
+                    jobs: linked ? jobs : [job, ...jobs],
+                    vehicle: findFleetUnit(fleet, e.vehicleId),
+                    workshop: findWorkshop(shops, e.shop, e.workshopId),
+                  });
+                }}
+              >
+                PDF
+              </button>
               {estView.status !== "wo" && (
                 <button type="button" className="rounded-xl bg-[#071526] px-4 py-2 text-sm font-semibold !text-white" onClick={() => convertEstToWo(estView)}>
                   Lanjut work order
