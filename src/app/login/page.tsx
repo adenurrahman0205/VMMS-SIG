@@ -17,7 +17,7 @@ export default function Login() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     if (q.get("idle") === "1") {
-      setMsg("Sesi berakhir karena tidak ada aktivitas selama 5 menit. Masuk kembali untuk lanjut.");
+      setMsg("Sesi berakhir karena tidak ada aktivitas selama 1 jam. Masuk kembali untuk lanjut.");
     }
   }, []);
 
@@ -52,7 +52,7 @@ export default function Login() {
       setBusy(false);
       const em = data.user?.email ?? email;
       const u = mergeLocalUser(em, data.user?.id ?? "", meta);
-      r.push(u.role === "USER" ? "/user" : "/");
+      r.push("/");
       r.refresh();
     } catch (err) {
       setBusy(false);

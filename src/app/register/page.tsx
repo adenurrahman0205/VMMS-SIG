@@ -93,7 +93,7 @@ export default function Register() {
         setMsg("Akun USER dibuat. Cek email untuk konfirmasi, lalu masuk.");
         return;
       }
-      r.push("/user");
+      r.push("/");
       r.refresh();
     } catch (err) {
       setBusy(false);
