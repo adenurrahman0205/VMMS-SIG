@@ -26,6 +26,9 @@ export default function UsersPage() {
   const [formMsg, setFormMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [isSuper, setIsSuper] = useState(false);
+  const [pendingDel, setPendingDel] = useState<AppUser | null>(null);
+  const [delBusy, setDelBusy] = useState(false);
+  const [delMsg, setDelMsg] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -115,29 +118,36 @@ export default function UsersPage() {
     return `https://wa.me/${n}`;
   }
 
-  async function removeUser(u: AppUser) {
-    if (!isSuper) {
-      window.alert("Hanya SUPER_ADMIN yang boleh menghapus akun.");
-      return;
-    }
-    if (!window.confirm(`Hapus permanen ${u.name} (${u.email})? Akun login ikut dihapus dan tidak bisa masuk lagi.`)) return;
+  function askRemove(u: AppUser) {
+    if (!isSuper) return;
+    setDelMsg("");
+    setPendingDel(u);
+  }
+
+  async function confirmRemove() {
+    const u = pendingDel;
+    if (!u || !isSuper) return;
+    setDelBusy(true);
+    setDelMsg("");
     try {
       const res = await fetch("/api/users/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: u.email }),
       });
-      const json = (await res.json()) as { ok?: boolean; error?: string; warning?: string; authDeleted?: boolean };
+      const json = (await res.json()) as { ok?: boolean; error?: string; warning?: string };
       if (!res.ok || !json.ok) {
-        window.alert(json.error || "Gagal hapus akun.");
+        setDelBusy(false);
+        setDelMsg(json.error || "Gagal hapus akun.");
         return;
       }
-      if (json.warning) window.alert(json.warning);
+      persist(rows.filter((x) => x.id !== u.id && x.email.toLowerCase() !== u.email.toLowerCase()));
+      setDelBusy(false);
+      setPendingDel(null);
     } catch {
-      window.alert("Gagal hapus akun di server.");
-      return;
+      setDelBusy(false);
+      setDelMsg("Gagal terhubung ke server. Coba lagi.");
     }
-    persist(rows.filter((x) => x.id !== u.id && x.email.toLowerCase() !== u.email.toLowerCase()));
   }
 
   function restore(u: AppUser) {
@@ -250,7 +260,7 @@ export default function UsersPage() {
                         {!u.active && (
                           <button className="mr-3 text-xs font-semibold text-emerald-700" onClick={() => restore(u)}>Pulihkan</button>
                         )}
-                        <button className="text-xs font-semibold text-red-600" onClick={() => removeUser(u)}>Hapus</button>
+                        <button className="text-xs font-semibold text-red-600" onClick={() => askRemove(u)}>Hapus</button>
                       </>
                     ) : (
                       <span className="text-xs text-slate-400">—</span>
