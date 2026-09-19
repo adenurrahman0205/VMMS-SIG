@@ -259,6 +259,21 @@ export default function Mnt() {
         </div>
       </section>
 
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          ["Semua WO", String(stats.n), "sesuai filter"],
+          ["Sedang proses", String(stats.proses), "belum dihitung biaya"],
+          ["Selesai", String(stats.selesai), "histori tertutup"],
+          ["Total biaya", fmt(stats.cost), "akumulasi WO selesai"],
+        ].map(([l, n, s]) => (
+          <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
+            <div className="mt-1 break-words text-2xl font-semibold tracking-tight">{n}</div>
+            <div className="text-xs text-slate-400">{s}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="mb-6 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-[#071526] px-4 py-3 text-white">
           <div>
@@ -310,21 +325,6 @@ export default function Mnt() {
             })}
           </ul>
         )}
-      </div>
-
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          ["Semua WO", String(stats.n), "sesuai filter"],
-          ["Sedang proses", String(stats.proses), "belum dihitung biaya"],
-          ["Selesai", String(stats.selesai), "histori tertutup"],
-          ["Total biaya", fmt(stats.cost), "akumulasi WO selesai"],
-        ].map(([l, n, s]) => (
-          <div key={l} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{l}</div>
-            <div className="mt-1 break-words text-2xl font-semibold tracking-tight">{n}</div>
-            <div className="text-xs text-slate-400">{s}</div>
-          </div>
-        ))}
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-5">
