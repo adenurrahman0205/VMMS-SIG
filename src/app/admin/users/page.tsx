@@ -127,11 +127,12 @@ export default function UsersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: u.email }),
       });
-      const json = (await res.json()) as { ok?: boolean; error?: string };
+      const json = (await res.json()) as { ok?: boolean; error?: string; warning?: string; authDeleted?: boolean };
       if (!res.ok || !json.ok) {
-        window.alert(json.error || "Gagal hapus akun di Auth.");
+        window.alert(json.error || "Gagal hapus akun.");
         return;
       }
+      if (json.warning) window.alert(json.warning);
     } catch {
       window.alert("Gagal hapus akun di server.");
       return;

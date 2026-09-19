@@ -3,25 +3,27 @@ import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { AppUser } from "@/lib/user-store";
 
-async function isAdminEmail(email: string, users: AppUser[]) {
+function isSuper(email: string, users: AppUser[]) {
   const row = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   return row?.role === "SUPER_ADMIN";
 }
 
 export async function POST(req: Request) {
-  const admin = createAdminSupabase();
-  if (!admin) return NextResponse.json({ ok: false, error: "no-admin" }, { status: 501 });
-
   const sb = await createServerSupabase();
   const {
     data: { user },
   } = await sb.auth.getUser();
   if (!user?.email) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
 
-  const { data: kv } = await admin.from("app_kv").select("key,value").eq("key", "users").maybeSingle();
+  const admin = createAdminSupabase();
+  const db = admin ?? sb;
+
+  const { data: kv, error: kvErr } = await db.from("app_kv").select("key,value").eq("key", "users").maybeSingle();
+  if (kvErr) return NextResponse.json({ ok: false, error: kvErr.message }, { status: 500 });
+
   const users = (Array.isArray(kv?.value) ? kv.value : []) as AppUser[];
-  if (!(await isAdminEmail(user.email, users))) {
-    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!isSuper(user.email, users)) {
+    return NextResponse.json({ ok: false, error: "Hanya SUPER_ADMIN yang boleh menghapus akun." }, { status: 403 });
   }
 
   const body = (await req.json()) as { email?: string };
@@ -32,7 +34,17 @@ export async function POST(req: Request) {
   }
 
   const next = users.filter((u) => u.email.toLowerCase() !== email);
-  await admin.from("app_kv").upsert({ key: "users", value: next }, { onConflict: "key" });
+  const { error: upErr } = await db.from("app_kv").upsert({ key: "users", value: next }, { onConflict: "key" });
+  if (upErr) return NextResponse.json({ ok: false, error: upErr.message }, { status: 500 });
+
+  if (!admin) {
+    return NextResponse.json({
+      ok: true,
+      authDeleted: false,
+      warning:
+        "User dihapus dari daftar. Untuk menghapus login Auth, isi SUPABASE_SERVICE_ROLE_KEY di Vercel (server only, jangan NEXT_PUBLIC).",
+    });
+  }
 
   let page = 1;
   let authId: string | undefined;
@@ -75,5 +87,5 @@ export async function POST(req: Request) {
     if (del.error) return NextResponse.json({ ok: false, error: del.error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, authDeleted: Boolean(authId) });
 }
