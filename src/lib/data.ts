@@ -6,7 +6,13 @@ export type VehicleDoc = {
   type: string;
   expire: string;
   status: "aktif" | "segera" | "expired";
+  /** Nominal pajak (hanya untuk jenis Pajak). */
+  amount?: number;
 };
+
+export function isPajakDoc(type: string) {
+  return type.trim().toLowerCase() === "pajak";
+}
 
 export type Vehicle = {
   id: string;
@@ -60,6 +66,7 @@ export function docsForVehicle(v: { id: string; documents?: VehicleDoc[] }): Veh
       type: d.type,
       expire: d.expire,
       status: (d.status as VehicleDoc["status"]) || docStatusFromExpire(d.expire),
+      amount: "amount" in d ? Number((d as { amount?: number }).amount) || undefined : undefined,
     }));
 }
 

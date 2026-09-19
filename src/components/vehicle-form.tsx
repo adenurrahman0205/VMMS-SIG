@@ -264,13 +264,14 @@ export function VehicleForm({
           <div className="mb-6 space-y-2">
             {(form.documents ?? []).map((d, i) => (
               <div key={i} className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-12">
-                <div className="sm:col-span-4">
+                <div className={isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jenis</p>
                   <SearchSelect
                     allowEmpty={false}
                     value={d.type}
                     onChange={(type) => {
                       const documents = [...(form.documents ?? [])];
-                      documents[i] = { ...d, type };
+                      documents[i] = isPajakDoc(type) ? { ...d, type } : { ...d, type, amount: undefined };
                       setForm({ ...form, documents });
                     }}
                     options={[
@@ -279,7 +280,8 @@ export function VehicleForm({
                     ]}
                   />
                 </div>
-                <div className="sm:col-span-4">
+                <div className={isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Berlaku sampai</p>
                   <input
                     className={inputCls}
                     type="date"
@@ -292,7 +294,26 @@ export function VehicleForm({
                     }}
                   />
                 </div>
-                <div className="flex items-center gap-2 sm:col-span-4">
+                {isPajakDoc(d.type) && (
+                  <div className="sm:col-span-3">
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Nominal pajak</p>
+                    <input
+                      className={inputCls}
+                      type="number"
+                      min={0}
+                      placeholder="Rp"
+                      value={d.amount ?? ""}
+                      onChange={(e) => {
+                        const documents = [...(form.documents ?? [])];
+                        const n = e.target.value === "" ? undefined : Number(e.target.value) || 0;
+                        documents[i] = { ...d, amount: n };
+                        setForm({ ...form, documents });
+                      }}
+                    />
+                    {d.amount ? <p className="mt-1 text-[11px] text-slate-400">{fmt(d.amount)}</p> : null}
+                  </div>
+                )}
+                <div className={`flex items-end gap-2 ${isPajakDoc(d.type) ? "sm:col-span-3" : "sm:col-span-4"}`}>
                   <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold uppercase text-slate-500 ring-1 ring-slate-200">{d.status}</span>
                   <button
                     type="button"

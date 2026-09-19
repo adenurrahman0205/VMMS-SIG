@@ -9,7 +9,9 @@ import {
   docStatusFromExpire,
   docsForVehicle,
   ensureCoreDocs,
+  fmt,
   fmtN,
+  isPajakDoc,
   vehiclePhoto,
   type Vehicle,
   type VehicleDoc,
@@ -229,6 +231,7 @@ export default function Dokumen() {
                       return (
                         <span key={d.type + d.expire} className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${cls}`}>
                           {d.type} · {d.status}
+                          {isPajakDoc(d.type) && d.amount ? ` · ${fmt(d.amount)}` : ""}
                         </span>
                       );
                     })}
@@ -274,6 +277,12 @@ export default function Dokumen() {
                                 {d.status}
                               </span>
                             </div>
+                            {isPajakDoc(d.type) && (
+                              <>
+                                <div className="mt-3 text-[11px] uppercase tracking-wide text-slate-400">Nominal pajak</div>
+                                <div className="text-lg font-semibold">{d.amount ? fmt(d.amount) : "—"}</div>
+                              </>
+                            )}
                             <div className="mt-3 text-[11px] uppercase tracking-wide text-slate-400">Berlaku sampai</div>
                             <div className="text-lg font-semibold">{d.expire || "—"}</div>
                             <div className="mt-1 text-xs text-slate-500">

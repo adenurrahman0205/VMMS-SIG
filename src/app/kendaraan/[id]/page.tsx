@@ -244,8 +244,9 @@ export default function Detail({ params }: { params: Promise<{ id: string }> }) 
         <Card>
           {docs.length === 0 && <p className="text-sm text-slate-500">Belum ada dokumen terunggah untuk unit ini.</p>}
           {docs.map((d) => (
-            <div key={d.type} className="mb-2 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+            <div key={d.type} className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
               <b>{d.type}</b>
+              {isPajakDoc(d.type) ? <span className="font-semibold text-slate-700">{d.amount ? fmt(d.amount) : "Nominal —"}</span> : null}
               <span>s.d. {d.expire}</span>
               <Badge status={d.status} />
             </div>
