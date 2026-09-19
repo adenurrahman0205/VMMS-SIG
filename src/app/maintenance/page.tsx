@@ -685,7 +685,6 @@ export default function Mnt() {
               <div className="mb-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-3">
                   <div className="text-[11px] uppercase text-slate-400">Keluhan</div>
-              t-[11px] uppercase text-slate-400">Keluhan</div>
                   <p className="mt-1 text-sm text-slate-700">{histJob.complaint || "Tidak ada catatan keluhan."}</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-3">
