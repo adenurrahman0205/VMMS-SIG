@@ -375,7 +375,7 @@ export default function Mnt() {
               <button
                 type="button"
                 disabled={estPageSafe >= estPageCount}
-                className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                className="rounded-xl border bg-white px-3 py-1.5 te           className="rounded-xl border bg-white px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
                 onClick={() => setEstPage((p) => Math.min(estPageCount, p + 1))}
               >
                 Berikutnya
@@ -451,8 +451,7 @@ export default function Mnt() {
             {dayJobs.map((j) => {
               const v = findFleetUnit(fleet, j.vehicleId);
               return (
-                <div key={j.id} className="rounded-xl bg-slate-50 p-3">
-                  <div className="flex items-center gap-2">
+                <div key={j.id} className="roundetems-center gap-2">
                     <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
                     <div className="min-w-0">
                       <div className="truncate text-sm font-semibold">{v ? `${v.brand} ${v.model}` : j.vehicleId}</div>
@@ -683,6 +682,7 @@ export default function Mnt() {
               <div className="mb-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-3">
                   <div className="text-[11px] uppercase text-slate-400">Keluhan</div>
+              t-[11px] uppercase text-slate-400">Keluhan</div>
                   <p className="mt-1 text-sm text-slate-700">{histJob.complaint || "Tidak ada catatan keluhan."}</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-3">
