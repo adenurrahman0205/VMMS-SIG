@@ -250,12 +250,15 @@ export default function Mnt() {
           <ul className="max-h-72 divide-y divide-slate-100 overflow-auto">
             {estimates.map((e) => {
               const v = findFleetUnit(fleet, e.vehicleId);
+              const shop = findWorkshop(shops, e.shop, e.workshopId);
+              const shopName = shop?.name || e.shop || "Bengkel belum diisi";
               return (
                 <li key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                   <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">{v?.plate ?? e.vehicleId} · {e.type}</div>
                     <div className="text-xs text-slate-500">{e.id} · {e.date} · {e.status === "wo" ? "Sudah WO" : "Arsip"}</div>
+                    <div className="mt-0.5 truncate text-xs font-semibold text-slate-700">{shopName}</div>
                   </div>
                   <div className="text-sm font-semibold">{fmt(estimateTotal(e))}</div>
                   <button type="button" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
