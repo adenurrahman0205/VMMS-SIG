@@ -920,6 +920,7 @@ export default function Mnt() {
                 Hapus
               </button>
               <button type="button" className="rounded-xl border px-4 py-2 text-sm" onClick={() => setEstView(null)}>Tutup</button>
+              {estView.status === "wo" && (
               <button
                 type="button"
                 className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold !text-white"
