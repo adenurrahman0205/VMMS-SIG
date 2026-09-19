@@ -80,6 +80,28 @@ export default function Mnt() {
     setEstEditor(null);
   }
 
+  function printEst(e: ServiceEstimate) {
+    const v = findFleetUnit(fleet, e.vehicleId);
+    const shop = findWorkshop(shops, e.shop, e.workshopId);
+    const linked = e.woId ? jobs.find((j) => j.id === e.woId) : undefined;
+    const job: Maintenance = linked ?? {
+      id: e.id,
+      vehicleId: e.vehicleId,
+      date: e.date,
+      type: e.type,
+      km: e.km,
+      shop: e.shop,
+      workshopId: e.workshopId,
+      cost: estimateTotal(e),
+      jasa: e.jasa,
+      status: "proses",
+      complaint: e.complaint,
+      action: e.notes || "",
+      items: e.items.map((it) => ({ ...it })),
+    };
+    openSpkPdf({ job, jobs: linked ? jobs : [job, ...jobs], vehicle: v, workshop: shop });
+  }
+
   function convertEstToWo(est: ServiceEstimate) {
     const job = {
       ...blankJob(est.vehicleId),
@@ -98,7 +120,11 @@ export default function Mnt() {
     persistEst(estimates.map((x) => (x.id === est.id ? { ...x, status: "wo" as const, woId: job.id } : x)));
     setEstView(null);
     setTab("wo");
-    setEditor(job);
+    setSt("all");
+    setFrom("");
+    setTo("");
+    setQ("");
+    setWoPage(1);
   }
 
   function setJobStatus(id: string, status: Maintenance["status"]) {
@@ -298,69 +324,89 @@ export default function Mnt() {
           <p className="px-4 py-8 text-center text-sm text-slate-400">Belum ada estimasi. Buat dulu sebelum membuka work order.</p>
         ) : (
           <>
-          <ul className="divide-y divide-slate-100">
+          <div className="md:hidden divide-y divide-slate-100">
             {estRows.map((e) => {
               const v = findFleetUnit(fleet, e.vehicleId);
               const shop = findWorkshop(shops, e.shop, e.workshopId);
               const shopName = shop?.name || e.shop || "Bengkel belum diisi";
               return (
-                <li key={e.id} className="px-3 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:px-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                  <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 shrink-0 rounded-lg object-cover" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 font-semibold leading-tight">{v?.plate ?? e.vehicleId} · {e.type}</div>
-                      <div className="shrink-0 text-sm font-semibold sm:hidden">{fmt(estimateTotal(e))}</div>
+                <div key={e.id} className="px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-12 w-16 shrink-0 rounded-xl object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 font-semibold">{v?.plate ?? e.vehicleId}</div>
+                        <div className="shrink-0 text-sm font-semibold">{fmt(estimateTotal(e))}</div>
+                      </div>
+                      <div className="text-xs text-slate-500">{e.type} · {e.date}</div>
+                      <div className="truncate text-xs font-semibold text-slate-700">{shopName}</div>
                     </div>
-                    <div className="text-xs text-slate-500">{e.date} · {e.status === "wo" ? "Sudah WO" : "Arsip"}</div>
-                    <div className="mt-0.5 truncate text-xs font-semibold text-slate-700">{shopName}</div>
                   </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <button type="button" className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                    {e.status === "wo" ? (
+                      <button type="button" className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold !text-white" onClick={() => printEst(e)}>PDF</button>
+                    ) : (
+                      <button type="button" className="rounded-full bg-[#071526] px-3 py-1.5 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
+                    )}
+                    <button type="button" className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200" onClick={() => askRemoveEst(e)}>Hapus</button>
                   </div>
-                  <div className="hidden text-sm font-semibold sm:block">{fmt(estimateTotal(e))}</div>
-                  <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-0">
-                  <button type="button" className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
-                  {e.status === "wo" && (
-                  <button
-                    type="button"
-                    className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold !text-white"
-                    onClick={() => {
-                      const linked = e.woId ? jobs.find((j) => j.id === e.woId) : undefined;
-                      const job: Maintenance = linked ?? {
-                        id: e.id,
-                        vehicleId: e.vehicleId,
-                        date: e.date,
-                        type: e.type,
-                        km: e.km,
-                        shop: e.shop,
-                        workshopId: e.workshopId,
-                        cost: estimateTotal(e),
-                        jasa: e.jasa,
-                        status: "proses",
-                        complaint: e.complaint,
-                        action: e.notes || "",
-                        items: e.items.map((it) => ({ ...it })),
-                      };
-                      openSpkPdf({ job, jobs: linked ? jobs : [job, ...jobs], vehicle: v, workshop: shop });
-                    }}
-                  >
-                    PDF
-                  </button>
-                  )}
-                  {e.status !== "wo" && (
-                    <button type="button" className="rounded-full bg-[#071526] px-3 py-1 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
-                  )}
-                  <button
-                    type="button"
-                    className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200"
-                    onClick={() => askRemoveEst(e)}
-                  >
-                    Hapus
-                  </button>
-                  </div>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+                <tr>
+                  {["Unit", "Jenis", "Bengkel", "Tanggal", "Total", "Status", "Aksi"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-semibold">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {estRows.map((e) => {
+                  const v = findFleetUnit(fleet, e.vehicleId);
+                  const shop = findWorkshop(shops, e.shop, e.workshopId);
+                  const shopName = shop?.name || e.shop || "Bengkel belum diisi";
+                  return (
+                    <tr key={e.id} className="border-t border-slate-100">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={vehiclePhoto(v ?? { model: "" })} alt="" className="h-10 w-14 rounded-lg object-cover" />
+                          <div>
+                            <div className="font-semibold">{v?.plate ?? e.vehicleId}</div>
+                            <div className="text-xs text-slate-500">{v ? `${v.brand} ${v.model}` : ""}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">{e.type}</td>
+                      <td className="max-w-[220px] truncate px-4 py-3">{shopName}</td>
+                      <td className="whitespace-nowrap px-4 py-3">{e.date}</td>
+                      <td className="px-4 py-3 font-semibold">{fmt(estimateTotal(e))}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${e.status === "wo" ? "bg-sky-50 text-sky-800" : "bg-slate-100 text-slate-600"}`}>
+                          {e.status === "wo" ? "Sudah WO" : "Arsip"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-nowrap justify-end gap-1.5">
+                          <button type="button" className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold" onClick={() => setEstView(e)}>Detail</button>
+                          {e.status === "wo" ? (
+                            <button type="button" className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold !text-white" onClick={() => printEst(e)}>PDF</button>
+                          ) : (
+                            <button type="button" className="rounded-full bg-[#071526] px-3 py-1.5 text-xs font-semibold !text-white" onClick={() => convertEstToWo(e)}>Lanjut WO</button>
+                          )}
+                          <button type="button" className="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200" onClick={() => askRemoveEst(e)}>Hapus</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-xs text-slate-500">
               {(estPageSafe - 1) * EST_PAGE + 1}–{Math.min(estPageSafe * EST_PAGE, estimates.length)} dari {estimates.length} estimasi
