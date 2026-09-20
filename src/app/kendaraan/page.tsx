@@ -18,8 +18,13 @@ export default function KendaraanPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    syncVehicleFromJobs(loadJobs());
-    setVehicles(loadFleet());
+    function reload() {
+      syncVehicleFromJobs(loadJobs());
+      setVehicles(loadFleet());
+    }
+    reload();
+    window.addEventListener("vmms-sync", reload);
+    return () => window.removeEventListener("vmms-sync", reload);
   }, []);
 
   function persist(next: Vehicle[]) {
