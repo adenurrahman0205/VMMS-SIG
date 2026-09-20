@@ -110,48 +110,44 @@ export default function Page() {
 
   return (
     <Shell title="Command Dashboard">
-      <div className="mb-5 grid gap-3 lg:grid-cols-5">
-        <button
-          type="button"
-          onClick={() => setUseF("all")}
-          className="anim relative overflow-hidden rounded-[28px] p-6 text-left text-white shadow-xl lg:col-span-2"
-        >
-          <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#071526] via-[#071526]/85 to-sky-900/40" />
-          <div className="relative flex h-full min-h-[200px] flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-200 backdrop-blur">Live fleet</span>
-              <span className="flex items-center gap-1.5 text-[11px] text-emerald-300">
-                <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
-                Online
-              </span>
-            </div>
-            <div>
-              <div className="text-sm font-medium text-slate-300">Total armada</div>
-              <div className="mt-1 text-6xl font-semibold tracking-tight">{rows.length}</div>
-              <div className="mt-2 text-sm text-slate-300">{nReady} tersedia · {nMaint} bengkel · {dueSoon.length} dekat servis</div>
-            </div>
+      <button
+        type="button"
+        onClick={() => setUseF("all")}
+        className="anim relative mb-3 overflow-hidden rounded-[28px] p-5 text-left text-white shadow-xl sm:p-6"
+      >
+        <img src="/images/hero-fleet.png" alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#071526] via-[#071526]/85 to-sky-900/40" />
+        <div className="relative flex min-h-[120px] items-end justify-between gap-4 sm:min-h-[140px]">
+          <div>
+            <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-200 backdrop-blur">Live fleet</span>
+            <div className="mt-3 text-sm font-medium text-slate-300">Total armada</div>
+            <div className="text-5xl font-semibold tracking-tight sm:text-6xl">{rows.length}</div>
+            <div className="mt-1 text-sm text-slate-300">{nReady} tersedia · {nMaint} bengkel · {dueSoon.length} dekat servis</div>
           </div>
-        </button>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:col-span-3">
-          {kpis.map((k, i) => (
-            <button
-              key={k.l}
-              type="button"
-              onClick={k.click}
-              style={{ animationDelay: `${80 + i * 50}ms` }}
-              className="anim group relative overflow-hidden rounded-[22px] bg-[#0b1a2e] p-4 text-left text-white ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:ring-sky-400/40"
-            >
-              <div className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${k.c}`}>{k.l}</div>
-              <div className="mt-3 truncate text-xl font-semibold tracking-tight sm:text-2xl">{k.v}</div>
-              <div className="mt-1 text-[11px] text-slate-400">{k.s}</div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
-                <div className={`h-full rounded-full ${k.bar} transition-all duration-700 group-hover:w-full`} style={{ width: `${Math.max(12, Math.min(100, k.pct * 100))}%` }} />
-              </div>
-            </button>
-          ))}
+          <span className="mb-1 flex items-center gap-1.5 text-[11px] text-emerald-300">
+            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-400" />
+            Online
+          </span>
         </div>
+      </button>
+
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {kpis.map((k, i) => (
+          <button
+            key={k.l}
+            type="button"
+            onClick={k.click}
+            style={{ animationDelay: `${80 + i * 40}ms` }}
+            className="anim group relative overflow-hidden rounded-[22px] bg-[#0b1a2e] p-3.5 text-left text-white ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:ring-sky-400/40 sm:p-4"
+          >
+            <div className={`text-[10px] font-semibold uppercase leading-tight tracking-[0.14em] ${k.c}`}>{k.l}</div>
+            <div className="mt-2 truncate text-xl font-semibold tracking-tight sm:text-2xl">{k.v}</div>
+            <div className="mt-0.5 text-[11px] text-slate-400">{k.s}</div>
+            <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10">
+              <div className={`h-full rounded-full ${k.bar} transition-all duration-700 group-hover:w-full`} style={{ width: `${Math.max(12, Math.min(100, k.pct * 100))}%` }} />
+            </div>
+          </button>
+        ))}
       </div>
 
       {dueSoon.length > 0 && (
