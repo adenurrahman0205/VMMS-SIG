@@ -14,9 +14,28 @@ const STORAGE: Record<KvKey, string> = {
 
 let hydrated = false;
 let hydrating: Promise<boolean> | null = null;
+const lastLocalWrite: Partial<Record<KvKey, number>> = {};
 
 export function isHydrated() {
   return hydrated;
+}
+
+function metaKey(key: KvKey) {
+  return `${STORAGE[key]}:t`;
+}
+
+function localStamp(key: KvKey) {
+  if (typeof window === "undefined") return 0;
+  return Math.max(lastLocalWrite[key] ?? 0, Number(localStorage.getItem(metaKey(key)) || 0));
+}
+
+function unwrap(value: unknown): { t: number; rows: unknown[] } | null {
+  if (Array.isArray(value)) return { t: 0, rows: value };
+  if (value && typeof value === "object" && Array.isArray((value as { rows?: unknown }).rows)) {
+    const v = value as { updatedAt?: number; rows: unknown[] };
+    return { t: Number(v.updatedAt) || 0, rows: v.rows };
+  }
+  return null;
 }
 
 async function loadState(): Promise<Record<string, unknown> | null> {
@@ -39,6 +58,11 @@ async function loadState(): Promise<Record<string, unknown> | null> {
   }
 }
 
+function writeLocal(key: KvKey, rows: unknown[], t: number) {
+  localStorage.setItem(STORAGE[key], JSON.stringify(rows));
+  localStorage.setItem(metaKey(key), String(t));
+}
+
 export async function hydrateCloud(): Promise<boolean> {
   if (hydrated) return true;
   if (hydrating) return hydrating;
@@ -51,16 +75,18 @@ export async function hydrateCloud(): Promise<boolean> {
         return false;
       }
       for (const key of Object.keys(STORAGE) as KvKey[]) {
-        const cloud = state[key];
-        if (Array.isArray(cloud)) {
+        const incoming = unwrap(state[key]);
+        if (incoming) {
           const rows =
             key === "users"
-              ? cloud.map((u) => {
+              ? incoming.rows.map((u) => {
                   const row = u as { role?: string };
                   return { ...row, role: row.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "USER" };
                 })
-              : cloud;
-          localStorage.setItem(STORAGE[key], JSON.stringify(rows));
+              : incoming.rows;
+          const lt = localStamp(key);
+          if (incoming.t < lt) continue;
+          writeLocal(key, rows, incoming.t);
           continue;
         }
         const raw = localStorage.getItem(STORAGE[key]);
@@ -85,10 +111,14 @@ export async function hydrateCloud(): Promise<boolean> {
 }
 
 function applySlice(key: KvKey, value: unknown) {
-  if (typeof window === "undefined" || !Array.isArray(value)) return;
-  const next = JSON.stringify(value);
-  if (localStorage.getItem(STORAGE[key]) === next) return;
-  localStorage.setItem(STORAGE[key], next);
+  if (typeof window === "undefined") return;
+  const incoming = unwrap(value);
+  if (!incoming) return;
+  const lt = localStamp(key);
+  if (incoming.t < lt) return;
+  if (incoming.t === lt && localStorage.getItem(STORAGE[key]) === JSON.stringify(incoming.rows)) return;
+  if (incoming.t === 0 && lt > 0) return;
+  writeLocal(key, incoming.rows, incoming.t);
   window.dispatchEvent(new CustomEvent("vmms-sync", { detail: key }));
 }
 
@@ -125,11 +155,15 @@ export function startLiveSync() {
 }
 
 export async function pushCloud(key: KvKey, value: unknown) {
+  const t = Date.now();
+  lastLocalWrite[key] = t;
+  if (typeof window !== "undefined") localStorage.setItem(metaKey(key), String(t));
+  const packed = { updatedAt: t, rows: value };
   try {
     const res = await fetch("/api/app-state", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key, value }),
+      body: JSON.stringify({ key, value: packed }),
     });
     if (res.ok) return true;
   } catch {
@@ -137,7 +171,7 @@ export async function pushCloud(key: KvKey, value: unknown) {
   }
   try {
     const sb = createBrowserSupabase();
-    const { error } = await sb.from("app_kv").upsert({ key, value }, { onConflict: "key" });
+    const { error } = await sb.from("app_kv").upsert({ key, value: packed }, { onConflict: "key" });
     return !error;
   } catch {
     return false;
