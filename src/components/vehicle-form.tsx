@@ -31,6 +31,7 @@ export function VehicleForm({
   onClose,
   sections = "full",
   notice = "",
+  takenPlates = [],
 }: {
   initial: Vehicle;
   title: string;
@@ -38,12 +39,18 @@ export function VehicleForm({
   onClose: () => void;
   sections?: "full" | "docs";
   notice?: string;
+  takenPlates?: string[];
 }) {
   const [form, setForm] = useState<Vehicle>(() => ({
     ...initial,
     transmission: initial.transmission ?? "matic",
     documents: docsForVehicle(initial),
   }));
+  const [plateErr, setPlateErr] = useState("");
+
+  function plateKey(p: string) {
+    return p.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  }
 
   function set<K extends keyof Vehicle>(k: K, val: string) {
     const num = ["year", "madeYear", "km", "health", "buyPrice", "nextServiceKm"].includes(String(k));
@@ -100,6 +107,18 @@ export function VehicleForm({
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
+          if (sections !== "docs") {
+            const key = plateKey(form.plate);
+            if (!key) {
+              setPlateErr("Nomor plat wajib diisi.");
+              return;
+            }
+            if (takenPlates.some((p) => plateKey(p) === key)) {
+              setPlateErr("Nomor plat ini sudah dipakai kendaraan lain. Gunakan plat yang berbeda.");
+              return;
+            }
+          }
+          setPlateErr("");
           onSave(
             sections === "docs"
               ? { ...initial, documents: form.documents }
@@ -146,7 +165,16 @@ export function VehicleForm({
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Identitas unit</p>
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Field label="Nomor plat">
-              <input className={inputCls} value={form.plate} onChange={(e) => set("plate", e.target.value)} required readOnly={sections === "docs"} />
+              <input
+                className={inputCls}
+                value={form.plate}
+                onChange={(e) => {
+                  setPlateErr("");
+                  set("plate", e.target.value);
+                }}
+                required
+                readOnly={sections === "docs"}
+              />
             </Field>
             <Field label="Merk">
               <input className={inputCls} value={form.brand} onChange={(e) => set("brand", e.target.value)} required readOnly={sections === "docs"} />
@@ -414,7 +442,9 @@ export function VehicleForm({
         </div>
 
         <div className="border-t border-slate-100 bg-slate-50 px-6 py-4">
-          {notice ? <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-red-100">{notice}</p> : null}
+          {(plateErr || notice) ? (
+            <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-red-100">{plateErr || notice}</p>
+          ) : null}
           <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm">
             Batal

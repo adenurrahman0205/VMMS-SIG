@@ -57,7 +57,7 @@ export default function KendaraanPage() {
   );
 
   function plateKey(p: string) {
-    return p.replace(/\s+/g, "").toUpperCase();
+    return p.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
   }
 
   async function save(v: Vehicle) {
@@ -66,7 +66,8 @@ export default function KendaraanPage() {
       setMsg("Nomor plat wajib diisi.");
       return;
     }
-    const dup = vehicles.find((x) => x.id !== v.id && plateKey(x.plate) === key);
+    const all = loadFleet();
+    const dup = all.find((x) => x.id !== v.id && plateKey(x.plate) === key);
     if (dup) {
       setMsg(
         mode === "create"
