@@ -6,7 +6,7 @@ const STORAGE: Record<KvKey, string> = {
   fleet: "vmms-armada-v3",
   bookings: "vmms-bookings-v2",
   users: "vmms-users-v1",
-  jobs: "vmms-maintenance-v1",
+  jobs: "vmms-maintenance-v2",
   workshops: "vmms-workshops-v1",
   spareparts: "vmms-spareparts-v1",
   estimates: "vmms-estimates-v1",
@@ -82,6 +82,46 @@ export async function hydrateCloud(): Promise<boolean> {
     }
   })();
   return hydrating;
+}
+
+function applySlice(key: KvKey, value: unknown) {
+  if (typeof window === "undefined" || !Array.isArray(value)) return;
+  const next = JSON.stringify(value);
+  if (localStorage.getItem(STORAGE[key]) === next) return;
+  localStorage.setItem(STORAGE[key], next);
+  window.dispatchEvent(new CustomEvent("vmms-sync", { detail: key }));
+}
+
+let live = false;
+
+export function startLiveSync() {
+  if (typeof window === "undefined" || live) return;
+  live = true;
+
+  const tick = async () => {
+    if (document.visibilityState === "hidden") return;
+    const state = await loadState();
+    if (!state) return;
+    (["jobs", "fleet", "estimates", "workshops"] as KvKey[]).forEach((k) => applySlice(k, state[k]));
+  };
+
+  void tick();
+  window.setInterval(() => void tick(), 3000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void tick();
+  });
+
+  try {
+    const sb = createBrowserSupabase();
+    sb.channel("vmms-app-kv")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_kv" }, (payload) => {
+        const row = payload.new as { key?: string; value?: unknown } | null;
+        if (row?.key && row.key in STORAGE) applySlice(row.key as KvKey, row.value);
+      })
+      .subscribe();
+  } catch {
+    /* polling cukup */
+  }
 }
 
 export async function pushCloud(key: KvKey, value: unknown) {

@@ -54,10 +54,15 @@ export default function Mnt() {
   });
 
   useEffect(() => {
-    setFleet(loadFleet());
-    setJobs(loadJobs());
-    setShops(loadWorkshops());
-    setEstimates(loadEstimates());
+    function reload() {
+      setFleet(loadFleet());
+      setJobs(loadJobs());
+      setShops(loadWorkshops());
+      setEstimates(loadEstimates());
+    }
+    reload();
+    window.addEventListener("vmms-sync", reload);
+    return () => window.removeEventListener("vmms-sync", reload);
   }, []);
 
   function persist(next: Maintenance[]) {

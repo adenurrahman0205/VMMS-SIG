@@ -129,6 +129,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   useEffect(() => {
     (async () => {
       await hydrateCloud();
+      startLiveSync();
       setReady(true);
       const sb = createBrowserSupabase();
       const { data } = await sb.auth.getUser();
