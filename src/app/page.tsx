@@ -144,7 +144,7 @@ export default function Page() {
               className="anim group relative flex min-h-[128px] flex-col overflow-hidden rounded-[22px] bg-[#0b1a2e] p-3.5 text-left text-white ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:ring-sky-400/40"
             >
               <div className={`text-[9px] font-semibold uppercase leading-snug tracking-[0.12em] ${k.c}`}>{k.l}</div>
-              <div className="mt-auto truncate text-lg font-semibold tracking-tight sm:text-xl">{k.v}</div>
+              <div className="mt-auto truncate text-2xl font-semibold tracking-tight sm:text-3xl">{k.v}</div>
               <div className="mt-0.5 text-[10px] text-slate-400">{k.s}</div>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                 <div className={`h-full rounded-full ${k.bar}`} style={{ width: `${Math.max(12, Math.min(100, k.pct * 100))}%` }} />
