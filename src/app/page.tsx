@@ -222,6 +222,23 @@ export default function Page() {
         </div>
       </div>
 
+      <div className="mb-5 grid gap-4 lg:grid-cols-2">
+        <DueDocCard
+          title="Pajak jatuh tempo"
+          hint="Expired atau ≤ 60 hari"
+          items={dueDocs.pajak}
+          tone="rose"
+          onOpen={setOpen}
+        />
+        <DueDocCard
+          title="Asuransi jatuh tempo"
+          hint="Expired atau ≤ 60 hari"
+          items={dueDocs.asuransi}
+          tone="sky"
+          onOpen={setOpen}
+        />
+      </div>
+
       {dueSoon.length > 0 && (
         <Card className="mb-5 overflow-hidden p-0">
           <div className="flex items-center justify-between bg-amber-50 px-4 py-3">
