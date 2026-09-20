@@ -170,7 +170,9 @@ export default function Page() {
   const kpis = [
     { l: "Tersedia", v: String(nReady), s: "Siap operasi", click: () => setUseF("ready"), c: "text-emerald-300", bar: "bg-emerald-400", pct: rows.length ? nReady / rows.length : 0 },
     { l: "Bengkel", v: String(nMaint), s: "Sedang perawatan", click: () => setUseF("maint"), c: "text-amber-300", bar: "bg-amber-400", pct: rows.length ? nMaint / rows.length : 0 },
-    { l: "Jatuh tempo", v: String(dueSoon.length), s: "Mobil dekat servis", click: () => undefined, c: "text-red-300", bar: "bg-red-400", pct: rows.length ? dueSoon.length / rows.length : 0 },
+    { l: "Pajak jatuh tempo", v: String(dueDocs.pajak.length), s: "Unit pajak due", click: () => undefined, c: "text-rose-300", bar: "bg-rose-400", pct: rows.length ? dueDocs.pajak.length / rows.length : 0 },
+    { l: "Asuransi jatuh tempo", v: String(dueDocs.asuransi.length), s: "Unit asuransi due", click: () => undefined, c: "text-cyan-300", bar: "bg-cyan-400", pct: rows.length ? dueDocs.asuransi.length / rows.length : 0 },
+    { l: "Jatuh tempo servis", v: String(dueSoon.length), s: "Mobil dekat servis", click: () => undefined, c: "text-red-300", bar: "bg-red-400", pct: rows.length ? dueSoon.length / rows.length : 0 },
     { l: "Total KM", v: fmtN(totalKm), s: "Akumulasi odometer", click: () => setUseF("all"), c: "text-sky-300", bar: "bg-sky-400", pct: 0.72 },
     { l: "Biaya WO", v: fmt(totalCost), s: "WO selesai", click: () => undefined, c: "text-orange-300", bar: "bg-orange-400", pct: 0.55 },
     { l: "Cost / KM", v: fmt(Math.round(totalCost / Math.max(totalKm, 1))), s: "Efisiensi armada", click: () => undefined, c: "text-violet-300", bar: "bg-violet-400", pct: 0.4 },
