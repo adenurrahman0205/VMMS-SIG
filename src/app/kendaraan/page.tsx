@@ -56,7 +56,26 @@ export default function KendaraanPage() {
     [q, f, own, vehicles]
   );
 
+  function plateKey(p: string) {
+    return p.replace(/\s+/g, "").toUpperCase();
+  }
+
   async function save(v: Vehicle) {
+    const key = plateKey(v.plate);
+    if (!key) {
+      setMsg("Nomor plat wajib diisi.");
+      return;
+    }
+    const dup = vehicles.find((x) => x.id !== v.id && plateKey(x.plate) === key);
+    if (dup) {
+      setMsg(
+        mode === "create"
+          ? `Kendaraan ${dup.plate} sudah ada. Tidak bisa ditambahkan lagi.`
+          : `Nomor plat ${dup.plate} sudah dipakai unit lain. Gunakan plat yang berbeda.`
+      );
+      return;
+    }
+    setMsg("");
     if (mode === "create") {
       persist([v, ...vehicles]);
       syncCreate(v).catch(() => setMsg("Tersimpan lokal. Login admin untuk tulis ke Supabase."));
@@ -259,8 +278,12 @@ export default function KendaraanPage() {
         <VehicleForm
           initial={editor}
           title={mode === "create" ? "Tambah kendaraan" : `Update ${editor.plate}`}
+          notice={msg}
           onSave={save}
-          onClose={() => setEditor(null)}
+          onClose={() => {
+            setMsg("");
+            setEditor(null);
+          }}
         />
       )}
     </Shell>

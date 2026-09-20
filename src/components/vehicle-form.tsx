@@ -30,12 +30,14 @@ export function VehicleForm({
   onSave,
   onClose,
   sections = "full",
+  notice = "",
 }: {
   initial: Vehicle;
   title: string;
   onSave: (v: Vehicle) => void;
   onClose: () => void;
   sections?: "full" | "docs";
+  notice?: string;
 }) {
   const [form, setForm] = useState<Vehicle>(() => ({
     ...initial,
@@ -411,11 +413,14 @@ export function VehicleForm({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
+        <div className="border-t border-slate-100 bg-slate-50 px-6 py-4">
+          {notice ? <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 ring-1 ring-red-100">{notice}</p> : null}
+          <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm">
             Batal
           </button>
           <button className="rounded-xl bg-[#071526] px-6 py-2 text-sm font-semibold !text-white">Simpan</button>
+          </div>
         </div>
       </form>
     </div>
