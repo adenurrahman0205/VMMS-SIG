@@ -18,8 +18,9 @@ export default function KendaraanPage() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    function reload() {
-      syncVehicleFromJobs(loadJobs());
+    function reload(ev?: Event) {
+      const key = (ev as CustomEvent | undefined)?.detail;
+      if (key === "jobs") syncVehicleFromJobs(loadJobs());
       setVehicles(loadFleet());
     }
     reload();
