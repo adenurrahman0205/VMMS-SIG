@@ -1,6 +1,6 @@
 import type { Vehicle as DbVehicle } from "@/types/vehicle";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { vehicles as demo, type Vehicle as DemoVehicle } from "@/lib/data";
+import { type Vehicle as DemoVehicle } from "@/lib/data";
 
 export const vehicleService = {
   async listFromDb(): Promise<DbVehicle[]> {
@@ -70,7 +70,7 @@ export const vehicleService = {
     } catch {
       /* RLS / missing table */
     }
-    return { source: "demo", rows: demo };
+    return { source: "demo", rows: [] };
   },
 };
 

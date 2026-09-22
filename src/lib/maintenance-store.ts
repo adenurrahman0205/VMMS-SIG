@@ -1,4 +1,4 @@
-import { computeVehicleHealth, maintenance as seed, vehicles as seedVehicles, type Maintenance, type Vehicle } from "./data";
+import { computeVehicleHealth, vehicles as seedVehicles, type Maintenance, type Vehicle } from "./data";
 import { loadFleet, saveFleet } from "./fleet-store";
 import { ingestFromJobs } from "./sparepart-store";
 import { pushCloud } from "./services/sync.service";
@@ -55,7 +55,7 @@ function alignJobs(rows: Maintenance[], fleet: Vehicle[]): Maintenance[] {
 }
 
 export function loadJobs(): Maintenance[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   const fleet = loadFleet();
   try {
     const raw = localStorage.getItem(KEY) || localStorage.getItem(LEGACY);
@@ -66,7 +66,7 @@ export function loadJobs(): Maintenance[] {
   } catch {
     /* ignore */
   }
-  return alignJobs(seed, fleet);
+  return [];
 }
 
 export function saveJobs(rows: Maintenance[]) {
