@@ -22,7 +22,7 @@ function withHealth(v: Vehicle, jobs: Maintenance[]): Vehicle {
 
 export function loadFleet(): Vehicle[] {
   const jobs = jobsFromStorage();
-  if (typeof window === "undefined") return seed.map((v) => withHealth(v, []));
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
