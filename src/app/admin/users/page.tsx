@@ -211,12 +211,27 @@ export default function UsersPage() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[920px] text-sm">
+          <table className="w-full min-w-[960px] table-fixed text-sm">
+            <colgroup>
+              <col className="w-[22%]" />
+              <col className="w-[20%]" />
+              <col className="w-[12%]" />
+              <col className="w-[12%]" />
+              <col className="w-[12%]" />
+              <col className="w-[10%]" />
+              <col className="w-[8%]" />
+              <col className="w-[14%]" />
+            </colgroup>
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Nama", "Email", "Divisi", "Jabatan", "Role", "Terdaftar", "Status", ""].map((h) => (
-                  <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
-                ))}
+                <th className="px-4 py-3 font-semibold">Nama</th>
+                <th className="px-4 py-3 font-semibold">Email</th>
+                <th className="px-4 py-3 font-semibold">Divisi</th>
+                <th className="px-4 py-3 font-semibold">Jabatan</th>
+                <th className="px-4 py-3 font-semibold">Role</th>
+                <th className="px-4 py-3 font-semibold">Terdaftar</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold text-right">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -230,37 +245,38 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {u.avatar ? (
-                        <img src={u.avatar} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-slate-200" />
+                        <img src={u.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-slate-200" />
                       ) : (
-                        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#071526] text-[11px] font-semibold text-white">{initials(u.name)}</span>
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#071526] text-[11px] font-semibold text-white">{initials(u.name)}</span>
                       )}
                       <div className="min-w-0">
-                    <div className="font-semibold">{u.name}</div>
-                    {u.phone ? (
-                      <a
-                        href={waHref(u.phone)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold text-emerald-700 hover:underline"
-                      >
-                        {u.phone}
-                      </a>
-                    ) : (
-                      <div className="text-xs text-slate-400">—</div>
-                    )}
+                        <div className="truncate font-semibold">{u.name}</div>
+                        {u.phone ? (
+                          <a
+                            href={waHref(u.phone)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold text-emerald-700 hover:underline"
+                          >
+                            {u.phone}
+                          </a>
+                        ) : (
+                          <div className="text-xs text-slate-400">—</div>
+                        )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">{u.email}</td>
-                  <td className="px-4 py-3">{u.dept || "—"}</td>
-                  <td className="px-4 py-3">{u.jabatan || "—"}</td>
+                  <td className="truncate px-4 py-3">{u.email}</td>
+                  <td className="truncate px-4 py-3">{u.dept || "—"}</td>
+                  <td className="truncate px-4 py-3">{u.jabatan || "—"}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold">{u.role}</span>
                   </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatRegistered(u.createdAt)}</td>
                   <td className="px-4 py-3">
                     <Badge status={u.active ? "aktif" : "inactive"} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
                     {isSuper ? (
                       <>
                         <button className="mr-3 text-xs font-semibold text-sky-700" onClick={() => { setIsNew(false); setFormMsg(""); setEditor(u); }}>Ubah</button>
