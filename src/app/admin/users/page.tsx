@@ -12,6 +12,13 @@ function initials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
 }
 
+function formatRegistered(iso?: string) {
+  if (!iso) return "—";
+  const d = new Date(iso.includes("T") ? iso : `${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+
 const inputCls =
   "mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100";
 
@@ -204,10 +211,10 @@ export default function UsersPage() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-sm">
+          <table className="w-full min-w-[920px] text-sm">
             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <tr>
-                {["Nama", "Email", "Divisi", "Jabatan", "Role", "Status", ""].map((h) => (
+                {["Nama", "Email", "Divisi", "Jabatan", "Role", "Terdaftar", "Status", ""].map((h) => (
                   <th key={h || "x"} className="px-4 py-3 font-semibold">{h}</th>
                 ))}
               </tr>
@@ -215,7 +222,7 @@ export default function UsersPage() {
             <tbody>
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-400">Belum ada user.</td>
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400">Belum ada user.</td>
                 </tr>
               )}
               {list.map((u) => (
