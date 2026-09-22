@@ -7,6 +7,7 @@ import { VehicleForm } from "@/components/vehicle-form";
 import { dueServiceKm, fmtN, inferOwnerKind, ownerKindLabel, type OwnerKind, type Vehicle, vehiclePhoto } from "@/lib/data";
 import { blankVehicle, loadFleet, saveFleet, syncArchive, syncCreate, syncUpdate } from "@/lib/fleet-store";
 import { loadJobs, syncVehicleFromJobs } from "@/lib/maintenance-store";
+import { hydrateCloud } from "@/lib/services/sync.service";
 
 export default function KendaraanPage() {
   const [q, setQ] = useState("");

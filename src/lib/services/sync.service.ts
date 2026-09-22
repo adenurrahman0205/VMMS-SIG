@@ -85,7 +85,9 @@ export async function hydrateCloud(): Promise<boolean> {
                 })
               : incoming.rows;
           const lt = localStamp(key);
-          if (incoming.t < lt) continue;
+          const justWrote = (lastLocalWrite[key] ?? 0) > incoming.t;
+          if (justWrote) continue;
+          if (incoming.t < lt && incoming.t > 0 && (incoming.rows?.length ?? 0) === 0) continue;
           writeLocal(key, rows, incoming.t);
           continue;
         }
@@ -115,7 +117,7 @@ function applySlice(key: KvKey, value: unknown) {
   const incoming = unwrap(value);
   if (!incoming) return;
   const lt = localStamp(key);
-  if (incoming.t < lt) return;
+  if ((lastLocalWrite[key] ?? 0) > incoming.t) return;
   if (incoming.t === lt && localStorage.getItem(STORAGE[key]) === JSON.stringify(incoming.rows)) return;
   if (incoming.t === 0 && lt > 0) return;
   writeLocal(key, incoming.rows, incoming.t);

@@ -99,10 +99,12 @@ export function blankJob(vehicleId = ""): Maintenance {
 export function syncVehicleFromJobs(rows: Maintenance[] = loadJobs()) {
   const fleet = loadFleet();
   const prosesIds = new Set(rows.filter((j) => j.status === "proses").map((j) => j.vehicleId));
+  let changed = false;
   const next = fleet.map((v) => {
     const status = prosesIds.has(v.id) ? ("maintenance" as const) : v.status === "maintenance" ? ("ready" as const) : v.status;
-    const row = { ...v, status };
-    return { ...row, health: computeVehicleHealth(row, rows) };
+    const health = computeVehicleHealth({ ...v, status }, rows);
+    if (status !== v.status || health !== v.health) changed = true;
+    return { ...v, status, health };
   });
-  saveFleet(next);
+  if (changed) saveFleet(next);
 }

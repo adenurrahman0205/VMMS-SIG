@@ -28,7 +28,7 @@ export function loadFleet(): Vehicle[] {
     if (raw) {
       const parsed = JSON.parse(raw) as Vehicle[];
       if (Array.isArray(parsed) && parsed.length) {
-        const next = parsed.map((v) =>
+        return parsed.map((v) =>
           withHealth(
             {
               ...v,
@@ -41,14 +41,6 @@ export function loadFleet(): Vehicle[] {
             jobs
           )
         );
-        const needNominal = parsed.some((v) => {
-          const docs = v.documents ?? [];
-          const pajakOk = docs.some((d) => d.type.trim().toLowerCase() === "pajak" && Number(d.amount) > 0);
-          const asuOk = docs.some((d) => d.type.trim().toLowerCase() === "asuransi" && Number(d.amount) > 0);
-          return !pajakOk || !asuOk;
-        });
-        if (needNominal) saveFleet(next);
-        return next;
       }
     }
   } catch {
